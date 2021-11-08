@@ -41,6 +41,7 @@ class HydraulicVariable:
         self.software_attributes_list = []  # software string names list to link with them
         self.precomputable_tohdf5 = False  # computable at reading original file to save hdf5
         self.depend_on_h = depend_on_h  # if h set to 0, value also set to 0
+        self.original_unit = ""  # string original unit
         self.habitat = False  # False: hydraulic and substrate (default) True: Habitat
 
     def __str__(self):
@@ -56,24 +57,7 @@ class HabitatVariable(HydraulicVariable):
     """
     def __init__(self, name="", name_gui="", descr="", dtype=None, unit="", position="", value=None, hdf5=False,
                  sub=False, index_gui=-1, depend_on_h=True):
-        super().__init__()
-        self.name = name  # to manage them
-        self.name_gui = name_gui  # to gui
-        self.descr = descr  # description string
-        self.unit = unit  # string unit
-        self.dtype = dtype  # float64 or int64
-        self.position = position  # node, mesh, (possible face ?)
-        self.value = value  # for ro, g, .. (constant but possible varying ?)
-        self.hdf5 = hdf5  # hdf5 or computable
-        self.sub = sub  # False: hydraulic (default) True: substrate
-        self.index_gui = index_gui  # position index in gui
-        self.original_unit = ""  # string original unit
-        self.data = [[]]
-        self.min = 0.0  # min for all reach and unit
-        self.max = 0.0  # max for all reach and unit
-        self.software_attributes_list = []  # software string names list to link with them
-        self.precomputable_tohdf5 = False  # computable at reading original file to save hdf5
-        self.depend_on_h = depend_on_h  # if h set to 0, value also set to 0
+        super().__init__(name, name_gui, descr, dtype, unit, position, value, hdf5, sub, index_gui, depend_on_h)
         # hab data
         self.habitat = True  # False: hydraulic and substrate (default) True: Habitat
         self.wua = [[]]
