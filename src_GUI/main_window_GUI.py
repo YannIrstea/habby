@@ -209,7 +209,6 @@ class MainWindows(QMainWindow):
         if hasattr(self.central_widget, "data_explorer_tab"):
             self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon)
             self.bio_model_explorer_dialog.send_log.connect(self.central_widget.write_log)
-            self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
             self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
 
         # create the menu bar
@@ -1486,15 +1485,12 @@ class MainWindows(QMainWindow):
             if hasattr(self, "bio_model_explorer_dialog"):
                 if not self.bio_model_explorer_dialog:
                     self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon)
-                    self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
                     self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
                 else:
                     self.bio_model_explorer_dialog.__init__(self, self.path_prj, self.name_prj, self.name_icon)
-                    self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
                     self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
             else:
                 self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon)
-                self.bio_model_explorer_dialog.bio_model_infoselection_tab.send_log.connect(self.central_widget.write_log)
                 self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
 
             if hasattr(self, "preferences_dialog"):

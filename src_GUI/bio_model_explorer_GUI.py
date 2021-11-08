@@ -56,8 +56,9 @@ class BioModelExplorerWindow(QDialog):
         # filters index
 
         # tabs
-        self.bio_model_filter_tab = BioModelFilterTab(path_prj, name_prj)
-        self.bio_model_infoselection_tab = BioModelInfoSelection(path_prj, name_prj)
+        self.bio_model_filter_tab = BioModelFilterTab(path_prj, name_prj, self.send_log)
+        self.bio_model_filter_tab.refresh_user_bio_database_push.clicked.connect(self.refresh_user_bio_database)
+        self.bio_model_infoselection_tab = BioModelInfoSelection(path_prj, name_prj, self.send_log)
         self.init_iu()
 
     def init_iu(self):
@@ -71,6 +72,7 @@ class BioModelExplorerWindow(QDialog):
         self.tab_widget = QTabWidget()
         self.tab_widget.addTab(self.bio_model_filter_tab, self.tr("Model filter"))
         self.tab_widget.addTab(self.bio_model_infoselection_tab, self.tr("Model selection"))
+
 
         # tatusTip
         self.bio_model_infoselection_tab.show_curve_pushbutton.installEventFilter(self)
@@ -154,6 +156,23 @@ class BioModelExplorerWindow(QDialog):
             self.status_bar.showMessage(self.tr("Select your models by drag and drop and "
                                                 "then click on 'Validate selected models' button."))
 
+    def refresh_user_bio_database(self):
+        user_preferences.check_need_update_biology_models_json()
+        user_preferences.format_biology_models_dict_togui()
+
+        if user_preferences.diff_list:
+            if "Error" in user_preferences.diff_list:
+                self.send_log.emit(user_preferences.diff_list)
+                self.send_log.emit(self.tr("The biological user models have not been changed."))
+            else:
+                self.send_log.emit(self.tr("Warning: ") + self.tr("User biological models ") + user_preferences.diff_list)
+                self.send_log.emit(self.tr("The biological user models have been changed."))
+                self.bio_model_filter_tab.biological_models_dict_gui = user_preferences.biological_models_dict.copy()
+                self.bio_model_filter_tab.fill_first_time()
+                self.bio_model_infoselection_tab.selected_aquatic_animal_listwidget.clear()
+        else:
+            self.send_log.emit(self.tr("The biological user models have not been changed."))
+
     def eventFilter(self, obj, event):
         '''
         Manual setStatusTip
@@ -181,17 +200,17 @@ class BioModelFilterTab(QScrollArea):
     """
     This class contain first tab (Model filter).
     """
-    send_log = pyqtSignal(str, name='send_log')
     send_selection = pyqtSignal(object, name='send_selection')
     """
     A PyQt signal to send the log.
     """
 
-    def __init__(self, path_prj, name_prj):
+    def __init__(self, path_prj, name_prj, send_log):
         super().__init__()
         self.tab_name = "model_filter"
         self.path_prj = path_prj
         self.name_prj = name_prj
+        self.send_log = send_log
         self.msg2 = QMessageBox()
         self.biological_models_dict_gui = user_preferences.biological_models_dict.copy()
         #self.create_dico_select()
@@ -272,6 +291,10 @@ class BioModelFilterTab(QScrollArea):
         [filter_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection) for filter_listwidget in
          self.filters_list_widget]
 
+        self.refresh_user_bio_database_push = QPushButton(self.tr("Refresh user biological database"))
+        self.refresh_user_bio_database_push.setToolTip(self.tr("Refresh user biological models database in ") +
+                                                       user_preferences.user_pref_biology_models)
+
         """ GROUP ET LAYOUT """
         # filters
         self.filter_group = QGroupBox(self.tr("Filters"))
@@ -301,6 +324,11 @@ class BioModelFilterTab(QScrollArea):
         self.last_filter_layout.addWidget(crust_code_alternative_label, 0, 2)
         self.last_filter_layout.addWidget(self.crust_code_alternative_listwidget, 1, 2)
 
+        # pushbutton
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(self.refresh_user_bio_database_push)
+        button_layout.setAlignment(Qt.AlignLeft)
+
         """ GENERAL """
         # tools frame
         tools_frame = QFrame()
@@ -312,6 +340,7 @@ class BioModelFilterTab(QScrollArea):
         global_layout = QVBoxLayout(self)
         global_layout.addWidget(self.filter_group)
         global_layout.addWidget(self.last_filter_group)
+        global_layout.addItem(button_layout)
         global_layout.setAlignment(Qt.AlignTop)
         tools_frame.setLayout(global_layout)
 
@@ -572,17 +601,13 @@ class BioModelInfoSelection(QScrollArea):
     """
     This class contain second tab (Model selection).
     """
-    send_log = pyqtSignal(object, name='send_log')
-    """
-    A PyQt signal to send the log.
-    """
-
-    def __init__(self, path_prj, name_prj):
+    def __init__(self, path_prj, name_prj, send_log):
         super().__init__()
         self.tab_name = "model_selected"
         self.mystdout = None
         self.path_prj = path_prj
         self.name_prj = name_prj
+        self.send_log = send_log
         self.selected_fish_code_biological_model = None
         self.selected_aquatic_animal_list = []
         self.msg2 = QMessageBox()
