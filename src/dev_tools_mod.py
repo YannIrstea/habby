@@ -58,6 +58,11 @@ def copy_hydrau_input_files(path_filename_source, filename_source_str, hdf5_name
     copy input hydraulic files with indexHYDRAU.txt to input project folder in a folder as input
     (if severeral hydraulic with indexHYDRAU.txt, it will not be erased).
     """
+    # if lammi Transect.txt
+    if "Transect.txt" in filename_source_str:
+        prj_list_file = [s for s in os.listdir(path_filename_source) if s.endswith('.prn')]
+        filename_source_str = filename_source_str + ", " + ", ".join(prj_list_file)
+
     # create folder with hdf5 name in input project folder
     input_hdf5name_folder_path = os.path.join(dest_folder_path, os.path.splitext(hdf5_name)[0])
     if os.path.exists(input_hdf5name_folder_path):
