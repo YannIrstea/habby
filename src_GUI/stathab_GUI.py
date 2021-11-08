@@ -273,14 +273,15 @@ class StathabW(estimhab_GUI.StatModUseful):
                 splited_item_str = item_str.split()
                 code_bio_model = splited_item_str[-1]
                 stage = splited_item_str[-3]
-                index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
-                model_dict = get_biomodels_informations_for_database(user_preferences.biological_models_dict["path_xml"][index_fish])
-                hydraulic_type_available = model_dict["hydraulic_type_available"][model_dict["stage_and_size"].index(stage)]
 
                 # check if user pref curve file has been removed by user (AppData) to remove it in
                 if not code_bio_model in user_preferences.biological_models_dict["code_biological_model"]:
                     # remove it
                     continue
+
+                index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
+                model_dict = get_biomodels_informations_for_database(user_preferences.biological_models_dict["path_xml"][index_fish])
+                hydraulic_type_available = model_dict["hydraulic_type_available"][model_dict["stage_and_size"].index(stage)]
 
                 if "HV" in hydraulic_type_available:
                     # add it to selected
