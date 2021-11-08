@@ -21,6 +21,7 @@ import numpy as np
 from lxml import etree as ET
 import re
 
+from src.dev_tools_mod import copy_files
 from src.variable_unit_mod import HydraulicVariableUnitManagement
 
 
@@ -667,3 +668,13 @@ def change_unit(data, unit):
         print('Warning: Unit not recognized : ' + unit)
 
     return data
+
+
+def copy_or_not_user_pref_curve_to_input_folder(animal, project_preferences):
+    # copy xml curves to input project folder
+    if "INRAE_EDF_OFB" in os.path.dirname(animal.pref_file):  # user case
+        name_xml = os.path.basename(animal.pref_file)
+        path = os.path.dirname(animal.pref_file)
+        if not os.path.exists(os.path.join(project_preferences["path_input"], "user_models")):
+            os.makedirs(os.path.join(project_preferences["path_input"], "user_models"))
+        copy_files([name_xml], [path], os.path.join(project_preferences["path_input"], "user_models"))

@@ -21,9 +21,8 @@ from time import sleep
 import numpy as np
 from scipy.interpolate import interp1d, griddata
 
-import src.dev_tools_mod
-import src.tools_mod
-from src import hdf5_mod, bio_info_mod
+from src.hdf5_mod import Hdf5Management
+from src.bio_info_mod import read_pref, copy_or_not_user_pref_curve_to_input_folder
 from src.substrate_mod import sandre_to_cemagref_by_percentage_array, sandre_to_cemagref_array, \
     pref_substrate_coarser_from_percentage_description, pref_substrate_dominant_from_percentage_description
 from src.translator_mod import get_translator
@@ -84,7 +83,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
 
     # load data and get variable to compute
     hdf5_path = os.path.dirname(os.path.join(project_preferences['path_prj'], "hdf5"))
-    hdf5 = hdf5_mod.Hdf5Management(hdf5_path, hab_filename, new=False, edit=True)
+    hdf5 = Hdf5Management(hdf5_path, hab_filename, new=False, edit=True)
     hdf5.load_hdf5(user_target_list=animal_variable_list)
 
     # progress
@@ -94,7 +93,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
     for animal in animal_variable_list:
         """ get bio model """
         # load bio data
-        information_model_dict = bio_info_mod.read_pref(animal.pref_file)
+        information_model_dict = read_pref(animal.pref_file)
         # search stage
         stage_index = None
         for i, stade_bio in enumerate(information_model_dict["stage_and_size"]):
@@ -354,23 +353,9 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
     # saving hdf5 data of the habitat value
     hdf5.add_fish_hab(animal_variable_list)
 
-    # copy xml curves to input project folder
-    names = []
-    paths = []
-    for animal in animal_variable_list:
-        if "INRAE_EDF_OFB" in os.path.dirname(animal.pref_file):  # user case
-            name_xml = os.path.basename(animal.pref_file)
-            names.append(name_xml)
-            path = os.path.dirname(animal.pref_file)
-            paths.append(path)
-            if animal.path_img:
-                name_png = os.path.basename(animal.path_img)
-                names.append(name_png)
-                paths.append(path)
-    if names:
-        if not os.path.exists(os.path.join(project_preferences["path_input"], "user_models")):
-            os.makedirs(os.path.join(project_preferences["path_input"], "user_models"))
-        src.dev_tools_mod.copy_files(names, paths, os.path.join(project_preferences["path_input"], "user_models"))
+    # copy_or_not_user_pref_curve_to_input_folder
+    for animal2 in animal_variable_list:
+        copy_or_not_user_pref_curve_to_input_folder(animal2, project_preferences)
 
     # export
     export_dict = dict()

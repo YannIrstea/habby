@@ -28,7 +28,7 @@ from lxml import etree as ET
 from src_GUI import estimhab_GUI
 from src import hdf5_mod
 from src.project_properties_mod import load_project_properties, save_project_properties
-from src.bio_info_mod import read_pref
+from src.bio_info_mod import read_pref, copy_or_not_user_pref_curve_to_input_folder
 from src.plot_mod import plot_stat_data
 from src.user_preferences_mod import user_preferences
 from src.variable_unit_mod import HydraulicVariableUnitManagement
@@ -872,6 +872,7 @@ class Stathab:
         # each animal model
         dict_pref_stahab = {'code_bio_model': [], 'stage': [], 'bmono': [], 'h_data': [], 'v_data': [],
                             'h_pref_data': [], 'v_pref_data': [], 'hv_pref_data': []}
+        project_preferences = load_project_properties(self.path_prj)  # load_project_properties
         for hab_string_var in self.fish_chosen:
             # get gui informations
             stage = hab_string_var.split(" - ")[-2]
@@ -883,6 +884,8 @@ class Stathab:
             hab_var = information_model_dict["hab_variable_list"][stage_index]
             dict_pref_stahab['code_bio_model'].append(code_bio_model)
             dict_pref_stahab['stage'].append(stage)
+            # copy_or_not_user_pref_curve_to_input_folder
+            copy_or_not_user_pref_curve_to_input_folder(hab_var, project_preferences)
             # get data
             if hab_var.model_type == "univariate suitability index curves":
                 dict_pref_stahab['bmono'].append(True)
@@ -1276,7 +1279,6 @@ class Stathab:
                     z1jj, z2jj = np.concatenate((z1jj, z1all), axis=0), np.concatenate((z2jj, z2all), axis=0)
         np.savetxt(z1namefile, z1jj, delimiter='\t', header=z1header_txt, fmt='%s')
         np.savetxt(z2namefile, z2jj, delimiter='\t', header=z2header_txt, fmt='%s')
-
 
     def find_path_hdf5_stat(self):
         """
