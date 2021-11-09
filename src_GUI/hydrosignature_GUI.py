@@ -610,9 +610,6 @@ class VisualGroup(QGroupBoxCollapsible):
         # process_prog_show
         self.process_prog_show_input.start_show_prog(self.process_manager)
 
-        # start thread
-        self.process_manager.start()
-
     def plot_hs_area(self):
         plot_attr = lambda: None
 
@@ -631,9 +628,6 @@ class VisualGroup(QGroupBoxCollapsible):
         # process_prog_show
         self.process_prog_show_area.start_show_prog(self.process_manager)
 
-        # start thread
-        self.process_manager.start()
-
     def plot_hs_volume(self):
         plot_attr = lambda: None
 
@@ -651,9 +645,6 @@ class VisualGroup(QGroupBoxCollapsible):
 
         # process_prog_show
         self.process_prog_show_volume.start_show_prog(self.process_manager)
-
-        # start thread
-        self.process_manager.start()
 
 
 class CompareGroup(QGroupBoxCollapsible):

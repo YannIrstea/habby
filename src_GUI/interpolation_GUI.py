@@ -523,7 +523,6 @@ class InterpolationTab(QScrollArea):
             interp_attr.unit_type = unit_type
             interp_attr.hvum = hvum
             interp_attr.mode = "plot"
-
             # process_manager
             self.process_manager.set_interpolation_hdf5_mode(self.path_prj,
                                                     self.hab_filenames_qcombobox.currentText(),
@@ -532,10 +531,6 @@ class InterpolationTab(QScrollArea):
 
             # process_prog_show
             self.process_prog_show.start_show_prog(self.process_manager)
-
-            # start thread
-            self.process_manager.start()
-            print("self.process_manager.start()")
 
     def export_chronicle(self):
         hvum = HydraulicVariableUnitManagement()
@@ -590,6 +585,3 @@ class InterpolationTab(QScrollArea):
 
             # process_prog_show
             self.process_prog_show.start_show_prog(self.process_manager)
-
-            # start thread
-            self.process_manager.start()
