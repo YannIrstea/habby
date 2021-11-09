@@ -656,7 +656,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 item_combobox_sub.addItems(substrate_type_available)
                 choosen_index = self.selected_aquatic_animal_dict["substrate_mode_list"][index]
                 default_choice_index = substrate_type_available.index(user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage])
-                if not "HEM" in hydraulic_type_available:
+                if self.current_hab_informations_dict["sub_mapping_method"] == "constant":
                     default_choice_index = substrate_type_available.index("Neglect")
                     item_combobox_sub.model().item(default_choice_index).setBackground(QColor(self.default_color))
                     item_combobox_sub.model().item(default_choice_index).setToolTip(
@@ -757,6 +757,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 z_presence_ok=False,
                 shear_stress_ok=False,
                 percentage_ok=False,
+                sub_mapping_method="",
                 fish_list=[])
 
             if hdf5.data_2d.hyd_model_dimension == "2":
@@ -768,6 +769,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             required_dict["fish_list"] = hdf5.data_2d.hvum.hdf5_and_computable_list.meshs().habs().names()
             if hdf5.data_2d.hvum.shear_stress.name in hdf5.data_2d.hvum.hdf5_and_computable_list.names():
                 required_dict["shear_stress_ok"] = True
+            required_dict["sub_mapping_method"] = hdf5.data_2d.sub_mapping_method
 
             self.current_hab_informations_dict = required_dict
 
