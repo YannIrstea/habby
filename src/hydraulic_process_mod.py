@@ -156,7 +156,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
 
     """ remove_dry_mesh """
     data_2d.remove_dry_mesh()
-    if data_2d.unit_number == 0:
+    if len(data_2d[0]) == 0:
         print("Error: All selected units or timestep are entirely dry.")
         # warnings
         if not print_cmd:
@@ -171,7 +171,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
         data_2d.semi_wetted_mesh_cutting(hydrau_description["unit_list"],
                                          progress_value,
                                          delta_file)
-    if data_2d.unit_number == 0:
+    if len(data_2d[0]) == 0:
         print("Error: All selected units or timestep are not hydraulically operable.")
         # warnings
         if not print_cmd:
@@ -213,7 +213,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
             unit_list_str.append(unit_name.replace(":", "_").replace(" ", "_"))
         reach_unit_list_str.append(unit_list_str)
     data_2d.unit_list = reach_unit_list_str
-    data_2d.unit_number = len(hydrau_description["unit_list"][0])
+    data_2d.set_unit_list(reach_unit_list_str)
     data_2d.unit_type = hydrau_description["unit_type"]
     data_2d.hyd_varying_mesh = hyd_varying_mesh
     data_2d.hyd_unit_z_equal = hyd_unit_z_equal
@@ -392,7 +392,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
         # intersect
         else:
             data_2d_merge = Data2d(reach_number=hdf5_hydro.data_2d.reach_number,
-                                   unit_number=hdf5_hydro.data_2d.unit_number)  # new
+                                   unit_list=hdf5_hydro.data_2d.unit_list)  # new
             # get hyd attr
             data_2d_merge.__dict__ = hdf5_hydro.data_2d.__dict__.copy()
             data_2d_merge.__dict__["hyd_filename_source"] = data_2d_merge.__dict__.pop("filename_source")
@@ -431,9 +431,9 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
             # for each reach
             for reach_number in range(0, hdf5_hydro.data_2d.reach_number):
                 # progress
-                delta_unit = delta_reach / hdf5_hydro.data_2d.unit_number
+                delta_unit = delta_reach / hdf5_hydro.data_2d[reach_number].unit_number
                 # for each unit
-                for unit_number in range(0, hdf5_hydro.data_2d.unit_number):
+                for unit_number in range(0, hdf5_hydro.data_2d[reach_number].unit_number):
                     # progress
                     delta_mesh = delta_unit / hdf5_hydro.data_2d[reach_number][unit_number]["mesh"]["tin"].shape[0]
 
@@ -474,7 +474,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
             index_loop = -1
             for reach_number in range(0, hdf5_hydro.data_2d.reach_number):
                 # for each unit
-                for unit_number in range(0, hdf5_hydro.data_2d.unit_number):
+                for unit_number in range(0, hdf5_hydro.data_2d[reach_number].unit_number):
                     index_loop = index_loop + 1
                     merge_xy, merge_data_node, merge_tin, merge_i_whole_profile, merge_data_mesh, merge_data_sub = results[index_loop]
 

@@ -27,17 +27,15 @@ from src.variable_unit_mod import HydraulicVariableUnitManagement, HydraulicVari
 class Data2d(list):
     """ A Data2d represent a list of reach """
 
-    def __init__(self, reach_number=0, unit_number=0):
+    def __init__(self, reach_number=0, unit_list=[]):
         super().__init__()
         self.reach_number = reach_number
-        self.unit_number = unit_number
-        if self.reach_number and self.unit_number:
+        self.unit_list = unit_list
+        if self.reach_number and self.unit_list:
             for reach_number in range(self.reach_number):
-                reach = Reach(reach_number,
-                              unit_number)
+                reach = Reach(reach_number, len(unit_list[reach_number]))
                 self.append(reach)
         self.reach_list = []
-        self.unit_list = []
         self.units_index = []
         # hvum
         self.hvum = HydraulicVariableUnitManagement()
@@ -52,11 +50,8 @@ class Data2d(list):
 
     def get_informations(self):
         self.reach_number = len(self)
-        if self.reach_number:
-            self.unit_number = len(self[self.reach_number - 1])
-
         for reach_number in range(self.reach_number):
-            for unit_number in range(self.unit_number):
+            for unit_number in range(len(self[reach_number])):
                 self[reach_number][unit_number].reach_number = reach_number
                 self[reach_number][unit_number].unit_number = unit_number
 
@@ -92,7 +87,7 @@ class Data2d(list):
         # for each reach
         for reach_number in range(self.reach_number):
             # for each unit
-            for unit_number in range(self.unit_number):
+            for unit_number in range(len(self[reach_number])):
                 # extent
                 xMin.append(min(self[reach_number][unit_number]["node"]["xy"][:, 0]))
                 xMax.append(max(self[reach_number][unit_number]["node"]["xy"][:, 0]))
@@ -122,7 +117,7 @@ class Data2d(list):
         whole_profile = Data2d()
         for reach_number in range(self.reach_number):
             reach = Reach()
-            for unit_number in range(self.unit_number):
+            for unit_number in range(len(self[reach_number])):
                 unit_dict = Unit(reach_number,
                                  unit_number)
                 unit_dict["mesh"]["tin"] = self[reach_number][unit_number]["mesh"]["tin"]
@@ -139,12 +134,12 @@ class Data2d(list):
 
     def get_light_data_2d(self):
         light_data_2d = Data2d(self.reach_number,
-                               self.unit_number)
+                               self.unit_list)
         light_data_2d.__dict__ = self.__dict__.copy()
         # for each reach
         for reach_number in range(self.reach_number):
             # for each unit
-            for unit_number in range(self.unit_number):
+            for unit_number in range(len(self[reach_number])):
                 light_data_2d[reach_number][unit_number].__dict__ = self[reach_number][unit_number].__dict__.copy()
         return light_data_2d
 
@@ -156,7 +151,7 @@ class Data2d(list):
             hyd_varying_xy_index.append([])
             hyd_varying_z_index.append([])
             it_equality = 0
-            for unit_number in range(self.unit_number):
+            for unit_number in range(len(self[reach_number])):
                 if unit_number == 0:
                     hyd_varying_xy_index[reach_number].append(it_equality)
                     hyd_varying_z_index[reach_number].append(it_equality)
@@ -187,7 +182,7 @@ class Data2d(list):
 
     def rename_substrate_column_data(self):
         for reach_number in range(self.reach_number):
-            for unit_number in range(self.unit_number):
+            for unit_number in range(len(self[reach_number])):
                 self[reach_number][unit_number]["mesh"][
                     "data"].columns = self.hvum.hdf5_and_computable_list.hdf5s().subs().names()
 
@@ -200,7 +195,7 @@ class Data2d(list):
         # for each reach
         for reach_number in range(self.reach_number):
             # for each unit
-            for unit_number in range(self.unit_number):
+            for unit_number in range(len(self[reach_number])):
                 try:
                     default_data = np.array(hdf5_sub.data_2d.sub_default_values,
                                             dtype=self.hvum.sub_dom.dtype)
@@ -243,7 +238,7 @@ class Data2d(list):
     def set_reach_list(self, reach_list):
         self.reach_list = reach_list
         for reach_number in range(self.reach_number):
-            for unit_number in range(self.unit_number):
+            for unit_number in range(len(self[reach_number])):
                 reach_name = self.reach_list[reach_number]
                 self[reach_number].reach_name = reach_name
                 self[reach_number][unit_number].reach_name = reach_name
@@ -251,9 +246,11 @@ class Data2d(list):
     def set_unit_list(self, unit_list):
         self.unit_list = unit_list
         for reach_number in range(self.reach_number):
-            for unit_number in range(self.unit_number):
+            self[reach_number].unit_number = len(self[reach_number])
+            for unit_number in range(len(self[reach_number])):
                 self[reach_number][unit_number].unit_name = self.unit_list[reach_number][unit_number]
-        self.units_index = list(range(self.unit_number))
+                self[reach_number][unit_number].unit_number = unit_number
+            self.units_index.append(list(range(len(self[reach_number]))))
 
     def remove_unit_from_unit_index_list(self, unit_index_to_remove_list):
         # remove duplicates
@@ -272,7 +269,7 @@ class Data2d(list):
         # for each reach
         for reach_number in range(self.reach_number):
             # for each unit
-            for unit_number in range(self.unit_number):
+            for unit_number in range(len(self[reach_number])):
                 # is_duplicates_mesh_and_point_on_one_unit?
                 if is_duplicates_mesh_and_point_on_one_unit(tin_array=self[reach_number][unit_number]["mesh"]["tin"],
                                                             xyz_array=np.column_stack(
@@ -293,7 +290,7 @@ class Data2d(list):
         # for each reach
         for reach_number in range(self.reach_number):
             # for each unit
-            for unit_number in range(self.unit_number):
+            for unit_number in range(len(self[reach_number])):
                 """ node (always) """
                 self[reach_number][unit_number]["node"]["data"].loc[self[reach_number][unit_number]["node"]["data"][
                                                                   self.hvum.h.name] < min_height, self.hvum.hdf5_and_computable_list.nodes().depend_on_hs().names()] = 0.0
@@ -311,7 +308,7 @@ class Data2d(list):
         # for each reach
         for reach_number in range(self.reach_number):
             # for each unit
-            for unit_number in range(self.unit_number):
+            for unit_number in range(len(self[reach_number])):
                 # get data from dict
                 ikle = self[reach_number][unit_number]["mesh"]["tin"]
                 point_all = np.column_stack((self[reach_number][unit_number]["node"][self.hvum.xy.name],
@@ -626,7 +623,7 @@ class Data2d(list):
         # for all reach
         for reach_number in range(self.reach_number):
             # for all units
-            for unit_number in range(self.unit_number):
+            for unit_number in range(len(self[reach_number])):
                 # print("--- compute_variables unit", str(unit_number), " ---")
                 """ node """
                 if node_variable_list:
@@ -707,7 +704,7 @@ class Data2d(list):
         # for all reach
         for reach_number in range(0, self.reach_number):
             # for all units
-            for unit_number in range(0, self.unit_number):
+            for unit_number in range(len(self[reach_number])):
                 self[reach_number][unit_number].remove_null_area()
 
     def neighbouring_triangles(self, tin, interest_mesh_indices=None):
@@ -840,7 +837,7 @@ class Data2d(list):
         # TODO find the most appropriate parameters npasses, tolerance, connectedness_criterion
         # t0 = time.time()
         for reach_i in range(self.reach_number):
-            for unit_i in range(self.unit_number):
+            for unit_i in range(len(self[reach_i])):
                 ##All arrays below are copies, rather than aliases
                 node_data = self[reach_i][unit_i]["node"]["data"].copy()
                 mesh_data = self[reach_i][unit_i]["mesh"]["data"].copy()

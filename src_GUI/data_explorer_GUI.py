@@ -208,28 +208,18 @@ class DataExplorerFrame(QFrame):
 
         if index == 0:
             self.set_empty_layout()
+        else:
+            # hydraulic
+            if index == 1:
+                type_name = "hydraulic"
+            # substrate
+            elif index == 2:
+                type_name = "substrate"
+            # habitat
+            elif index == 3:
+                type_name = "habitat"
 
-        # hydraulic
-        elif index == 1:
-            names = hdf5_mod.get_filename_by_type_physic("hydraulic", os.path.join(self.path_prj, "hdf5"))
-            if names:
-                # change list widget
-                self.names_hdf5_QListWidget.addItems(names)
-                if len(names) == 1:
-                    self.names_hdf5_QListWidget.selectAll()
-
-        # substrate
-        elif index == 2:
-            names = hdf5_mod.get_filename_by_type_physic("substrate", os.path.join(self.path_prj, "hdf5"))
-            if names:
-                # change list widget
-                self.names_hdf5_QListWidget.addItems(names)
-                if len(names) == 1:
-                    self.names_hdf5_QListWidget.selectAll()
-
-        # habitat
-        elif index == 3:
-            names = hdf5_mod.get_filename_by_type_physic("habitat", os.path.join(self.path_prj, "hdf5"))
+            names = hdf5_mod.get_filename_by_type_physic(type_name, os.path.join(self.path_prj, "hdf5"))
             if names:
                 # change list widget
                 self.names_hdf5_QListWidget.addItems(names)
@@ -620,11 +610,11 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                 if plot_type == ["result"]:
                     self.nb_plot = 0
                 if plot_type == ["map"]:
-                    self.nb_plot = len(names_hdf5) * total_variables_number * len(reach) * len(units)
+                    self.nb_plot = len(names_hdf5) * total_variables_number * sum(len(x) for x in units)
                     if self.gif_export and self.nb_plot > 1:
                         self.nb_plot = self.nb_plot + total_variables_number * len(reach)
                 if plot_type == ["map", "result"]:
-                    self.nb_plot = len(names_hdf5) * total_variables_number * len(reach) * len(units)
+                    self.nb_plot = len(names_hdf5) * total_variables_number * sum(len(x) for x in units)
                     if self.gif_export and self.nb_plot > 1:
                         self.nb_plot = self.nb_plot + total_variables_number * len(reach)
 
@@ -634,21 +624,21 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                     nb_map = 0
                 else:
                     # one map by fish by unit
-                    nb_map = len(names_hdf5) * total_habitat_variable_number * len(reach) * len(units)
+                    nb_map = len(names_hdf5) * total_habitat_variable_number * sum(len(x) for x in units)
                     if self.gif_export and nb_map > 1:
                         nb_map = nb_map + total_habitat_variable_number * len(reach) + total_variables_number * len(reach)
                 if len(units) == 1:
                     if plot_type == ["map"]:
                         nb_wua_hv = 0
                     else:
-                        nb_wua_hv = len(names_hdf5) * total_habitat_variable_number * len(reach) * len(units)
+                        nb_wua_hv = len(names_hdf5) * total_habitat_variable_number * sum(len(x) for x in units)
                 if len(units) > 1:
                     if plot_type == ["map"]:
                         nb_wua_hv = 0
                     else:
                         nb_wua_hv = len(names_hdf5) * total_habitat_variable_number
                 # total
-                self.nb_plot = (len(names_hdf5) * total_variables_number * len(reach) * len(units)) + nb_map + nb_wua_hv
+                self.nb_plot = (len(names_hdf5) * total_variables_number * sum(len(x) for x in units)) + nb_map + nb_wua_hv
 
             # multi fish
             if total_habitat_variable_number > 1:
@@ -657,18 +647,18 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                     self.total_fish_result = total_habitat_variable_number
                 if plot_type == ["map"]:
                     # one map by fish by unit
-                    nb_map = total_habitat_variable_number * len(reach) * len(units)
+                    nb_map = total_habitat_variable_number * sum(len(x) for x in units)
                     if self.gif_export and nb_map > 1:
                         nb_map = nb_map + total_habitat_variable_number * len(reach)
-                    self.nb_plot = (len(names_hdf5) * total_variables_number * len(reach) * len(units)) + nb_map
+                    self.nb_plot = (len(names_hdf5) * total_variables_number * sum(len(x) for x in units)) + nb_map
                     if self.gif_export and nb_map > 1:
                         self.nb_plot = self.nb_plot + total_variables_number * len(reach)
                 if plot_type == ["map", "result"]:
                     # one map by fish by unit
-                    nb_map = total_habitat_variable_number * len(reach) * len(units)
+                    nb_map = total_habitat_variable_number * sum(len(x) for x in units)
                     if self.gif_export and nb_map > 1:
                         nb_map = nb_map + total_habitat_variable_number * len(reach)
-                    self.nb_plot = (len(names_hdf5) * total_variables_number * len(reach) * len(units)) + nb_map + 1
+                    self.nb_plot = (len(names_hdf5) * total_variables_number * sum(len(x) for x in units)) + nb_map + 1
                     if self.gif_export and nb_map > 1:
                         self.nb_plot = self.nb_plot + total_variables_number * len(reach)
             # set prog
@@ -702,16 +692,16 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         # reach
         selection = self.reach_QListWidget.selectedItems()
         reach = []
-        for i in range(len(selection)):
-            reach.append(selection[i].text())
-
-        # units
-        selection = self.units_QListWidget.selectedItems()
         units = []
         units_index = []
-        for i in range(len(selection)):
-            units.append(selection[i].text())
-            units_index.append(self.units_QListWidget.indexFromItem(selection[i]).row())
+        for r_i in range(len(selection)):
+            reach.append(selection[r_i].text())
+            units.append([])
+            units_index.append([])
+            selection = self.units_QListWidget.selectedItems()
+            for u_i in range(len(selection)):
+                units[r_i].append(selection[u_i].text())
+                units_index[r_i].append(self.units_QListWidget.indexFromItem(selection[u_i]).row())
         together = zip(units_index, units)
         sorted_together = sorted(together)
         units_index = [x[0] for x in sorted_together]

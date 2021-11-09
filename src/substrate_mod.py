@@ -113,7 +113,6 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
     data_2d.path_filename_source = path_filename_source
     data_2d.reach_number = sub_description["reach_number"]
     data_2d.reach_list = sub_description["reach_list"]
-    data_2d.unit_number = sub_description["unit_number"]
     data_2d.unit_list = sub_description["unit_list"]
     data_2d.unit_type = sub_description["unit_type"]
     delattr(data_2d, "hyd_equation_type")
@@ -566,7 +565,7 @@ def load_sub_sig(sub_description, progress_value):
 
             # data_2d
             data_2d = Data2d(reach_number=1,
-                             unit_number=1)
+                             unit_list=[[1]])
             data_2d[0][0]["node"] = dict(data=None,
                                      xy=np.array(xy))
             data_2d[0][0]["mesh"] = dict(data=None,
@@ -590,7 +589,7 @@ def load_sub_cst(sub_description, progress_value):
 
     # data_2d
     data_2d = Data2d(reach_number=1,
-                     unit_number=1)
+                     unit_list=[1])
     for i, value in enumerate(sub_constant_values):
         sub_constant_values[i] = int(value.strip())  # clean string and convert to int
     data_2d.sub_constant_values = np.array(sub_constant_values, dtype=np.int64)

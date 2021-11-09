@@ -136,10 +136,10 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
             warning_shearstress_list = []
             warning_range_list = []
             # progress
-            delta_unit = delta_reach / hdf5.data_2d.unit_number
+            delta_unit = delta_reach / hdf5.data_2d[reach_number].unit_number
 
             # for each unit
-            for unit_number in range(hdf5.data_2d.unit_number):
+            for unit_number in range(hdf5.data_2d[reach_number].unit_number):
 
                 """ get 2d data """
                 height_t = hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][hdf5.data_2d.hvum.h.name].to_numpy()

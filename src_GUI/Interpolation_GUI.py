@@ -271,18 +271,19 @@ class InterpolationTab(QScrollArea):
             self.hab_reach_qcombobox.clear()
             # create hdf5 class to get hdf5 inforamtions
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
-            hdf5.get_hdf5_attributes(close_file=True)
-            if len(hdf5.data_2d.reach_list) == 1:
-                reach_names = hdf5.data_2d.reach_list
-            else:
-                reach_names = [""] + hdf5.data_2d.reach_list
+            if hdf5.file_object:
+                hdf5.get_hdf5_attributes(close_file=True)
+                if len(hdf5.data_2d.reach_list) == 1:
+                    reach_names = hdf5.data_2d.reach_list
+                else:
+                    reach_names = [""] + hdf5.data_2d.reach_list
 
-            unit_type = hdf5.data_2d.unit_type
-            if "Date" not in unit_type:
-                self.hab_reach_qcombobox.addItems(reach_names)
-            else:
-                self.send_log.emit(self.tr("Error: This file contain date unit. "
-                                           "To be interpolated, file must contain discharge or timestep unit."))
+                unit_type = hdf5.data_2d.unit_type
+                if "Date" not in unit_type:
+                    self.hab_reach_qcombobox.addItems(reach_names)
+                else:
+                    self.send_log.emit(self.tr("Error: This file contain date unit. "
+                                               "To be interpolated, file must contain discharge or timestep unit."))
 
     def reach_hab_change(self):
         hdf5name = self.hab_filenames_qcombobox.currentText()
@@ -534,6 +535,7 @@ class InterpolationTab(QScrollArea):
 
             # start thread
             self.process_manager.start()
+            print("self.process_manager.start()")
 
     def export_chronicle(self):
         hvum = HydraulicVariableUnitManagement()

@@ -245,7 +245,7 @@ class MyProcessManager(QThread):
 
                 # for each desired units ==> maps
                 if plot_type != ["result"]:
-                    for unit_number, t in enumerate(units_index):
+                    for unit_number, t in enumerate(units_index[reach_number]):
                         # string_tr
                         string_tr = [self.tr("reach"), self.tr("unit")]
                         """ MAP """
@@ -255,7 +255,7 @@ class MyProcessManager(QThread):
                                 if not self.plot_production_stopped:
                                     plot_string_dict = create_map_plot_string_dict(light_data_2d.filename,
                                                                                    reach_name,
-                                                                                   units[unit_number],
+                                                                                   units[reach_number][unit_number],
                                                                                    unit_type,
                                                                                    variable,
                                                                                    string_tr)
@@ -297,7 +297,7 @@ class MyProcessManager(QThread):
                                 if not self.plot_production_stopped:
                                     plot_string_dict = create_map_plot_string_dict(light_data_2d.filename,
                                                                                    reach_name,
-                                                                                   units[unit_number],
+                                                                                   units[reach_number][unit_number],
                                                                                    unit_type,
                                                                                    animal,
                                                                                    string_tr,
@@ -732,6 +732,7 @@ class MyProcessManager(QThread):
                                                      name=self.tr("interpolated figure")),
                                progress_value=progress_value,
                                q=q)
+        print("self.process_list.append(my_process)")
 
         # append to list
         self.process_list.append(my_process)
@@ -776,7 +777,7 @@ class MyProcessManager(QThread):
     def append(self, process):
         self.process_list.append(process)
 
-    def run(self):  # start : enable debugger and disable progress_bar, run : disable debugger and enable progress_bar
+    def start(self):  # start : enable debugger and disable progress_bar, run : disable debugger and enable progress_bar
         self.thread_started = True
         self.plot_production_stopped = False
         if self.process_type == "hyd":

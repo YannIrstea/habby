@@ -24,6 +24,7 @@ from stl import mesh
 from multiprocessing import Value, Pool, Lock, cpu_count
 import shutil
 from pandas import DataFrame
+from traceback import print_exc
 
 from src.hl_mod import unstructuredGridToVTK
 from src.paraview_mod import writePVD
@@ -128,7 +129,7 @@ class Hdf5Management:
             self.file_object = h5py.File(name=self.absolute_path_file,
                                          mode=mode_file)
         except OSError:
-            print('Error: ' + qt_tr.translate("hdf5_mod", 'the hdf5 file could not be loaded.'))
+            print('Error: ' + qt_tr.translate("hdf5_mod", 'the hdf5 file could not be loaded.') + " " + self.absolute_path_file)
             self.file_object = None
             return
 
@@ -214,7 +215,12 @@ class Hdf5Management:
                                     if unit_element == duplicate:
                                         attribute_value[reach_number][unit_number] = duplicate + "_" + str(
                                             unit_number)
-                    self.file_object.attrs[attribute_name] = attribute_value
+                        # unit_list with different unit by reach
+                        self.file_object.attrs[attribute_name] = str(attribute_value)
+                elif attribute_name == "unit_index":
+                    pass
+                elif attribute_name == "hyd_unit_correspondence":
+                    self.file_object.attrs[attribute_name] = str(attribute_value)
                 elif attribute_name == "reach_list":
                     self.file_object.attrs[attribute_name] = attribute_value
                 elif attribute_name in {"hs_summary_data", "hvum", "units_index"}:  # don't save to attr
@@ -318,13 +324,12 @@ class Hdf5Management:
             reach_number = self.file_object.attrs["reach_number"]
 
             """ get_hdf5_units_name """
-            unit_list = self.file_object.attrs["unit_list"].tolist()
-            unit_number = len(unit_list[0])
+            unit_list = eval(self.file_object.attrs["unit_list"])
             unit_type = self.file_object.attrs["unit_type"]
 
             """ light_data_2d """
             self.data_2d = Data2d(reach_number=reach_number,
-                                  unit_number=unit_number)  # with no array data
+                                  unit_list=unit_list)  # with no array data
             self.data_2d.set_unit_list(unit_list)
             self.data_2d.set_reach_list(reach_list)
             self.data_2d.filename = self.filename
@@ -360,7 +365,13 @@ class Hdf5Management:
 
             # all attr
             for attribute_name in hdf5_attributes_dict_keys:
-                if attribute_name[:4] not in {"mesh", "node"}:
+                if "unit_list" == attribute_name:
+                    continue
+                elif "unit_correspondence" in attribute_name:
+                    attribute_value = hdf5_attributes_dict[attribute_name]
+                    unit_correspondence = eval(attribute_value)
+                    setattr(self.data_2d, attribute_name, unit_correspondence)
+                elif attribute_name[:4] not in {"mesh", "node"}:
                     attribute_value = hdf5_attributes_dict[attribute_name]
                     if type(attribute_value) in {np.array, np.ndarray}:
                         attribute_value = attribute_value.tolist()
@@ -377,7 +388,7 @@ class Hdf5Management:
             for reach_number in range(self.data_2d.reach_number):
                 self.basename_output_reach_unit.append([])
                 self.units_name_output.append([])
-                for unit_number in range(self.data_2d.unit_number):
+                for unit_number in range(self.data_2d[reach_number].unit_number):
                     reach_name = strip_accents(self.data_2d[reach_number][unit_number].reach_name)
                     unit_name = self.data_2d[reach_number][unit_number].unit_name
                     self.basename_output_reach_unit[reach_number].append(self.basename + "_" + reach_name + "_" + unit_name.replace(".", "_"))
@@ -408,7 +419,7 @@ class Hdf5Management:
                 # hyd_varying_mesh==True
                 else:
                     if unit_index == len(unit_list) - 1:  # last
-                        group_name = 'unit_' + str(unit_list[unit_index]) + "-" + str(self.data_2d.unit_number - 1)
+                        group_name = 'unit_' + str(unit_list[unit_index]) + "-" + str(self.data_2d[reach_number].unit_number - 1)
                     else:  # all case
                         group_name = 'unit_' + str(unit_list[unit_index]) + "-" + str(unit_list[unit_index + 1] - 1)
 
@@ -432,7 +443,7 @@ class Hdf5Management:
                                               data=self.data_2d_whole[reach_number][0]["node"][self.data_2d.hvum.z.name])
                 else:
                     if not self.data_2d.hyd_varying_mesh:
-                        for unit_num2 in range(self.data_2d.unit_number):
+                        for unit_num2 in range(self.data_2d[reach_number].unit_number):
                             unit_group = reach_group.create_group('unit_' + str(unit_num2))
                             node_group = unit_group.create_group('node')
                             node_group.create_dataset(name=self.data_2d.hvum.z.name,
@@ -453,7 +464,7 @@ class Hdf5Management:
         for reach_number in range(self.data_2d.reach_number):
             reach_group = data_group.create_group('reach_' + str(reach_number))
             # for each unit
-            for unit_number in range(self.data_2d.unit_number):
+            for unit_number in range(self.data_2d[reach_number].unit_number):
                 unit_group = reach_group.create_group('unit_' + str(unit_number))
 
                 """ mesh """
@@ -503,21 +514,37 @@ class Hdf5Management:
         # for each reach
         for reach_number in range(self.data_2d.reach_number):
             # for each unit
-            for unit_number in range(self.data_2d.unit_number):
+            for unit_number in range(self.data_2d[reach_number].unit_number):
                 """ unit info """
                 unit_group = self.file_object["data_2d/reach_" + str(reach_number) + "/unit_" + str(unit_number)]
                 if self.extension == ".hyd" or self.extension == ".hab":
                     unit_group.attrs["whole_profile_corresp"] = self.whole_profile_unit_corresp[reach_number][unit_number]
                     unit_group.attrs['total_wet_area'] = self.data_2d[reach_number][unit_number].total_wet_area
 
+    def load_units_index(self):
+        self.units_index = []
+        data_2d_group = 'data_2d'
+        reach_list = list(self.file_object[data_2d_group].keys())
+        # for each reach
+        for reach_number, reach_group_name in enumerate(reach_list):
+            # group name
+            reach_group = data_2d_group + "/" + reach_group_name
+            # for each desired_units
+            available_unit_list = list(range(len(self.file_object[reach_group].keys())))
+            self.units_index.append(available_unit_list)
+
     def load_whole_profile(self):
         # create dict
         data_2d_whole_profile_group = 'data_2d_whole_profile'
         reach_list = list(self.file_object[data_2d_whole_profile_group].keys())
 
+        unit_list = []
+        for reach_number in range(len(reach_list)):
+            unit_list.append(self.file_object[data_2d_whole_profile_group + "/" + reach_list[reach_number]].keys())
+
         self.data_2d_whole = Data2d(reach_number=len(reach_list),
-                                    unit_number=len(self.file_object[
-                                                     data_2d_whole_profile_group + "/" + reach_list[0]].keys()))  # new
+                                    unit_list=unit_list)  # new
+        self.data_2d_whole.set_unit_list(self.data_2d.unit_list)
         self.data_2d_whole.unit_list = []
 
         # for each reach
@@ -550,9 +577,9 @@ class Hdf5Management:
             # for each desired_units
             available_unit_list = list(self.file_object[reach_group].keys())
             available_unit_list = sorted(available_unit_list, key=lambda x: float(x[5:]))
-            removed_units_list = list(set(list(range(len(available_unit_list)))) - set(self.units_index))
+            removed_units_list = list(set(list(range(len(available_unit_list)))) - set(self.units_index[reach_number]))
             for unit_number, unit_group_name in enumerate(available_unit_list):
-                if unit_number in self.units_index:
+                if unit_number in self.units_index[reach_number]:
                     # group name
                     unit_group = reach_group + "/" + unit_group_name
 
@@ -616,7 +643,7 @@ class Hdf5Management:
             reach_group = data_2d_group + "/" + reach_group_name
             # for each desired_units
             available_unit_list = list(self.file_object[reach_group].keys())
-            desired_units_list = [available_unit_list[unit_index] for unit_index in self.data_2d.units_index]  # get only desired_units
+            desired_units_list = [available_unit_list[unit_index] for unit_index in self.data_2d.units_index[reach_number]]  # get only desired_units
             self.whole_profile_unit_corresp.append([])
             for unit_number, unit_group_name in enumerate(desired_units_list):
                 # group name
@@ -663,7 +690,7 @@ class Hdf5Management:
         self.units_index = units_index
         if self.units_index == "all":
             # load the number of time steps
-            self.units_index = list(range(int(self.file_object.attrs['unit_number'])))
+            self.load_units_index()
 
         # variables
         self.user_target_list = user_target_list
@@ -806,7 +833,7 @@ class Hdf5Management:
         self.get_hdf5_attributes(close_file=False)
 
         # units_index
-        self.units_index = list(range(int(self.file_object.attrs['unit_number'])))
+        self.load_units_index()
 
         # variables
         self.user_target_list = user_target_list
@@ -885,13 +912,18 @@ class Hdf5Management:
         # create_data_2d_info
         self.write_data_2d_info()
 
-        # copy input files to input project folder (only not merged, .hab directly from a input file as ASCII)
-        if (self.data_2d.hyd_model_type == "ascii" and not hasattr(self.data_2d, "sub_filename_source")) and not project_preferences["restarted"]:
-            copy_hydrau_input_files(self.data_2d.path_filename_source,
-                                    self.data_2d.filename_source,
-                                    self.filename,
-                                    os.path.join(project_preferences["path_prj"], "input"))
-
+        # copy input files to input project folder (only not merged, .hab directly from a input file as ASCII, LAMMI)
+        if not project_preferences["restarted"]:
+            if (self.data_2d.hyd_model_type == "ascii" and not hasattr(self.data_2d, "sub_filename_source")) :
+                copy_hydrau_input_files(self.data_2d.path_filename_source,
+                                        self.data_2d.filename_source,
+                                        self.filename,
+                                        os.path.join(project_preferences["path_prj"], "input"))
+            elif self.data_2d.hyd_model_type == "lammi":
+                copy_hydrau_input_files(self.data_2d.path_filename_source,
+                                        self.data_2d.filename_source,
+                                        self.filename,
+                                        os.path.join(project_preferences["path_prj"], "input"))
         # save XML
         self.save_xml("HABITAT", "")
 
@@ -920,7 +952,7 @@ class Hdf5Management:
         for reach_number in range(self.data_2d.reach_number):
             reach_group = data_group["reach_" + str(reach_number)]
             # UNIT GROUP
-            for unit_number in range(self.data_2d.unit_number):
+            for unit_number in range(self.data_2d[reach_number].unit_number):
                 unit_group = reach_group["unit_" + str(unit_number)]
                 # MESH GROUP
                 mesh_group = unit_group["mesh"]
@@ -994,29 +1026,13 @@ class Hdf5Management:
         self.file_object.attrs["hab_animal_stage_list"] = ", ".join(hab_animal_stage_list_before)
         self.file_object.attrs["hab_animal_type_list"] = ", ".join(hab_animal_type_list)
 
-        # remove data
-        # load the number of reach
-        try:
-            nb_r = int(self.file_object.attrs["reach_number"])
-        except KeyError:
-            print(
-                'Error: the number of time step is missing from :' + self.filename)
-            return
-
-        # load the number of time steps
-        try:
-            nb_t = int(self.file_object.attrs["unit_number"])
-        except KeyError:
-            print('Error: ' + qt_tr.translate("hdf5_mod", 'The number of time step is missing from : ') + self.filename)
-            return
-
         # data_2d
         data_group = self.file_object['data_2d']
-        # REACH GROUP
-        for reach_number in range(nb_r):
+        # for each reach
+        for reach_number in range(self.data_2d.reach_number):
             reach_group = data_group["reach_" + str(reach_number)]
-            # UNIT GROUP
-            for unit_number in range(nb_t):
+            # for each unit
+            for unit_number in range(self.data_2d[reach_number].unit_number):
                 unit_group = reach_group["unit_" + str(unit_number)]
                 mesh_group = unit_group["mesh"]
                 mesh_hv_data_group = mesh_group["hv_data"]
@@ -1038,7 +1054,7 @@ class Hdf5Management:
 
     def add_hs(self, progress_value, classhv, export_mesh=False, export_txt=False):
         self.get_hdf5_attributes(close_file=False)
-        self.units_index = list(range(self.data_2d.unit_number))
+        self.load_units_index()
         self.user_target_list = "defaut"
         self.load_data_2d()
 
@@ -1056,10 +1072,10 @@ class Hdf5Management:
             for reach_number in range(self.data_2d.reach_number):
 
                 # progress
-                delta_unit = delta_reach / self.data_2d.unit_number
+                delta_unit = delta_reach / self.data_2d[reach_number].unit_number
 
                 # for each unit
-                for unit_number in range(self.data_2d.unit_number):
+                for unit_number in range(self.data_2d[reach_number].unit_number):
                     hyd_data_mesh = self.data_2d[reach_number][unit_number]["mesh"]["data"].to_records(index=False)
                     hyd_tin = self.data_2d[reach_number][unit_number]["mesh"]["tin"]
                     i_whole_profile = self.data_2d[reach_number][unit_number]["mesh"]["i_whole_profile"]
@@ -1128,7 +1144,7 @@ class Hdf5Management:
         # for each reach
         for reach_number in range(self.data_2d.reach_number):
             # for each unit
-            for unit_number in range(self.data_2d.unit_number):
+            for unit_number in range(self.data_2d[reach_number].unit_number):
                 # attr
                 hs_dict = {"nb_mesh": self.data_2d[reach_number][unit_number].hydrosignature["nb_mesh"],
                            "total_area": self.data_2d[reach_number][unit_number].hydrosignature["total_area"],
@@ -1178,9 +1194,9 @@ class Hdf5Management:
 
     def load_hydrosignature(self):
         self.get_hdf5_attributes(close_file=False)
-        for reach_index in range(self.data_2d.reach_number):
-            for unit_index in range(self.data_2d.unit_number):
-                unitpath = "data_2d/reach_" + str(reach_index) + "/unit_" + str(unit_index)
+        for reach_number in range(self.data_2d.reach_number):
+            for unit_index in range(self.data_2d[reach_number].unit_number):
+                unitpath = "data_2d/reach_" + str(reach_number) + "/unit_" + str(unit_index)
                 keylist = ["nb_mesh",
                            "total_area",
                            "total_volume",
@@ -1192,15 +1208,15 @@ class Hdf5Management:
                            "min_velocity",
                            "max_velocity",
                            "classhv"]
-                self.data_2d[reach_index][unit_index].hydrosignature = {}
+                self.data_2d[reach_number][unit_index].hydrosignature = {}
                 for key in keylist:
                     if key == "classhv":
-                        self.data_2d[reach_index][unit_index].hydrosignature[key] = [self.file_object.attrs["hs_input_class_h"],
+                        self.data_2d[reach_number][unit_index].hydrosignature[key] = [self.file_object.attrs["hs_input_class_h"],
                                                self.file_object.attrs["hs_input_class_v"]]
                     else:
-                        self.data_2d[reach_index][unit_index].hydrosignature[key] = self.file_object[unitpath].attrs[key]
-                self.data_2d[reach_index][unit_index].hydrosignature["hsarea"] = self.file_object[unitpath + "/hsarea"][:]
-                self.data_2d[reach_index][unit_index].hydrosignature["hsvolume"] = self.file_object[unitpath + "/hsvolume"][:]
+                        self.data_2d[reach_number][unit_index].hydrosignature[key] = self.file_object[unitpath].attrs[key]
+                self.data_2d[reach_number][unit_index].hydrosignature["hsarea"] = self.file_object[unitpath + "/hsarea"][:]
+                self.data_2d[reach_number][unit_index].hydrosignature["hsvolume"] = self.file_object[unitpath + "/hsvolume"][:]
 
     def replace_dataset_in_file(self, dataset_name, new_dataset):
         attrs = self.file_object[dataset_name].attrs.items()
@@ -1400,7 +1416,7 @@ class Hdf5Management:
             crs_list = []
             unit_data_list = []
             delta_mesh_list = []
-            for unit_number in range(0, self.data_2d_whole.unit_number):
+            for unit_number in range(0, self.data_2d_whole[reach_number].unit_number):
                 # layer_name
                 if not self.data_2d.hyd_varying_mesh:
                     # progress
@@ -1408,7 +1424,7 @@ class Hdf5Management:
                     layer_name = "mesh_wholeprofile_allunits"
                 else:
                     # progress
-                    delta_unit = delta_reach / self.data_2d.unit_number
+                    delta_unit = delta_reach / self.data_2d[reach_number].unit_number
                     layer_name = "mesh_wholeprofile_" + self.data_2d_whole.unit_list[reach_number][
                         unit_number]
 
@@ -1475,12 +1491,12 @@ class Hdf5Management:
             crs_list = []
             unit_data_list = []
             delta_mesh_list = []
-            for unit_number in range(0, self.data_2d.unit_number):
+            for unit_number in range(0, self.data_2d[reach_number].unit_number):
                 # layer_name
                 layer_name = "mesh_" + self.units_name_output[reach_number][unit_number]
 
                 # progress
-                delta_unit = delta_reach / self.data_2d.unit_number
+                delta_unit = delta_reach / self.data_2d[reach_number].unit_number
 
                 # hvum copy
                 self.data_2d[reach_number][unit_number].hvum = self.data_2d.hvum
@@ -1542,7 +1558,7 @@ class Hdf5Management:
             crs_list = []
             unit_data_list = []
             delta_node_list = []
-            for unit_number in range(0, self.data_2d_whole.unit_number):
+            for unit_number in range(0, self.data_2d_whole[reach_number].unit_number):
                 # layer_name
                 if not self.data_2d.hyd_varying_mesh:
                     # progress
@@ -1550,7 +1566,7 @@ class Hdf5Management:
                     layer_name = "node_wholeprofile_allunits"
                 else:
                     # progress
-                    delta_unit = delta_reach / self.data_2d.unit_number
+                    delta_unit = delta_reach / self.data_2d[reach_number].unit_number
                     layer_name = "node_wholeprofile_" + self.data_2d_whole.unit_list[reach_number][
                         unit_number]
 
@@ -1617,12 +1633,12 @@ class Hdf5Management:
             crs_list = []
             unit_data_list = []
             delta_node_list = []
-            for unit_number in range(0, self.data_2d.unit_number):
+            for unit_number in range(0, self.data_2d[reach_number].unit_number):
                 # layer_name
                 layer_name = "node_" + self.units_name_output[reach_number][unit_number]
 
                 # progress
-                delta_unit = delta_reach / self.data_2d.unit_number
+                delta_unit = delta_reach / self.data_2d[reach_number].unit_number
 
                 # hvum copy
                 self.data_2d[reach_number][unit_number].hvum = self.data_2d.hvum
@@ -1672,7 +1688,7 @@ class Hdf5Management:
         # for all reach
         for reach_number in range(self.data_2d_whole.reach_number):
             # for all units
-            for unit_number in range(self.data_2d_whole.unit_number):
+            for unit_number in range(self.data_2d_whole[reach_number].unit_number):
                 # get data
                 xy = self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name]
                 z = self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.z.name] * self.project_preferences[
@@ -1719,7 +1735,7 @@ class Hdf5Management:
         # for all reach
         for reach_number in range(self.data_2d.reach_number):
             # for all units
-            for unit_number in range(self.data_2d.unit_number):
+            for unit_number in range(self.data_2d[reach_number].unit_number):
                 part_timestep_indice.append((reach_number, unit_number))
                 # create one vtu file by time step
                 x = np.ascontiguousarray(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][:, 0])
@@ -1809,9 +1825,9 @@ class Hdf5Management:
         delta_mesh_list = []
         for reach_number in range(self.data_2d.reach_number):
             # progress
-            delta_unit = delta_reach / self.data_2d.unit_number
+            delta_unit = delta_reach / self.data_2d[reach_number].unit_number
             # for all units
-            for unit_number in range(self.data_2d.unit_number):
+            for unit_number in range(self.data_2d[reach_number].unit_number):
                 name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate("hdf5_mod",
                                                                                                     "detailled_mesh") + ".txt"
                 if os.path.isfile(os.path.join(self.path_txt, name)):
@@ -1870,10 +1886,10 @@ class Hdf5Management:
         delta_node_list = []
         for reach_number in range(self.data_2d.reach_number):
             # progress
-            delta_unit = delta_reach / self.data_2d.unit_number
+            delta_unit = delta_reach / self.data_2d[reach_number].unit_number
 
             # for all units
-            for unit_number in range(self.data_2d.unit_number):
+            for unit_number in range(self.data_2d[reach_number].unit_number):
                 name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate("hdf5_mod",
                                                                                                     "detailled_point") + ".txt"
                 if os.path.isfile(os.path.join(self.path_txt, name)):
@@ -2027,7 +2043,7 @@ class Hdf5Management:
                     f.write(header)
 
                     for reach_number in range(self.data_2d.reach_number):
-                        for unit_number in range(self.data_2d.unit_number):
+                        for unit_number in range(self.data_2d[reach_number].unit_number):
                             area_reach = self.data_2d[reach_number][unit_number].total_wet_area
                             if not sim_name:
                                 data_here = str(reach_number) + '\t' + str(unit_number) + '\t' + str(area_reach)
@@ -2173,12 +2189,21 @@ def get_filename_by_type_physic(type, path):
     if os.path.exists(path):
         for file in os.listdir(path):
             if file.endswith(type_and_extension[type]):
-                # check if not statistic
-                if file.endswith(".hab"):
-                    if not "ESTIMHAB" in file:  # physic
+                try:
+                    # test the file
+                    if r'\hdf5':  # if path with hdf5 project folder
+                        path_prj = os.path.dirname(path)
+                    else:
+                        path_prj = path
+                    hdf5_file = Hdf5Management(path_prj, file, new=False, edit=False)
+                    hdf5_file.get_hdf5_attributes(close_file=False)
+                    if hdf5_file.file_object:
                         filenames.append(file)
-                else:
-                    filenames.append(file)
+                    hdf5_file.close_file()
+                except:
+                    print_exc()
+                    print("Error1: HABBY " + file + " seems to be corrupted. Delete it manually.")
+
     filenames.sort()
     return filenames
 
@@ -2192,11 +2217,13 @@ def get_filename_hs(path):
                 path_prj = os.path.dirname(path)
                 try:
                     hdf5 = Hdf5Management(path_prj, file, new=False, edit=False)
-                    hdf5.close_file()
-                    if hdf5.hs_calculated:
+                    if hdf5.file_object and hdf5.hs_calculated:
                         filenames.append(file)
-                except:
-                   print("Error: " + file + " file seems to be corrupted. Delete it with HABBY or manually.")
+                    hdf5.close_file()
+                except Exception as e:
+                    print_exc()
+                    print(e)
+                    print("Error2: HABBY hydrosignature " + file + " seems to be corrupted. Delete it manually.")
 
     filenames.sort()
     return filenames

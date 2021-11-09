@@ -183,7 +183,10 @@ class StathabW(estimhab_GUI.StatModUseful):
                 self.msge.show()
         elif self.hdf5_name != self.tr('No hdf5 selected') and self.typeload == 'hdf5':
             if os.path.isfile(self.hdf5_name):
-                self.load_from_hdf5_gui()
+                if self.typeload == 'txt':
+                    self.load_from_txt_gui()
+                if self.typeload == 'hdf5':
+                    self.load_from_hdf5_gui()
                 if not self.mystathab.load_ok:
                     self.msge.setIcon(QMessageBox.Warning)
                     self.msge.setWindowTitle(self.tr("Stathab"))
@@ -625,7 +628,10 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.firstitemreach = []
 
         # load hdf5 data
-        self.load_from_hdf5_gui()
+        if self.typeload == 'txt':
+            self.load_from_txt_gui()
+        if self.typeload == 'hdf5':
+            self.load_from_hdf5_gui()
 
     def load_from_hdf5_gui(self):
         """

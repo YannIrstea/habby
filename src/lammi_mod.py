@@ -89,7 +89,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
         # readable file ?
         try:
-            valid, _, error_str = construct_from_lammi(os.path.dirname(self.filename_path))
+            valid, _, error_str = construct_from_lammi(self.filename_path)
             if not valid:
                 self.warning_list.append("Error: " + error_str)
                 self.valid_file = False
@@ -118,7 +118,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
     def get_time_step(self):
         """Get time step information from file."""
-        stationname, lq, lqdico = construct_from_lammi(os.path.dirname(self.filename_path))
+        stationname, lq, lqdico = construct_from_lammi(self.filename_path)
         self.timestep_name_list = list(map(str, lq))  # always one reach
         self.timestep_nb = len(self.timestep_name_list)
         self.timestep_unit = "discharge [m3/s]"
@@ -131,7 +131,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         """
         self.load_specific_timestep(timestep_name_wish_list)
 
-        stationname, lq, lqdico = construct_from_lammi(os.path.dirname(self.filename_path))
+        stationname, lq, lqdico = construct_from_lammi(self.filename_path)
 
         # prepare original data for data_2d
         for reach_number in range(self.reach_number):  # for each reach
@@ -1165,9 +1165,9 @@ def is_integer(n):
     return True
 
 
-def construct_from_lammi(sourcedirectory):
+def construct_from_lammi(transectsfiledefintion):
     '''
-    :param sourcedirectory: the directory containing the output files from LAMMI Transect.txt which describes the .prn associated files
+    :param transectsfiledefintion: the file path of the output files from LAMMI Transect.txt which describes the .prn associated files
     :return: stationname : the name of the sation, lq the list of discharges [m3/s], lqdico a list given a dictionnary of numpy arrays for each discharge
     if iq is index of a discharge in lq ( lq[iq]=a discharge in [m3/s] )
     lqdico[iq]={'tin':tin,'mesh_substrate':mesh_substrate,'node_xy':node_xy,'node_hvz':node_hvz}
@@ -1176,7 +1176,7 @@ def construct_from_lammi(sourcedirectory):
     node_xy the x,y coordinate for nodes
     node_hvz the heigth of water, the velocity and the altitude of each node
     '''
-    transectsfiledefintion = os.path.join(sourcedirectory, 'Transect.txt')
+    sourcedirectory = os.path.dirname(transectsfiledefintion)
     if not os.path.isfile(transectsfiledefintion):
         return None, None, 'Transect.txt this file is required in the LAMMI input directory ' + sourcedirectory
     transectprn = []  # a list of pair of lists containing the exact [filename of each prn transect, Length of representativeness]
@@ -1425,4 +1425,4 @@ def construct_from_lammi(sourcedirectory):
 
 if __name__ == '__main__':
     # main()
-    stationname, lq, lqdico = construct_from_lammi(r'E:\HABBY\LAMMI\2021\Test')
+    stationname, lq, lqdico = construct_from_lammi(r'E:\HABBY\LAMMI\2021\Test\Transect.txt')

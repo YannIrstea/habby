@@ -15,7 +15,7 @@ if __name__ == '__main__':
     # for all reach
     for reach_number in range(0, hdf5_1.data_2d.reach_number):
         # for all units
-        for unit_number in range(0, hdf5_1.data_2d.unit_number):
+        for unit_number in range(0, hdf5_1.data_2d[reach_number].unit_number):
             # c_mesh_height
             hdf5_1.data_2d[reach_number][unit_number].c_mesh_height()  # compute h mesh from h node (memory)
 
