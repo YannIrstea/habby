@@ -222,6 +222,10 @@ class HydrauTab(QScrollArea):
                     load_specific_properties(self.path_prj, ["cut_mesh_partialy_dry"])[0]) + "\n" +
                 self.tr("Water depth value considered to be zero : ") + str(
                     load_specific_properties(self.path_prj, ["min_height_hyd"])[0]) + " m")
+        elif self.model_group.nb_dim == "1":
+            self.info_model_label.setText(
+                self.tr("Semi wet cut mesh enable always disabled for 1D models") + "\n" +
+                self.tr("No water depth value considered to be zero for 1D models"))
         else:
             self.info_model_label.setText("\n")
 
