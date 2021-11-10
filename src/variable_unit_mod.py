@@ -469,6 +469,15 @@ class HydraulicVariableUnitManagement:
                                               index_gui=getframeinfo(currentframe()).lineno,
                                               dtype=np.int64,
                                               depend_on_h=False)
+        self.sub_percentage = HydraulicVariable(value=None,
+                                             unit="",
+                                             name="sub_percentage",
+                                             name_gui="Substrate Percentages",
+                                             descr="",
+                                             dtype=np.float64,
+                                             index_gui=getframeinfo(currentframe()).lineno,
+                                             sub=True,
+                                             depend_on_h=False)
         self.sub_coarser = HydraulicVariable(value=None,
                                              unit="",
                                              name="sub_coarser",

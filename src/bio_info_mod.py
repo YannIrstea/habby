@@ -208,6 +208,11 @@ def get_biomodels_informations_for_database(path_xml):
                     hvum.sub_dom.original_unit = substrate_original_unit
                     hvum.sub_dom.unit = substrate_unit
                     hvum_stage.software_detected_list.append(hvum.sub_dom)
+                elif substrate_type == 'Percentages':
+                    hvum.sub_percentage.software_attributes_list = ["PreferenceSubstrate"]
+                    hvum.sub_percentage.original_unit = substrate_original_unit
+                    hvum.sub_percentage.unit = substrate_unit
+                    hvum_stage.software_detected_list.append(hvum.sub_percentage)
                 else:
                     return "Error: Substrate classification method not recognized : " + substrate_type + " in " + path_xml
 

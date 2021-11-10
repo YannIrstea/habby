@@ -103,6 +103,9 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
         # model_var
         model_var = information_model_dict["hab_variable_list"][stage_index]
 
+        # substrate_classification_code
+        data_2d_sub_classification_code = hdf5.data_2d.hvum.hdf5_and_computable_list.hdf5s().subs()[0].unit
+
         if animal.model_type == 'univariate suitability index curves':
             if "HEM" in information_model_dict["hydraulic_type_available"][stage_index]:
                 pref_hem_data = model_var.variable_list.get_from_name(hdf5.data_2d.hvum.shear_stress.name).data
@@ -122,7 +125,12 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                         pref_vel[0].append(100)
                         pref_vel[1].append(0)
                 if model_var.variable_list.subs():
+                    hsi_sub_classification_code = model_var.variable_list.get_from_name(
+                        model_var.variable_list.subs()[0].name).unit
                     pref_sub = np.array(model_var.variable_list.get_from_name(model_var.variable_list.subs()[0].name).data)
+                    if hsi_sub_classification_code == "Sandre" and data_2d_sub_classification_code == "Cemagref":
+                        # convert substrate hsi to Cemagref
+                        pref_sub = sandre_to_cemagref_by_percentage_array(pref_sub)
 
         else:  # bivariate
             pref_height = model_var.variable_list.get_from_name(hdf5.data_2d.hvum.h.name).data
@@ -197,10 +205,6 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                                 sub_t[:, sub_class_num] = hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][
                                     sub_class_name]
 
-                            # substrate_classification_code
-                            hsi_sub_classification_code = model_var.variable_list.get_from_name(model_var.variable_list.subs()[0].name).unit
-                            data_2d_sub_classification_code = hdf5.data_2d.hvum.hdf5_and_computable_list.hdf5s().subs()[0].unit
-
                             # # sub_classification_code conversion ?
                             # print("------------------------")
                             # print("Warning: data_2d", data_2d_sub_classification_code)
@@ -211,9 +215,6 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                                     sub_t = sandre_to_cemagref_by_percentage_array(sub_t)
                                 else:
                                     sub_t = sandre_to_cemagref_array(sub_t)
-                            elif data_2d_sub_classification_code == "Cemagref" and hsi_sub_classification_code == "Sandre":
-                                # convert substrate hsi to Cemagref
-                                pref_sub = sandre_to_cemagref_by_percentage_array(pref_sub)
 
                             # Coarser-Dominant
                             if animal.sub_opt == "Coarser-Dominant":
@@ -242,8 +243,15 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                                 elif hdf5.data_2d.sub_classification_method == "coarser-dominant":
                                     s_pref_c = pref_sub[1][sub_t[:, 1] - 1]
                             # Percentage
+                            elif animal.sub_opt == "Percentages":
+                                if hdf5.data_2d.sub_classification_method == "percentage":
+                                    s_pref_c = np.sum((sub_t / 100) * pref_sub[1], axis=1)
+                                elif hdf5.data_2d.sub_classification_method == "coarser-dominant":
+                                    s_pref_c_coarser = pref_sub[1][sub_t[:, 0] - 1]
+                                    s_pref_c_dom = pref_sub[1][sub_t[:, 1] - 1]
+                                    s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
                             else:
-                                s_pref_c = np.sum((sub_t / 100) * pref_sub[1], axis=1)
+                                print("Error: animal.sub_opt", animal.sub_opt, " not recognized.")
 
                         """ compute habitat value """
                         try:
