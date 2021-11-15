@@ -1668,10 +1668,11 @@ class MainWindows(QMainWindow):
                 print(self.tr("Error: ") + self.tr("Could not remove " + file_to_remove + " file. It might be used by another program."))
 
             # remove input folder
-            try:
-                shutil.rmtree(os.path.join(self.path_prj, "input", os.path.splitext(file_to_remove)[0]))
-            except PermissionError:
-                print(self.tr("Error: ") + self.tr("Could not remove input project " + os.path.splitext(file_to_remove)[0] + " folder. It might be used by another program."))
+            if os.path.exists(os.path.join(self.path_prj, "input", os.path.splitext(file_to_remove)[0])):
+                try:
+                    shutil.rmtree(os.path.join(self.path_prj, "input", os.path.splitext(file_to_remove)[0]))
+                except PermissionError:
+                    print(self.tr("Error: ") + self.tr("Could not remove input project " + os.path.splitext(file_to_remove)[0] + " folder. It might be used by another program."))
 
             # refresh .habby project
             filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')

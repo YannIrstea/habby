@@ -33,7 +33,6 @@ from src.export_manager_mod import export_mesh_layer_to_gpkg, merge_gpkg_to_one,
 from src.project_properties_mod import load_project_properties, save_project_properties, get_name_prj
 from src.dev_tools_mod import copy_shapefiles, copy_hydrau_input_files, txt_file_convert_dot_to_comma, strip_accents
 from src.data_2d_mod import Data2d
-from src.hydrosignature_mod import hydrosignature_calculation_alt, hsexporttxt, check_hs_class_match_hydraulic_values
 from src.translator_mod import get_translator
 
 from habby import HABBY_VERSION_STR
@@ -98,8 +97,11 @@ class Hdf5Management:
             self.hdf5_type = "habitat"
             if "ESTIMHAB" in self.filename:
                 self.hdf5_type = "ESTIMHAB"
+        self.units_index = "all"  # unit to load (all)
+        self.user_target_list = "defaut"  # variable to load (defaut==all)
         # hdf5 data attrbutes
         self.hs_calculated = False
+        self.hs_mesh = False
         # create_or_open_file
         self.create_or_open_file()
 
@@ -154,7 +156,12 @@ class Hdf5Management:
 
                 # hs
                 if self.hdf5_type == "hydraulic" or self.hdf5_type == "habitat":
-                    self.hs_calculated = self.file_object.attrs["hs_calculated"]
+                    try:
+                        self.hs_calculated = self.file_object.attrs["hs_calculated"]
+                        self.hs_mesh = self.file_object.attrs["hs_mesh"]
+                    except KeyError:
+                        self.hs_calculated = False
+                        self.hs_mesh = False
                     if self.hs_calculated:
                         try:
                             self.hs_input_class = [self.file_object.attrs["hs_input_class_h"],
@@ -262,16 +269,17 @@ class Hdf5Management:
                                                           self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().max()]
 
             # hab variables
-            self.file_object.attrs["hab_animal_list"] = ", ".join(
-                self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().names())
-            self.file_object.attrs["hab_animal_number"] = str(
-                len(self.data_2d.hvum.hdf5_and_computable_list.meshs().habs()))
-            self.file_object.attrs["hab_animal_pref_list"] = ", ".join(
-                self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().pref_files())
-            self.file_object.attrs["hab_animal_stage_list"] = ", ".join(
-                self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().stages())
-            self.file_object.attrs["hab_animal_type_list"] = ", ".join(
-                self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().aquatic_animal_types())
+            if self.hdf5_type == "habitat":
+                self.file_object.attrs["hab_animal_list"] = ", ".join(
+                    self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().names())
+                self.file_object.attrs["hab_animal_number"] = str(
+                    len(self.data_2d.hvum.hdf5_and_computable_list.meshs().habs()))
+                self.file_object.attrs["hab_animal_pref_list"] = ", ".join(
+                    self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().pref_files())
+                self.file_object.attrs["hab_animal_stage_list"] = ", ".join(
+                    self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().stages())
+                self.file_object.attrs["hab_animal_type_list"] = ", ".join(
+                    self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().aquatic_animal_types())
 
     def get_hdf5_attributes(self, close_file=False):
         # print("get_hdf5_attributes")
@@ -789,7 +797,7 @@ class Hdf5Management:
         self.write_data_2d_info()
 
         # copy input files to input project folder
-        if not project_preferences["restarted"]:
+        if not project_preferences["restarted"] and self.data_2d.hvum.hydraulic_class.name not in self.data_2d.hvum.hdf5_and_computable_list.names():
             if self.data_2d.hyd_model_type == "lammi":
                 # if lammi Transect.txt
                 prj_list_file = [s for s in os.listdir(self.data_2d.path_filename_source) if s.endswith('.prn')]
@@ -918,7 +926,7 @@ class Hdf5Management:
         self.write_data_2d_info()
 
         # copy input files to input project folder (only not merged, .hab directly from a input file as ASCII, LAMMI)
-        if not project_preferences["restarted"]:
+        if not project_preferences["restarted"] and self.data_2d.hvum.hydraulic_class.name not in self.data_2d.hvum.hdf5_and_computable_list.names():
             if self.data_2d.hyd_model_type in ("ascii", "lammi") and not hasattr(self.data_2d, "sub_filename_source"):
                 if self.data_2d.hyd_model_type == "lammi":
                     # if lammi Transect.txt
@@ -1047,106 +1055,7 @@ class Hdf5Management:
 
         self.close_file()
 
-    # HYDROSIGNATURE
-    def hydrosignature_new_file(self, progress_value, classhv, export_txt=False):
-        newfilename = self.filename[:-4] + "_HS" + self.extension
-        shutil.copy(self.absolute_path_file, os.path.join(self.path, newfilename))
-        newhdf5 = Hdf5Management(self.path_prj, newfilename, new=False, edit=True)
-        newhdf5.add_hs(progress_value,
-                       classhv,
-                       export_mesh=True,
-                       export_txt=export_txt)
-        return newhdf5
-
-    def add_hs(self, progress_value, classhv, export_mesh=False, export_txt=False):
-        self.get_hdf5_attributes(close_file=False)
-        self.load_units_index()
-        self.user_target_list = "defaut"
-        self.load_data_2d()
-
-        mathing, error = check_hs_class_match_hydraulic_values(classhv,
-                                              h_min=self.data_2d.hvum.h.min,
-                                              h_max=self.data_2d.hvum.h.max,
-                                              v_min=self.data_2d.hvum.v.min,
-                                              v_max=self.data_2d.hvum.v.max)
-
-        if mathing:
-            # progress
-            delta_reach = 90 / self.data_2d.reach_number
-
-            # for each reach
-            for reach_number in range(self.data_2d.reach_number):
-
-                # progress
-                delta_unit = delta_reach / self.data_2d[reach_number].unit_number
-
-                # for each unit
-                for unit_number in range(self.data_2d[reach_number].unit_number):
-                    hyd_data_mesh = self.data_2d[reach_number][unit_number]["mesh"]["data"].to_records(index=False)
-                    hyd_tin = self.data_2d[reach_number][unit_number]["mesh"]["tin"]
-                    i_whole_profile = self.data_2d[reach_number][unit_number]["mesh"]["i_whole_profile"]
-                    hyd_data_node = self.data_2d[reach_number][unit_number]["node"]["data"].to_records(index=False)
-                    hyd_xy_node = self.data_2d[reach_number][unit_number]["node"]["xy"]
-                    hyd_hv_node = np.array([hyd_data_node["h"], hyd_data_node["v"]]).T
-
-                    # progress
-                    delta_mesh = delta_unit / len(hyd_tin)
-
-                    if export_mesh:
-                        nb_mesh, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, node_xy_out, node_data_out, mesh_data_out, tin_out, i_whole_profile_out = hydrosignature_calculation_alt(
-                            delta_mesh, progress_value, classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node, hyd_data_mesh, i_whole_profile,
-                            return_cut_mesh=True)
-                    else:
-                        nb_mesh, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume = hydrosignature_calculation_alt(
-                            delta_mesh, progress_value, classhv, hyd_tin, hyd_xy_node, hyd_hv_node, hyd_data_node, hyd_data_mesh, i_whole_profile,
-                            return_cut_mesh=False)
-
-                    # hsexporttxt
-                    if export_txt:
-                        hsexporttxt(os.path.join(self.path_prj, "output", "text"),
-                                os.path.splitext(self.filename)[0] + "_HSresult.txt",
-                                classhv, self.data_2d[reach_number][unit_number].unit_name,
-                                nb_mesh, total_area, total_volume, mean_depth, mean_velocity,
-                                mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume)
-
-                    # attr
-                    hs_dict = {"nb_mesh": nb_mesh,
-                               "total_area": total_area,
-                               "total_volume": total_volume,
-                               "mean_depth": mean_depth,
-                               "mean_velocity": mean_velocity,
-                               "mean_froude": mean_froude,
-                               "min_depth": min_depth,
-                               "max_depth": max_depth,
-                               "min_velocity": min_velocity,
-                               "max_velocity": max_velocity,
-                               "classhv": classhv}
-                    unitpath = "data_2d/reach_" + str(reach_number) + "/unit_" + str(unit_number)
-                    for key in hs_dict.keys():
-                        self.data_2d[reach_number][unit_number].hydrosignature[key] = hs_dict[key]
-                    self.data_2d[reach_number][unit_number].hydrosignature["hsarea"] = hsarea
-                    self.data_2d[reach_number][unit_number].hydrosignature["hsvolume"] = hsvolume
-
-                    if export_mesh:
-                        self.data_2d[reach_number][unit_number].total_wet_area = total_area
-                        self.data_2d.hvum.hydraulic_class.hdf5 = True
-                        self.data_2d.hvum.hydraulic_class.position = "mesh"
-                        if self.data_2d.hvum.hydraulic_class.name not in self.data_2d.hvum.hdf5_and_computable_list.names():
-                            self.data_2d.hvum.hdf5_and_computable_list.append(self.data_2d.hvum.hydraulic_class)
-                        self.set_hdf5_attributes()
-                        self.replace_dataset_in_file(unitpath + "/mesh/data", mesh_data_out)
-                        self.replace_dataset_in_file(unitpath + "/mesh/tin", tin_out)
-                        self.replace_dataset_in_file(unitpath + "/mesh/i_whole_profile", i_whole_profile_out)
-                        self.replace_dataset_in_file(unitpath + "/node/data", node_data_out)
-                        self.replace_dataset_in_file(unitpath + "/node/xy", node_xy_out)
-
-            self.write_data_2d_info()
-            self.write_hydrosignature()
-
-        else:
-            print("Error: " + self.filename + " " + error)
-
-    def write_hydrosignature(self):
+    def write_hydrosignature(self, hs_export_mesh=False):
         # for each reach
         for reach_number in range(self.data_2d.reach_number):
             # for each unit
@@ -1197,6 +1106,9 @@ class Hdf5Management:
             del self.file_object.attrs["hs_input_class_v"]
         self.file_object.attrs.create("hs_input_class_h", self.data_2d[0][0].hydrosignature["classhv"][0])
         self.file_object.attrs.create("hs_input_class_v", self.data_2d[0][0].hydrosignature["classhv"][1])
+        if hs_export_mesh:
+            self.hs_mesh = True
+            self.file_object.attrs.create("hs_mesh", True)
 
     def load_hydrosignature(self):
         self.get_hdf5_attributes(close_file=False)
@@ -1223,13 +1135,6 @@ class Hdf5Management:
                         self.data_2d[reach_number][unit_index].hydrosignature[key] = self.file_object[unitpath].attrs[key]
                 self.data_2d[reach_number][unit_index].hydrosignature["hsarea"] = self.file_object[unitpath + "/hsarea"][:]
                 self.data_2d[reach_number][unit_index].hydrosignature["hsvolume"] = self.file_object[unitpath + "/hsvolume"][:]
-
-    def replace_dataset_in_file(self, dataset_name, new_dataset):
-        attrs = self.file_object[dataset_name].attrs.items()
-        del self.file_object[dataset_name]
-        self.file_object.create_dataset(dataset_name, new_dataset.shape, new_dataset.dtype, data=new_dataset)
-        for attribute in attrs:
-            self.file_object[dataset_name].attrs.create(attribute[0], attribute[1])
 
     # ESTIMHAB
     def create_hdf5_estimhab(self, estimhab_dict, project_preferences):

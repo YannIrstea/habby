@@ -24,9 +24,9 @@ from pandas import DataFrame
 from multiprocessing import Pool, Lock
 from shutil import copy as sh_copy
 
-
 from src.merge_mod import merge, setup
-from src.hydrosignature_mod import hscomparison
+from src.hydrosignature_mod import hscomparison, hydrosignature_calculation_alt, hsexporttxt, \
+    check_hs_class_match_hydraulic_values
 from src.translator_mod import get_translator
 from src.project_properties_mod import create_default_project_properties_dict, load_project_properties
 from src import hdf5_mod
@@ -72,9 +72,9 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
     for i, file in enumerate(filename_source):
         # get file informations
         hsr = HydraulicSimulationResultsSelector(file,
-                                         hydrau_description["path_filename_source"],
-                                         hydrau_description["model_type"],
-                                         hydrau_description["path_prj"])
+                                                 hydrau_description["path_filename_source"],
+                                                 hydrau_description["model_type"],
+                                                 hydrau_description["path_prj"])
         # get timestep_name_list
         if hydrau_description["hydrau_case"] in {"1.a", "2.a"}:
             timestep_wish_list = [hsr.timestep_name_list]
@@ -222,6 +222,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
     if data_2d.hyd_hydrau_case in {"1.b", "2.b"}:
         data_2d.hyd_timestep_source_list = [hydrau_description["timestep_list"]]
     data_2d.hs_calculated = False
+    data_2d.hs_mesh = False
 
     # create hdf5
     path_prj = hydrau_description["path_prj"]
@@ -350,13 +351,13 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
         if not epsg_hyd.isdigit() and epsg_sub.isdigit():
             print(
                 "Warning: EPSG code of hydraulic data is unknown (" + epsg_hyd + ") "
-                                                                                  "and EPSG code of substrate data is known (" + epsg_sub + "). " +
+                                                                                 "and EPSG code of substrate data is known (" + epsg_sub + "). " +
                 "The merging data will still be calculated.")
             hab_epsg_code = epsg_sub
         if epsg_hyd.isdigit() and not epsg_sub.isdigit():
             print(
                 "Warning: EPSG code of hydraulic data is known (" + epsg_hyd + ") "
-                                                                                "and EPSG code of substrate data is unknown (" + epsg_sub + "). " +
+                                                                               "and EPSG code of substrate data is unknown (" + epsg_sub + "). " +
                 "The merging data will still be calculated.")
             hab_epsg_code = epsg_hyd
         if not epsg_hyd.isdigit() and not epsg_sub.isdigit():
@@ -370,7 +371,8 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
         extent_sub = hdf5_sub.data_2d.data_extent
         if (extent_hyd[2] < extent_sub[0] or extent_hyd[0] > extent_sub[2] or
                 extent_hyd[3] < extent_sub[1] or extent_hyd[1] > extent_sub[3]):
-            print("Warning: No intersection found between hydraulic and substrate data (from extent intersection). Substrate default value applied on data as constant values.")
+            print(
+                "Warning: No intersection found between hydraulic and substrate data (from extent intersection). Substrate default value applied on data as constant values.")
             extent_intersect = False
         else:
             extent_intersect = True
@@ -412,7 +414,8 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
             data_2d_merge.epsg_code = hab_epsg_code
 
             data_2d_merge.hvum = hdf5_hydro.data_2d.hvum  # hyd variables
-            data_2d_merge.hvum.hdf5_and_computable_list.extend(hdf5_sub.data_2d.hvum.hdf5_and_computable_list)  # sub variables
+            data_2d_merge.hvum.hdf5_and_computable_list.extend(
+                hdf5_sub.data_2d.hvum.hdf5_and_computable_list)  # sub variables
             hyd_xy_list = []
             hyd_data_node_list = []
             hyd_tin_list = []
@@ -475,33 +478,39 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                 # for each unit
                 for unit_number in range(0, hdf5_hydro.data_2d[reach_number].unit_number):
                     index_loop = index_loop + 1
-                    merge_xy, merge_data_node, merge_tin, merge_i_whole_profile, merge_data_mesh, merge_data_sub = results[index_loop]
+                    merge_xy, merge_data_node, merge_tin, merge_i_whole_profile, merge_data_mesh, merge_data_sub = \
+                    results[index_loop]
 
                     # get mesh data
                     data_2d_merge[reach_number][unit_number]["mesh"]["tin"] = merge_tin
                     data_2d_merge[reach_number][unit_number]["mesh"]["data"] = DataFrame()
                     for colname_num, colname in enumerate(hdf5_hydro.data_2d[0][0]["mesh"]["data"].columns):
                         if colname == "i_whole_profile":
-                            data_2d_merge[reach_number][unit_number]["mesh"]["data"][colname] = merge_i_whole_profile[:, 0]
+                            data_2d_merge[reach_number][unit_number]["mesh"]["data"][colname] = merge_i_whole_profile[:,
+                                                                                                0]
                         elif colname == "i_split":
-                            data_2d_merge[reach_number][unit_number]["mesh"]["data"][colname] = merge_i_whole_profile[:, 1]
+                            data_2d_merge[reach_number][unit_number]["mesh"]["data"][colname] = merge_i_whole_profile[:,
+                                                                                                1]
                         else:
-                            data_2d_merge[reach_number][unit_number]["mesh"]["data"][colname] = merge_data_mesh[:, colname_num]
+                            data_2d_merge[reach_number][unit_number]["mesh"]["data"][colname] = merge_data_mesh[:,
+                                                                                                colname_num]
                     data_2d_merge[reach_number][unit_number]["mesh"]["i_whole_profile"] = merge_i_whole_profile[:, 0]
                     # sub_defaut
-                    data_2d_merge[reach_number][unit_number]["mesh"]["data"][data_2d_merge.hvum.i_sub_defaut.name] = merge_i_whole_profile[:, 2]
+                    data_2d_merge[reach_number][unit_number]["mesh"]["data"][
+                        data_2d_merge.hvum.i_sub_defaut.name] = merge_i_whole_profile[:, 2]
 
                     # get mesh sub data
                     for sub_class_num, sub_class_name in enumerate(
                             hdf5_sub.data_2d.hvum.hdf5_and_computable_list.hdf5s().names()):
                         data_2d_merge[reach_number][unit_number]["mesh"]["data"][sub_class_name] = merge_data_sub[:,
-                                                                                             sub_class_num]
+                                                                                                   sub_class_num]
 
                     # get node data
                     data_2d_merge[reach_number][unit_number]["node"]["xy"] = merge_xy
                     data_2d_merge[reach_number][unit_number]["node"]["data"] = DataFrame()
                     for colname_num, colname in enumerate(hdf5_hydro.data_2d[0][0]["node"]["data"].columns):
-                        data_2d_merge[reach_number][unit_number]["node"]["data"][colname] = merge_data_node[:, colname_num]
+                        data_2d_merge[reach_number][unit_number]["node"]["data"][colname] = merge_data_node[:,
+                                                                                            colname_num]
 
                     # post process merge
                     if data_2d_merge[reach_number][unit_number]["node"]["data"][data_2d_merge.hvum.h.name].min() < 0:
@@ -544,6 +553,20 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
     hdf5 = hdf5_mod.Hdf5Management(path_prj, hdf5_name_hab, new=True)
     hdf5.create_hdf5_hab(data_2d_merge, data_2d_whole_merge, project_preferences)
 
+    if data_2d_merge.hs_calculated:
+        # load_hydrosignature hyd
+        hdf5_hydro = hdf5_mod.Hdf5Management(path_prj, hdf5_name_hyd, new=False, edit=False)
+        hdf5_hydro.load_hydrosignature()
+        # set to merged file
+        hdf5 = hdf5_mod.Hdf5Management(path_prj, hdf5.filename, new=False, edit=True)
+        hdf5.get_hdf5_attributes(close_file=False)
+        hdf5.load_units_index()
+        hdf5.load_data_2d()
+        hdf5.load_whole_profile()
+        hdf5.data_2d = hdf5_hydro.data_2d
+        hdf5.write_hydrosignature(hs_export_mesh=hdf5_hydro.hs_mesh)
+        hdf5.close_file()
+
     # export
     export_dict = dict()
     nb_export = 0
@@ -576,46 +599,142 @@ def load_data_and_compute_hs(hydrosignature_description, progress_value, q=[], p
 
     path_prj = project_preferences["path_prj"]
 
-    # compute
+    # load
+    hdf5 = hdf5_mod.Hdf5Management(path_prj, hydrosignature_description["hdf5_name"], new=False, edit=True)
+    hdf5.get_hdf5_attributes(close_file=False)
+    hdf5.load_units_index()
+    hdf5.load_data_2d()
+    hdf5.load_whole_profile()
+
+    # get new_data_2d
+    new_data_2d = hdf5.data_2d
     if hydrosignature_description["hs_export_mesh"]:
-        hdf5 = hdf5_mod.Hdf5Management(path_prj, hydrosignature_description["hdf5_name"], new=False, edit=True)
-        hdf5.hydrosignature_new_file(progress_value,
-                                     hydrosignature_description["classhv"],
-                                     hydrosignature_description["hs_export_txt"])
-        # load new hs_data to original hdf5
-        hdf5_new = hdf5_mod.Hdf5Management(path_prj, hdf5.filename[:-4] + "_HS" + hdf5.extension, new=False, edit=False)
-        hdf5_new.load_hydrosignature()
-        hdf5.data_2d = hdf5_new.data_2d
-        hdf5.write_hydrosignature()
+        new_data_2d_whole = hdf5.data_2d_whole
+
+    # check matching
+    matching, error = check_hs_class_match_hydraulic_values(hydrosignature_description["classhv"],
+                                                            h_min=new_data_2d.hvum.h.min,
+                                                            h_max=new_data_2d.hvum.h.max,
+                                                            v_min=new_data_2d.hvum.v.min,
+                                                            v_max=new_data_2d.hvum.v.max)
+
+    # remove hab data
+    new_data_2d.hvum.hdf5_and_computable_list = new_data_2d.hvum.hdf5_and_computable_list.no_habs()
+
+    if matching:
+        # progress
+        delta_reach = 90 / new_data_2d.reach_number
+
+        # for each reach
+        for reach_number in range(new_data_2d.reach_number):
+
+            # progress
+            delta_unit = delta_reach / new_data_2d[reach_number].unit_number
+
+            # for each unit
+            for unit_number in range(new_data_2d[reach_number].unit_number):
+                hyd_data_mesh = new_data_2d[reach_number][unit_number]["mesh"]["data"].to_records(index=False)
+                hyd_tin = new_data_2d[reach_number][unit_number]["mesh"]["tin"]
+                i_whole_profile = new_data_2d[reach_number][unit_number]["mesh"]["i_whole_profile"]
+                hyd_data_node = new_data_2d[reach_number][unit_number]["node"]["data"].to_records(index=False)
+                hyd_xy_node = new_data_2d[reach_number][unit_number]["node"]["xy"]
+                hyd_hv_node = np.array([hyd_data_node["h"], hyd_data_node["v"]]).T
+
+                # progress
+                delta_mesh = delta_unit / len(hyd_tin)
+
+                if hydrosignature_description["hs_export_mesh"]:
+                    nb_mesh, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume, node_xy_out, node_data_out, mesh_data_out, tin_out, i_whole_profile_out = hydrosignature_calculation_alt(
+                        delta_mesh, progress_value, hydrosignature_description["classhv"], hyd_tin, hyd_xy_node,
+                        hyd_hv_node, hyd_data_node,
+                        hyd_data_mesh, i_whole_profile,
+                        return_cut_mesh=True)
+                else:
+                    nb_mesh, total_area, total_volume, mean_depth, mean_velocity, mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume = hydrosignature_calculation_alt(
+                        delta_mesh, progress_value, hydrosignature_description["classhv"], hyd_tin, hyd_xy_node,
+                        hyd_hv_node, hyd_data_node,
+                        hyd_data_mesh, i_whole_profile,
+                        return_cut_mesh=False)
+
+                # hsexporttxt
+                if hydrosignature_description["hs_export_txt"]:
+                    hsexporttxt(os.path.join(hdf5.path_prj, "output", "text"),
+                                os.path.splitext(hdf5.filename)[0] + "_HSresult.txt",
+                                hydrosignature_description["classhv"], new_data_2d[reach_number][unit_number].unit_name,
+                                nb_mesh, total_area, total_volume, mean_depth, mean_velocity,
+                                mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume)
+
+                # attr
+                hs_dict = {"nb_mesh": nb_mesh,
+                           "total_area": total_area,
+                           "total_volume": total_volume,
+                           "mean_depth": mean_depth,
+                           "mean_velocity": mean_velocity,
+                           "mean_froude": mean_froude,
+                           "min_depth": min_depth,
+                           "max_depth": max_depth,
+                           "min_velocity": min_velocity,
+                           "max_velocity": max_velocity,
+                           "classhv": hydrosignature_description["classhv"]}
+                # unitpath = "data_2d/reach_" + str(reach_number) + "/unit_" + str(unit_number)
+                for key in hs_dict.keys():
+                    new_data_2d[reach_number][unit_number].hydrosignature[key] = hs_dict[key]
+                new_data_2d[reach_number][unit_number].hydrosignature["hsarea"] = hsarea
+                new_data_2d[reach_number][unit_number].hydrosignature["hsvolume"] = hsvolume
+
+                # hs_export_mesh
+                if hydrosignature_description["hs_export_mesh"]:
+                    new_data_2d[reach_number][unit_number].total_wet_area = total_area
+                    new_data_2d[reach_number][unit_number]["mesh"]["tin"] = tin_out
+                    new_data_2d[reach_number][unit_number]["mesh"]["i_whole_profile"] = i_whole_profile_out
+                    new_data_2d[reach_number][unit_number]["node"]["xy"] = node_xy_out
+                    new_data_2d[reach_number][unit_number]["mesh"]["data"] = DataFrame(mesh_data_out)
+                    new_data_2d[reach_number][unit_number]["node"]["data"] = DataFrame(node_data_out)
+
     else:
-        hdf5 = hdf5_mod.Hdf5Management(path_prj, hydrosignature_description["hdf5_name"], new=False, edit=True)
-        hdf5.add_hs(progress_value,
-                    hydrosignature_description["classhv"],
-                    False,
-                    hydrosignature_description["hs_export_txt"])
-        # check error
-        if not hdf5.hs_calculated:
-            # warnings
-            if not print_cmd:
-                sys.stdout = sys.__stdout__
-                if q and not print_cmd:
-                    q.put(mystdout)
-                    sleep(0.1)  # to wait q.put() ..
-            return
+        print("Error: " + hdf5.filename + " " + error)
+        # warnings
+        if not print_cmd:
+            sys.stdout = sys.__stdout__
+            if q and not print_cmd:
+                q.put(mystdout)
+                sleep(0.1)  # to wait q.put() ..
+
+    # write to initial hdf5
+    hdf5.write_hydrosignature(hs_export_mesh=False)
+    hdf5.close_file()
 
     # hs input hydraulic class save to input folder
-    folder_name = os.path.splitext(hdf5.filename)[0]
-    hs_input_class_folder_path_out = os.path.join(project_preferences["path_prj"], "input", folder_name)
-    if not os.path.exists(hs_input_class_folder_path_out):
-        os.makedirs(hs_input_class_folder_path_out)
-    hs_input_class_folder_path_in = os.path.join(hydrosignature_description["classhv_input_class_file_info"]["path"], hydrosignature_description["classhv_input_class_file_info"]["file"])
-    sh_copy(hs_input_class_folder_path_in, os.path.join(hs_input_class_folder_path_out, hydrosignature_description["classhv_input_class_file_info"]["file"]))
+    folder_name_new_hs = os.path.splitext(hdf5.filename)[0]
+    new_hs_input_class_folder_path_out = os.path.join(project_preferences["path_prj"], "input", folder_name_new_hs)
+    if not os.path.exists(new_hs_input_class_folder_path_out):
+        os.makedirs(new_hs_input_class_folder_path_out)
+    sh_copy(os.path.join(
+        hydrosignature_description["classhv_input_class_file_info"]["path"],
+        hydrosignature_description["classhv_input_class_file_info"]["file"]),
+        os.path.join(new_hs_input_class_folder_path_out,
+                     hydrosignature_description["classhv_input_class_file_info"]["file"]))
+
     if hydrosignature_description["hs_export_mesh"]:
-        folder_name_new_hs = os.path.splitext(hdf5_new.filename)[0]
-        new_hs_input_class_folder_path_out = os.path.join(project_preferences["path_prj"], "input", folder_name_new_hs)
-        if not os.path.exists(new_hs_input_class_folder_path_out):
-            os.makedirs(new_hs_input_class_folder_path_out)
-        sh_copy(hs_input_class_folder_path_in, os.path.join(new_hs_input_class_folder_path_out, hydrosignature_description["classhv_input_class_file_info"]["file"]))
+        # create new with new data_2d meshs
+        hdf5_new = hdf5_mod.Hdf5Management(path_prj, hdf5.filename[:-4] + "_HS" + hdf5.extension, new=True, edit=True)
+        new_data_2d.hvum.hydraulic_class.hdf5 = True
+        new_data_2d.hvum.hydraulic_class.position = "mesh"
+        if new_data_2d.hvum.hydraulic_class.name not in new_data_2d.hvum.hdf5_and_computable_list.names():
+            new_data_2d.hvum.hdf5_and_computable_list.append(new_data_2d.hvum.hydraulic_class)
+        if hdf5_new.hdf5_type == "hydraulic":
+            hdf5_new.create_hdf5_hyd(new_data_2d, new_data_2d_whole, project_preferences)
+        elif hdf5_new.extension == ".hab":
+            hdf5_new.create_hdf5_hab(new_data_2d, new_data_2d_whole, project_preferences)
+        # add hs
+        hdf5_new = hdf5_mod.Hdf5Management(path_prj, hdf5.filename[:-4] + "_HS" + hdf5.extension, new=False, edit=True)
+        hdf5_new.get_hdf5_attributes(close_file=False)
+        hdf5_new.load_units_index()
+        hdf5_new.load_data_2d()
+        hdf5_new.load_whole_profile()
+        hdf5_new.data_2d = new_data_2d
+        hdf5_new.write_hydrosignature(hs_export_mesh=True)
+        hdf5_new.close_file()
 
     # warnings
     if not print_cmd:
@@ -732,5 +851,3 @@ def load_hs_and_compare(hdf5name_1, reach_index_list_1, unit_index_list_1,
     for row in row_volume_list:
         f.write("\t".join(row) + '\n')
     f.close()
-
-
