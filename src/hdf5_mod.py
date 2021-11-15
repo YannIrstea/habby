@@ -567,9 +567,13 @@ class Hdf5Management:
                                                                                     :]
 
     def load_data_2d(self):
+        """
+        Full empty data data_2d (light data_2d) previously created with get_hdf5_attributes, is used to be filled with data at specific
+        reach and unit, from user choices (units_index arg in load_hdf5).
+        """
         data_2d_group = 'data_2d'
         reach_list = list(self.file_object[data_2d_group].keys())
-        removed_units_list = []
+
         # for each reach
         for reach_number, reach_group_name in enumerate(reach_list):
             # group name
@@ -577,7 +581,6 @@ class Hdf5Management:
             # for each desired_units
             available_unit_list = list(self.file_object[reach_group].keys())
             available_unit_list = sorted(available_unit_list, key=lambda x: float(x[5:]))
-            removed_units_list = list(set(list(range(len(available_unit_list)))) - set(self.units_index[reach_number]))
             for unit_number, unit_group_name in enumerate(available_unit_list):
                 if unit_number in self.units_index[reach_number]:
                     # group name
@@ -630,9 +633,6 @@ class Hdf5Management:
                     self.data_2d[reach_number][unit_number]["node"]["data"] = node_dataframe
 
         self.load_data_2d_info()
-
-        if removed_units_list:
-            self.data_2d.remove_unit_from_unit_index_list(removed_units_list)
 
     def load_data_2d_info(self):
         data_2d_group = 'data_2d'
@@ -790,6 +790,10 @@ class Hdf5Management:
 
         # copy input files to input project folder
         if not project_preferences["restarted"]:
+            if self.data_2d.hyd_model_type == "lammi":
+                # if lammi Transect.txt
+                prj_list_file = [s for s in os.listdir(self.data_2d.path_filename_source) if s.endswith('.prn')]
+                self.data_2d.filename_source = self.data_2d.filename_source + ", " + ", ".join(prj_list_file)
             copy_hydrau_input_files(self.data_2d.path_filename_source,
                                 self.data_2d.filename_source,
                                 self.filename,
@@ -833,7 +837,8 @@ class Hdf5Management:
         self.get_hdf5_attributes(close_file=False)
 
         # units_index
-        self.load_units_index()
+        if self.data_2d.sub_mapping_method != "constant":
+            self.load_units_index()
 
         # variables
         self.user_target_list = user_target_list
@@ -914,16 +919,17 @@ class Hdf5Management:
 
         # copy input files to input project folder (only not merged, .hab directly from a input file as ASCII, LAMMI)
         if not project_preferences["restarted"]:
-            if (self.data_2d.hyd_model_type == "ascii" and not hasattr(self.data_2d, "sub_filename_source")) :
+            if self.data_2d.hyd_model_type in ("ascii", "lammi") and not hasattr(self.data_2d, "sub_filename_source"):
+                if self.data_2d.hyd_model_type == "lammi":
+                    # if lammi Transect.txt
+                    prj_list_file = [s for s in os.listdir(self.data_2d.path_filename_source) if s.endswith('.prn')]
+                    self.data_2d.filename_source = self.data_2d.filename_source + ", " + ", ".join(prj_list_file)
+                # copy_hydrau_input_files
                 copy_hydrau_input_files(self.data_2d.path_filename_source,
                                         self.data_2d.filename_source,
                                         self.filename,
                                         os.path.join(project_preferences["path_prj"], "input"))
-            elif self.data_2d.hyd_model_type == "lammi":
-                copy_hydrau_input_files(self.data_2d.path_filename_source,
-                                        self.data_2d.filename_source,
-                                        self.filename,
-                                        os.path.join(project_preferences["path_prj"], "input"))
+
         # save XML
         self.save_xml("HABITAT", "")
 

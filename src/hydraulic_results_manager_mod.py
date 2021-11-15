@@ -989,9 +989,12 @@ class HydraulicSimulationResultsAnalyzer:
                 reach_name = ["unknown"]
                 if reach_presence:
                     reach_name = data_index_file[headers[reach_index]]
+                    hdf5_name = "_".join([os.path.splitext(el)[0] for el in data_index_file[headers[0]]]) + ".hab"
+                else:
+                    hdf5_name = hsr.simulation_name + ".hab"
 
                 # self.hydrau_description_list
-                self.hydrau_description_list[0]["hdf5_name"] = "_".join([os.path.splitext(el)[0] for el in data_index_file[headers[0]]]) + ".hab"
+                self.hydrau_description_list[0]["hdf5_name"] = hdf5_name
                 self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
                 self.hydrau_description_list[0]["unit_list"] = unit_name_list
                 self.hydrau_description_list[0]["unit_list_full"] = unit_name_full_list
@@ -1053,7 +1056,10 @@ def create_or_copy_index_hydrau_text_file(description_from_indexHYDRAU_file):
             linetowrite = ""
             filename_list = description_from_indexHYDRAU_file["filename_source"].split(", ")
             for ind, unit_name in enumerate(description_from_indexHYDRAU_file["unit_list"][0]):
-                linetowrite = linetowrite + filename_list[ind] + "\t" + unit_name + "\t" + reach_column + "\n"
+                if reach_column_presence:
+                    linetowrite = linetowrite + filename_list[ind] + "\t" + unit_name + "\t" + reach_column + "\n"
+                else:
+                    linetowrite = linetowrite + filename_list[ind] + "\t" + unit_name + "\n"
 
             # text
             text = epsg_code + "\n" + headers + "\n" + linetowrite
@@ -1108,6 +1114,29 @@ def create_or_copy_index_hydrau_text_file(description_from_indexHYDRAU_file):
             # write text file
             with open(filename_path, 'wt', encoding="utf-8") as f:
                 f.write(text)
+
+        elif description_from_indexHYDRAU_file["model_type"] == "lammi":
+            if description_from_indexHYDRAU_file["unit_list"] != description_from_indexHYDRAU_file["unit_list_full"]:
+                unit_type = description_from_indexHYDRAU_file["unit_type"].replace("m<sup>3</sup>/s", "m3/s").replace(
+                    "discharge", "Q").replace(" ", "")
+                # epsg_code
+                epsg_code = "EPSG=" + description_from_indexHYDRAU_file["epsg_code"]
+                # headers
+                headers = "filename" + "\t" + unit_type
+
+                # first line
+                linetowrite = ""
+                filename_list = description_from_indexHYDRAU_file["filename_source"].split(", ")
+                for filename_ind, filename in enumerate(filename_list):
+                    unit_name = ";".join(description_from_indexHYDRAU_file["unit_list"][filename_ind])
+                    linetowrite = linetowrite + filename_list[filename_ind] + "\t" + unit_name + "\n"
+
+                # text
+                text = epsg_code + "\n" + headers + "\n" + linetowrite
+
+                # write text file
+                with open(filename_path, 'wt', encoding="utf-8") as f:
+                    f.write(text)
 
         else:
             if os.path.exists(os.path.join(description_from_indexHYDRAU_file["path_filename_source"], "indexHYDRAU.txt")):

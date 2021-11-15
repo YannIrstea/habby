@@ -589,7 +589,7 @@ def load_sub_cst(sub_description, progress_value):
 
     # data_2d
     data_2d = Data2d(reach_number=1,
-                     unit_list=[1])
+                     unit_list=[["sub_cst"]])
     for i, value in enumerate(sub_constant_values):
         sub_constant_values[i] = int(value.strip())  # clean string and convert to int
     data_2d.sub_constant_values = np.array(sub_constant_values, dtype=np.int64)

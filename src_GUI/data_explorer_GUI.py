@@ -627,16 +627,10 @@ class FigureProducerGroup(QGroupBoxCollapsible):
                     nb_map = len(names_hdf5) * total_habitat_variable_number * sum(len(x) for x in units)
                     if self.gif_export and nb_map > 1:
                         nb_map = nb_map + total_habitat_variable_number * len(reach) + total_variables_number * len(reach)
-                if len(units) == 1:
-                    if plot_type == ["map"]:
-                        nb_wua_hv = 0
-                    else:
-                        nb_wua_hv = len(names_hdf5) * total_habitat_variable_number * sum(len(x) for x in units)
-                if len(units) > 1:
-                    if plot_type == ["map"]:
-                        nb_wua_hv = 0
-                    else:
-                        nb_wua_hv = len(names_hdf5) * total_habitat_variable_number
+                if plot_type == ["map"]:
+                    nb_wua_hv = 0
+                else:
+                    nb_wua_hv = len(names_hdf5) * total_habitat_variable_number
                 # total
                 self.nb_plot = (len(names_hdf5) * total_variables_number * sum(len(x) for x in units)) + nb_map + nb_wua_hv
 
@@ -689,23 +683,27 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         for i in range(len(selection)):
             names_hdf5.append(selection[i].text())
 
-        # reach
-        selection = self.reach_QListWidget.selectedItems()
         reach = []
         units = []
         units_index = []
-        for r_i in range(len(selection)):
-            reach.append(selection[r_i].text())
-            units.append([])
-            units_index.append([])
-            selection = self.units_QListWidget.selectedItems()
-            for u_i in range(len(selection)):
-                units[r_i].append(selection[u_i].text())
-                units_index[r_i].append(self.units_QListWidget.indexFromItem(selection[u_i]).row())
-        together = zip(units_index, units)
-        sorted_together = sorted(together)
-        units_index = [x[0] for x in sorted_together]
-        units = [x[1] for x in sorted_together]
+
+        # reach
+        if self.reach_QListWidget.selectedItems():
+            for r_i in range(self.reach_QListWidget.count()):
+                reach_item = self.reach_QListWidget.item(r_i)
+                if reach_item.isSelected():
+                    reach.append(reach_item.text())
+                    u_selection = self.units_QListWidget.selectedItems()
+                    units.append([u_selection[u_i].text() for u_i in range(len(u_selection))])
+                    units_index.append([self.units_QListWidget.indexFromItem(u_selection[u_i]).row() for u_i in range(len(u_selection))])
+                else:
+                    units.append([])
+                    units_index.append([])
+
+                # together = zip(units_index, units)
+                # sorted_together = sorted(together)
+                # units_index = [x[0] for x in sorted_together]
+                # units = [x[1] for x in sorted_together]
 
         # variables
         if self.node_variable_QListWidget.selectedIndexes().__len__() > 0:

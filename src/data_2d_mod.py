@@ -48,9 +48,28 @@ class Data2d(list):
         self.hs_summary_data = []
         self.sub_mapping_method = ""
 
+    def __str__(self):
+        string = self.__class__.__name__ + "\n" + \
+                 str(self.__dict__) + "\n"
+        for reach_number in range(len(self)):
+            string = string + "reach n°" + str(reach_number) + ": unit_number = " + str(self[reach_number].unit_number) + " len(reach) = " + str(len(self[reach_number])) + "\n"
+            for unit_number in range(len(self[reach_number])):
+                string = string + "           unit " + str(unit_number) + " data = " + ", ".join(self[reach_number][unit_number].get_variables_with_data()) + "\n"
+        return string
+
+    def __repr__(self):
+        string = self.__class__.__name__ + "\n" + \
+                 str(self.__dict__) + "\n"
+        for reach_number in range(len(self)):
+            string = string + "reach n°" + str(reach_number) + ": unit_number = " + str(self[reach_number].unit_number) + " len(reach) = " + str(len(self[reach_number])) + "\n"
+            for unit_number in range(len(self[reach_number])):
+                string = string + "           unit " + str(unit_number) + " data = " + ", ".join(self[reach_number][unit_number].get_variables_with_data()) + "\n"
+        return string
+
     def get_informations(self):
         self.reach_number = len(self)
         for reach_number in range(self.reach_number):
+            self[reach_number].unit_number = len(self[reach_number])
             for unit_number in range(len(self[reach_number])):
                 self[reach_number][unit_number].reach_number = reach_number
                 self[reach_number][unit_number].unit_number = unit_number
@@ -58,8 +77,6 @@ class Data2d(list):
     def add_reach(self, data_2d_new, reach_num_list):
         for reach_number in reach_num_list:
             self.append(data_2d_new[reach_num_list[reach_number]])
-
-        # TODO: check if same units number and name
 
         # update attrs
         self.get_informations()
@@ -70,8 +87,6 @@ class Data2d(list):
         if not self.reach_number:
             self.append(Reach())
         self[reach_number].extend(data_2d_new[reach_number])
-
-        # TODO: check if same units number and name
 
         self.get_informations()
         self.hvum = data_2d_new.hvum
@@ -189,7 +204,7 @@ class Data2d(list):
     def set_sub_cst_value(self, hdf5_sub):
         # mixing variables
         self.hvum.hdf5_and_computable_list.extend(hdf5_sub.data_2d.hvum.hdf5_and_computable_list)
-        self.sub_mapping_method = hdf5_sub.data_2d.sub_mapping_method
+        self.sub_mapping_method = "constant"
         self.sub_classification_code = hdf5_sub.data_2d.sub_classification_code
         self.sub_classification_method = hdf5_sub.data_2d.sub_classification_method
         # for each reach
@@ -252,22 +267,21 @@ class Data2d(list):
                 self[reach_number][unit_number].unit_number = unit_number
             self.units_index.append(list(range(len(self[reach_number]))))
 
-    def remove_unit_from_unit_index_list(self, unit_index_to_remove_list):
+    def remove_unit_from_unit_index_list(self, unit_index_to_remove_list, reach_number=0):
         # remove duplicates
         unit_index_to_remove_list = list(set(unit_index_to_remove_list))
 
         # unit_dict removed
-        for reach_number in range(self.reach_number):
-            for unit_index_to_remove in reversed(unit_index_to_remove_list):
-                self[reach_number].pop(unit_index_to_remove)
-                # unit_name_list updated
-                self.unit_list[reach_number].pop(unit_index_to_remove)
+        for unit_index_to_remove in reversed(unit_index_to_remove_list):
+            self[reach_number].pop(unit_index_to_remove)
+            # unit_name_list updated
+            self.unit_list[reach_number].pop(unit_index_to_remove)
         self.get_informations()
 
     def check_validity(self):
-        unit_to_remove_list = []
         # for each reach
         for reach_number in range(self.reach_number):
+            unit_to_remove_list = []
             # for each unit
             for unit_number in range(len(self[reach_number])):
                 # is_duplicates_mesh_and_point_on_one_unit?
@@ -283,8 +297,9 @@ class Data2d(list):
                     unit_to_remove_list.append(unit_number)
                     continue
 
-        # remove_unit_from_unit_index_list
-        self.remove_unit_from_unit_index_list(unit_to_remove_list)
+            # remove_unit_from_unit_index_list
+            if unit_to_remove_list:
+                self.remove_unit_from_unit_index_list(unit_to_remove_list, reach_number)
 
     def set_min_height_to_0(self, min_height):
         # for each reach
@@ -303,10 +318,9 @@ class Data2d(list):
     def remove_dry_mesh(self):
         self.get_informations()
 
-        unit_to_remove_list = []
-
         # for each reach
         for reach_number in range(self.reach_number):
+            unit_to_remove_list = []
             # for each unit
             for unit_number in range(len(self[reach_number])):
                 # get data from dict
@@ -358,8 +372,8 @@ class Data2d(list):
                     ipt_iklenew_unique]
                 self[reach_number][unit_number]["node"][self.hvum.xy.name] = point_all_ok[:, :2]
 
-        if unit_to_remove_list:
-            self.remove_unit_from_unit_index_list(unit_to_remove_list)
+            if unit_to_remove_list:
+                self.remove_unit_from_unit_index_list(unit_to_remove_list, reach_number)
 
     def semi_wetted_mesh_cutting(self, unit_list, progress_value, delta_file):
         """
@@ -379,7 +393,6 @@ class Data2d(list):
         """
         self.get_informations()
 
-        unit_to_remove_list = []
 
         # progress
         delta_reach = delta_file / self.reach_number
@@ -389,6 +402,8 @@ class Data2d(list):
 
             # progress
             delta_unit = delta_reach / len(unit_list[reach_number])
+
+            unit_to_remove_list = []
 
             # for each unit
             for unit_number, unit_name in enumerate(unit_list[reach_number]):
@@ -602,8 +617,8 @@ class Data2d(list):
                 # progress
                 progress_value.value = progress_value.value + delta_unit
 
-        if unit_to_remove_list:
-            self.remove_unit_from_unit_index_list(unit_to_remove_list)
+            if unit_to_remove_list:
+                self.remove_unit_from_unit_index_list(unit_to_remove_list, reach_number)
 
         self.get_informations()
 
@@ -618,87 +633,85 @@ class Data2d(list):
             variable_computable_list2 = HydraulicVariableUnitList()
             variable_computable_list2.extend(variable_computable_list)
             variable_computable_list = variable_computable_list2
-        node_variable_list = variable_computable_list.nodes()
-        mesh_variable_list = variable_computable_list.meshs()
-        # for all reach
-        for reach_number in range(self.reach_number):
-            # for all units
-            for unit_number in range(len(self[reach_number])):
-                # print("--- compute_variables unit", str(unit_number), " ---")
-                """ node """
-                if node_variable_list:
-                    for node_variable in node_variable_list:
-                        # compute water_level
-                        if node_variable.name == self.hvum.level.name:
-                            self[reach_number][unit_number].c_node_water_level()
-                        # compute froude
-                        elif node_variable.name == self.hvum.froude.name:
-                            self[reach_number][unit_number].c_node_froude()
-                        # compute hydraulic_head
-                        elif node_variable.name == self.hvum.hydraulic_head.name:
-                            self[reach_number][unit_number].c_node_hydraulic_head()
-                        # compute hydraulic_head_level
-                        elif node_variable.name == self.hvum.hydraulic_head_level.name:
-                            self[reach_number][unit_number].c_node_hydraulic_head_level()
-                        # compute conveyance
-                        elif node_variable.name == self.hvum.conveyance.name:
-                            self[reach_number][unit_number].c_node_conveyance()
-                        # compute shear_stress
-                        elif node_variable.name == self.hvum.shear_stress.name:
-                            self[reach_number][unit_number].c_node_shear_stress()
-                """ mesh """
-                if mesh_variable_list:
-                    for mesh_variable in mesh_variable_list:
-                        # c_mesh_elevation
-                        if mesh_variable.name == self.hvum.z.name:
-                            self[reach_number][unit_number].c_mesh_elevation()
-                        # compute height
-                        elif mesh_variable.name == self.hvum.h.name:
-                            self[reach_number][unit_number].c_mesh_height()
-                        # compute velocity
-                        elif mesh_variable.name == self.hvum.v.name:
-                            self[reach_number][unit_number].c_mesh_velocity()
-                        # compute shear_stress
-                        elif mesh_variable.name == self.hvum.shear_stress.name:
-                            self[reach_number][unit_number].c_mesh_shear_stress()
-                        # compute shear_stress_beta
-                        elif mesh_variable.name == self.hvum.shear_stress_beta.name:
-                            self[reach_number][unit_number].c_mesh_shear_stress_beta()
-                        # compute water_level
-                        elif mesh_variable.name == self.hvum.level.name:
-                            self[reach_number][unit_number].c_mesh_water_level()
-                        # compute froude
-                        elif mesh_variable.name == self.hvum.froude.name:
-                            self[reach_number][unit_number].c_mesh_froude()
-                        # compute hydraulic_head
-                        elif mesh_variable.name == self.hvum.hydraulic_head.name:
-                            self[reach_number][unit_number].c_mesh_hydraulic_head()
-                        # compute hydraulic_head_level
-                        elif mesh_variable.name == self.hvum.hydraulic_head_level.name:
-                            self[reach_number][unit_number].c_mesh_hydraulic_head_level()
-                        # compute conveyance
-                        elif mesh_variable.name == self.hvum.conveyance.name:
-                            self[reach_number][unit_number].c_mesh_conveyance()
-                        # compute max_slope_bottom
-                        elif mesh_variable.name == self.hvum.max_slope_bottom.name:
-                            self[reach_number][unit_number].c_mesh_max_slope_bottom()
-                        # compute max_slope_energy
-                        elif mesh_variable.name == self.hvum.max_slope_energy.name:
-                            self[reach_number][unit_number].c_mesh_max_slope_energy()
-                        # compute area
-                        elif mesh_variable.name == self.hvum.area.name:
-                            self[reach_number][unit_number].c_mesh_area()
-                        # compute coarser
-                        elif mesh_variable.name == self.hvum.sub_coarser.name:
-                            self[reach_number][unit_number].c_mesh_sub_coarser()
-                        # compute dominant
-                        elif mesh_variable.name == self.hvum.sub_dom.name:
-                            self[reach_number][unit_number].c_mesh_sub_dom()
-                        # area
-                        elif mesh_variable.name == self.hvum.area.name:
-                            self[reach_number][unit_number].c_mesh_area()
-                        else:
-                            self[reach_number][unit_number].c_mesh_mean_from_node_values(mesh_variable.name)
+
+        # for variable
+        for variable in variable_computable_list:
+            # for all reach
+            for reach_number in range(self.reach_number):
+                # for all units
+                for unit_number in range(len(self[reach_number])):
+                    # compute only on preloaded data unit
+                    if self[reach_number][unit_number].get_variables_with_data():
+                        if variable.position == "node":
+                            # compute water_level
+                            if variable.name == self.hvum.level.name:
+                                self[reach_number][unit_number].c_node_water_level()
+                            # compute froude
+                            elif variable.name == self.hvum.froude.name:
+                                self[reach_number][unit_number].c_node_froude()
+                            # compute hydraulic_head
+                            elif variable.name == self.hvum.hydraulic_head.name:
+                                self[reach_number][unit_number].c_node_hydraulic_head()
+                            # compute hydraulic_head_level
+                            elif variable.name == self.hvum.hydraulic_head_level.name:
+                                self[reach_number][unit_number].c_node_hydraulic_head_level()
+                            # compute conveyance
+                            elif variable.name == self.hvum.conveyance.name:
+                                self[reach_number][unit_number].c_node_conveyance()
+                            # compute shear_stress
+                            elif variable.name == self.hvum.shear_stress.name:
+                                self[reach_number][unit_number].c_node_shear_stress()
+                        elif variable.position == "mesh":
+                            # c_mesh_elevation
+                            if variable.name == self.hvum.z.name:
+                                self[reach_number][unit_number].c_mesh_elevation()
+                            # compute height
+                            elif variable.name == self.hvum.h.name:
+                                self[reach_number][unit_number].c_mesh_height()
+                            # compute velocity
+                            elif variable.name == self.hvum.v.name:
+                                self[reach_number][unit_number].c_mesh_velocity()
+                            # compute shear_stress
+                            elif variable.name == self.hvum.shear_stress.name:
+                                self[reach_number][unit_number].c_mesh_shear_stress()
+                            # compute shear_stress_beta
+                            elif variable.name == self.hvum.shear_stress_beta.name:
+                                self[reach_number][unit_number].c_mesh_shear_stress_beta()
+                            # compute water_level
+                            elif variable.name == self.hvum.level.name:
+                                self[reach_number][unit_number].c_mesh_water_level()
+                            # compute froude
+                            elif variable.name == self.hvum.froude.name:
+                                self[reach_number][unit_number].c_mesh_froude()
+                            # compute hydraulic_head
+                            elif variable.name == self.hvum.hydraulic_head.name:
+                                self[reach_number][unit_number].c_mesh_hydraulic_head()
+                            # compute hydraulic_head_level
+                            elif variable.name == self.hvum.hydraulic_head_level.name:
+                                self[reach_number][unit_number].c_mesh_hydraulic_head_level()
+                            # compute conveyance
+                            elif variable.name == self.hvum.conveyance.name:
+                                self[reach_number][unit_number].c_mesh_conveyance()
+                            # compute max_slope_bottom
+                            elif variable.name == self.hvum.max_slope_bottom.name:
+                                self[reach_number][unit_number].c_mesh_max_slope_bottom()
+                            # compute max_slope_energy
+                            elif variable.name == self.hvum.max_slope_energy.name:
+                                self[reach_number][unit_number].c_mesh_max_slope_energy()
+                            # compute area
+                            elif variable.name == self.hvum.area.name:
+                                self[reach_number][unit_number].c_mesh_area()
+                            # compute coarser
+                            elif variable.name == self.hvum.sub_coarser.name:
+                                self[reach_number][unit_number].c_mesh_sub_coarser()
+                            # compute dominant
+                            elif variable.name == self.hvum.sub_dom.name:
+                                self[reach_number][unit_number].c_mesh_sub_dom()
+                            # area
+                            elif variable.name == self.hvum.area.name:
+                                self[reach_number][unit_number].c_mesh_area()
+                            else:
+                                self[reach_number][unit_number].c_mesh_mean_from_node_values(variable.name)
 
     def remove_null_area(self):
         # for all reach
@@ -1003,6 +1016,20 @@ class Unit(dict):
                             z=None)
         # hydrosignature
         self.hydrosignature = dict()
+
+    def get_variables_with_data(self):
+        data_variable_list = []
+
+        for position in ("node", "mesh"):
+            for key in self[position].keys():
+                if self[position][key] is not None:
+                    if key == "data":
+                        for col in self[position][key].columns.tolist():
+                            data_variable_list.append(col)
+                    else:
+                        data_variable_list.append(key)
+
+        return data_variable_list
 
     """ mesh """
 

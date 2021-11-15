@@ -128,25 +128,24 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
     """ set unit_names """
     data_2d.set_unit_list(hydrau_description["unit_list"])
 
-    """ varying mesh """
+    """ varying mesh and unit z equal """
+    hyd_varying_mesh = False
+    hyd_unit_z_equal = True
     hyd_varying_xy_index, hyd_varying_z_index = data_2d_whole_profile.get_hyd_varying_xy_and_z_index()
-    for reach_number in range(len(hyd_varying_xy_index)):
-        if len(set(hyd_varying_xy_index[reach_number])) == 1:  # one tin for all unit
-            hyd_varying_mesh = False
-            data_2d_whole_profile.reduce_to_first_unit_by_reach()
-        else:
-            hyd_varying_mesh = True
-        # hyd_unit_z_equal ?
-        if len(set(hyd_varying_z_index[reach_number])) == 1:
-            hyd_unit_z_equal = True
-        else:
-            hyd_unit_z_equal = False
-
+    for reach_number in range(data_2d.reach_number):
         # one file : one reach, varying_mesh==False
         if len(filename_source) == 1:
             hydrau_description["hyd_unit_correspondence"].append(hyd_varying_xy_index[reach_number])
         else:
             hydrau_description["hyd_unit_correspondence"].append(hyd_varying_xy_index[reach_number])
+        # hyd_varying_mesh ?
+        if len(set(hyd_varying_xy_index[reach_number])) == 1 and not hyd_varying_mesh:  # one tin for all unit
+            data_2d_whole_profile.reduce_to_first_unit_by_reach()
+        else:
+            hyd_varying_mesh = True
+        # hyd_unit_z_equal ?
+        if not len(set(hyd_varying_z_index[reach_number])) == 1:
+            hyd_unit_z_equal = False
 
     """ check_validity """
     data_2d.check_validity()
@@ -371,7 +370,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
         extent_sub = hdf5_sub.data_2d.data_extent
         if (extent_hyd[2] < extent_sub[0] or extent_hyd[0] > extent_sub[2] or
                 extent_hyd[3] < extent_sub[1] or extent_hyd[1] > extent_sub[3]):
-            print("Warning: No intersection found between hydraulic and substrate data (from extent intersection).")
+            print("Warning: No intersection found between hydraulic and substrate data (from extent intersection). Substrate default value applied on data as constant values.")
             extent_intersect = False
         else:
             extent_intersect = True

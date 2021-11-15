@@ -245,7 +245,7 @@ class MyProcessManager(QThread):
 
                 # for each desired units ==> maps
                 if plot_type != ["result"]:
-                    for unit_number, t in enumerate(units_index[reach_number]):
+                    for unit_index, unit_number in enumerate(units_index[reach_number]):
                         # string_tr
                         string_tr = [self.tr("reach"), self.tr("unit")]
                         """ MAP """
@@ -255,7 +255,7 @@ class MyProcessManager(QThread):
                                 if not self.plot_production_stopped:
                                     plot_string_dict = create_map_plot_string_dict(light_data_2d.filename,
                                                                                    reach_name,
-                                                                                   units[reach_number][unit_number],
+                                                                                   units[reach_number][unit_index],
                                                                                    unit_type,
                                                                                    variable,
                                                                                    string_tr)
@@ -297,7 +297,7 @@ class MyProcessManager(QThread):
                                 if not self.plot_production_stopped:
                                     plot_string_dict = create_map_plot_string_dict(light_data_2d.filename,
                                                                                    reach_name,
-                                                                                   units[reach_number][unit_number],
+                                                                                   units[reach_number][unit_index],
                                                                                    unit_type,
                                                                                    animal,
                                                                                    string_tr,

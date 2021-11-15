@@ -1138,15 +1138,6 @@ def main():
     # compare_lammi(filename_habby, filename_lammi, filename_sur)
 
 
-
-
-
-
-
-
-
-
-
 def is_number(n):
     try:
         float(n)   # Type-casting the string to `float`.
@@ -1155,6 +1146,8 @@ def is_number(n):
     except ValueError:
         return False
     return True
+
+
 def is_integer(n):
     try:
         int(n)   # Type-casting the string to `float`.

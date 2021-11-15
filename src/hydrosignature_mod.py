@@ -577,14 +577,11 @@ def check_hs_class_match_hydraulic_values(classhv, h_min, h_max, v_min, v_max):
     cl_h, cl_v = classhv[0], classhv[1]
 
     if h_min < np.min(cl_h) or h_max > np.max(cl_h):
-        print("Error: Some height values are off the class definition. hydrosignature cannot be calculated. "
-              "Check min/max height values in the 'Data explorer'.")
-
-        return False
+        return False, "Error: Some height values are off the class definition. hydrosignature cannot be calculated. " \
+                      "Check min/max height values in the 'Data explorer'."
     if v_min < np.min(cl_v) or v_max > np.max(cl_v):
-        error = "Some velocity values are off the class definition. hydrosignature cannot be calculated. " \
-                "Check min/max velocity values in the 'Data explorer'."
-        return False, error
+        return False, "Some velocity values are off the class definition. hydrosignature cannot be calculated. " \
+                      "Check min/max velocity values in the 'Data explorer'."
 
     return True, error
 

@@ -275,16 +275,17 @@ class UserPreferences(AppDataFolders):
                             os.mkdir(new_biology_models_save_folder)
                         for new_xml_element in new_xml_list:
                             # xml
-                            sh_copy(new_xml_element, new_biology_models_save_folder)
-                            # is image file specified in xml file ?
-                            information_model_dict = bio_info_mod.get_biomodels_informations_for_database(new_xml_element)
-                            if information_model_dict["path_img"] is not None:
-                                if os.path.exists(information_model_dict["path_img"]):
-                                    sh_copy(information_model_dict["path_img"], new_biology_models_save_folder)
-                                else:
-                                    information_model_dict["path_img"] = None
-                            # append
-                            diff_list.append(os.path.basename(new_xml_element))
+                            if os.path.exists(new_xml_element):
+                                sh_copy(new_xml_element, new_biology_models_save_folder)
+                                # is image file specified in xml file ?
+                                information_model_dict = bio_info_mod.get_biomodels_informations_for_database(new_xml_element)
+                                if information_model_dict["path_img"] is not None:
+                                    if os.path.exists(information_model_dict["path_img"]):
+                                        sh_copy(information_model_dict["path_img"], new_biology_models_save_folder)
+                                    else:
+                                        information_model_dict["path_img"] = None
+                                # append
+                                diff_list.append(os.path.basename(new_xml_element))
                         self.diff_list = ", ".join(diff_list) + " added by user."
 
                 # deleted xml curve (from AppData user)
