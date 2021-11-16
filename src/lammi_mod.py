@@ -271,7 +271,7 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
 
     if not print_cmd:
         sys.stdout = sys.__stdout__
-    if q and not print_cmd:
+    if q:
         q.put(mystdout)
         return
     else:

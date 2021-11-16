@@ -76,7 +76,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
         # warnings
         if not print_cmd:
             sys.stdout = sys.__stdout__
-            if q and not print_cmd:
+            if q:
                 q.put(mystdout)
                 sleep(0.1)  # to wait q.put() ..
         return
@@ -379,7 +379,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
     # warnings
     if not print_cmd:
         sys.stdout = sys.__stdout__
-        if q and not print_cmd:
+        if q:
             q.put(mystdout)
             sleep(1)  # to wait q.put() ..
 

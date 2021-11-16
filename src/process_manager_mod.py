@@ -1073,13 +1073,14 @@ class MyProcess(QObject):
         """
         error = False
 
-        max_send = 100
+        max_send = 400
         if self.mystdout is not None:
             str_found = self.mystdout.getvalue()
         else:
             return
         str_found = str_found.split('\n')
         for i in range(0, min(len(str_found), max_send)):
+            # print(i, str_found[i])
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
             if i == max_send - 1:

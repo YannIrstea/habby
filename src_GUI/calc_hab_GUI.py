@@ -275,32 +275,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.presence_qtablewidget.setColumnWidth(0, self.exist_title_label.width())
         self.presence_qtablewidget.setFixedWidth(self.exist_title_label.width())
 
-    def send_err_log(self, check_ok=False):
-        """
-        This function sends the errors and the warnings to the logs.
-        The stdout was redirected to self.mystdout before calling this function. It only sends the hundred first errors
-        to avoid freezing the GUI. A similar function exists in estimhab_GUI.py. Correct both if necessary.
-
-        :param check_ok: This is an optional paramter. If True, it checks if the function returns any error
-        """
-        error = False
-
-        max_send = 100
-        if self.mystdout is not None:
-            str_found = self.mystdout.getvalue()
-        else:
-            return
-        str_found = str_found.split('\n')
-        for i in range(0, min(len(str_found), max_send)):
-            if len(str_found[i]) > 1:
-                self.send_log.emit(str_found[i])
-            if i == max_send - 1:
-                self.send_log.emit(self.tr('Warning: too many information for the GUI'))
-            if 'Error' in str_found[i] and check_ok:
-                error = True
-        if check_ok:
-            return error
-
     def change_scroll_position(self, index):
         self.selected_aquatic_animal_qtablewidget.verticalScrollBar().setValue(index)
         self.hyd_mode_qtablewidget.verticalScrollBar().setValue(index)
@@ -751,27 +725,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
         if self.habitat_file_combobox.currentText():
             hdf5 = hdf5_mod.Hdf5Management(self.path_prj, self.habitat_file_combobox.currentText(), new=False, edit=False)
             hdf5.get_hdf5_attributes(close_file=True)
-            # init
-            required_dict = dict(
-                dimension_ok=False,
-                z_presence_ok=False,
-                shear_stress_ok=False,
-                percentage_ok=False,
-                sub_mapping_method="",
-                fish_list=[])
-
-            if hdf5.data_2d.hyd_model_dimension == "2":
-                required_dict["dimension_ok"] = True
-            # if "z" in hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd variables list")]:
-            required_dict["z_presence_ok"] = True  # TODO : always True ??
-            if "percentage" in hdf5.data_2d.sub_classification_method:
-                required_dict["percentage_ok"] = True
-            required_dict["fish_list"] = hdf5.data_2d.hvum.hdf5_and_computable_list.meshs().habs().names()
-            if hdf5.data_2d.hvum.shear_stress.name in hdf5.data_2d.hvum.hdf5_and_computable_list.names():
-                required_dict["shear_stress_ok"] = True
-            required_dict["sub_mapping_method"] = hdf5.data_2d.sub_mapping_method
-
-            self.current_hab_informations_dict = required_dict
+            hdf5.check_if_file_is_valid_for_calc_hab()
+            self.current_hab_informations_dict = hdf5.required_dict_calc_hab
 
     def remove_duplicates(self):
         # get full name

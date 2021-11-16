@@ -99,6 +99,14 @@ class Hdf5Management:
                 self.hdf5_type = "ESTIMHAB"
         self.units_index = "all"  # unit to load (all)
         self.user_target_list = "defaut"  # variable to load (defaut==all)
+        # required_dict_calc_hab
+        self.required_dict_calc_hab = dict(
+            dimension_ok=False,
+            z_presence_ok=False,
+            shear_stress_ok=False,
+            percentage_ok=False,
+            sub_mapping_method="",
+            fish_list=[])
         # hdf5 data attrbutes
         self.hs_calculated = False
         self.hs_mesh = False
@@ -409,6 +417,26 @@ class Hdf5Management:
 
         if close_file:
             self.close_file()
+
+    def check_if_file_is_valid_for_calc_hab(self):
+        # init
+        self.required_dict_calc_hab = dict(
+            dimension_ok=False,
+            z_presence_ok=False,
+            shear_stress_ok=False,
+            percentage_ok=False,
+            sub_mapping_method="",
+            fish_list=[])
+        if self.data_2d.hyd_model_dimension == "2":
+            self.required_dict_calc_hab["dimension_ok"] = True
+        # if "z" in hdf5.hdf5_attributes_info_text[hdf5.hdf5_attributes_name_text.index("hyd variables list")]:
+        self.required_dict_calc_hab["z_presence_ok"] = True  # TODO : always True ??
+        if "percentage" in self.data_2d.sub_classification_method:
+            self.required_dict_calc_hab["percentage_ok"] = True
+        self.required_dict_calc_hab["fish_list"] = self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().names()
+        if self.data_2d.hvum.shear_stress.name in self.data_2d.hvum.hdf5_and_computable_list.names():
+            self.required_dict_calc_hab["shear_stress_ok"] = True
+        self.required_dict_calc_hab["sub_mapping_method"] = self.data_2d.sub_mapping_method
 
     # HYDRAU 2D
     def write_whole_profile(self):

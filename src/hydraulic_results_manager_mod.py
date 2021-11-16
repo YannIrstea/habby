@@ -178,7 +178,7 @@ class HydraulicSimulationResultsBase:
 
 
 class HydraulicSimulationResultsAnalyzer:
-    def __init__(self, filename_path_list, path_prj, model_type, nb_dim):
+    def __init__(self, filename_path_list, path_prj, model_type):
         """
         :param filename_path_list: list of absolute path file, type: list of str
         :param path_prj: absolute path to project, type: str
@@ -206,7 +206,7 @@ class HydraulicSimulationResultsAnalyzer:
         self.index_hydrau_file_path = os.path.join(self.folder_path, self.index_hydrau_file_name)
         # hydraulic attributes
         self.model_type = model_type
-        self.nb_dim = nb_dim
+        self.nb_dim = HydraulicModelInformation().dimensions[HydraulicModelInformation().attribute_models_list.index(model_type)]
         # selection_analysis
         self.selection_analysis()
         # get_hydrau_description_from_source

@@ -393,7 +393,6 @@ class Data2d(list):
         """
         self.get_informations()
 
-
         # progress
         delta_reach = delta_file / self.reach_number
 
@@ -549,7 +548,7 @@ class Data2d(list):
                         nbdouble = len(point_all_ok) - len(point_all_ok2)
                         iklekeep = indices2[iklekeep]
                         point_all_ok = point_all_ok2
-                        print("Warning: while the cutting of mesh partially wet of the unit n°" + str(
+                        print("Warning: While the cutting of mesh partially wet of the unit n°" + str(
                             unit_number) + " of reach n°" + str(
                             reach_number) + " we have been forced to eliminate " + str(nbdouble) +
                               " duplicate(s) point(s) ")

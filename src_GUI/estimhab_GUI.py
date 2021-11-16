@@ -290,7 +290,7 @@ class StatModUseful(QScrollArea):
         The stdout was redirected to self.mystdout before calling this function. It only sends the hundred first errors
         to avoid freezing the GUI. A similar function exists in sub_and_merge_GUI.py. Correct both if necessary.
         """
-        max_send = 100
+        max_send = 400
         if self.mystdout is not None:
             str_found = self.mystdout.getvalue()
         else:
@@ -300,7 +300,7 @@ class StatModUseful(QScrollArea):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
             if i == max_send - 1:
-                self.send_log.emit(QCoreApplication.translate("StatModUseful", 'Warning: ') + QCoreApplication.translate("StatModUseful", 'too many information for the GUI.'))
+                self.send_log.emit(self.fr('Warning: ') + self.tr('Too many information for the GUI.'))
 
     def check_all_q(self):
         """
