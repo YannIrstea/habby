@@ -340,7 +340,11 @@ class Hdf5Management:
             reach_number = self.file_object.attrs["reach_number"]
 
             """ get_hdf5_units_name """
-            unit_list = eval(self.file_object.attrs["unit_list"])
+            try:
+                unit_list = eval(self.file_object.attrs["unit_list"])
+            except ValueError:
+                unit_list = self.file_object.attrs["unit_list"].tolist()  # old project in numpy array
+
             unit_type = self.file_object.attrs["unit_type"]
 
             """ light_data_2d """
@@ -385,7 +389,10 @@ class Hdf5Management:
                     continue
                 elif "unit_correspondence" in attribute_name:
                     attribute_value = hdf5_attributes_dict[attribute_name]
-                    unit_correspondence = eval(attribute_value)
+                    try:
+                        unit_correspondence = eval(attribute_value)
+                    except ValueError:
+                        unit_correspondence = attribute_value.tolist()  # old project in numpy array
                     setattr(self.data_2d, attribute_name, unit_correspondence)
                 elif attribute_name[:4] not in {"mesh", "node"}:
                     attribute_value = hdf5_attributes_dict[attribute_name]
