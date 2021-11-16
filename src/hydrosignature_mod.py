@@ -4,6 +4,8 @@ import os.path
 import time
 
 
+
+
 def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin, hyd_xy_node, hyd_hv_node,
                                    hyd_data_node=None, hyd_data_mesh=None,
                                    i_whole_profile=None, return_cut_mesh=False):
@@ -238,13 +240,14 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
 
                                             # new_point_array=np.array([])
 
-                                            if new_point_data[index][0:2] in new_xy:
-                                                node_indices.append(new_xy.index(new_point_data[index][0:2]))
-                                            else:
-                                                new_xy.append(new_point_data[index][0:2])
-                                                new_hv.append(new_point_data[index][2:4])
-                                                original_triangle.append(i)
-                                                node_indices.append(len(new_xy) - 1)
+                                            if return_cut_mesh:
+                                                if new_point_data[index][0:2] in new_xy:
+                                                    node_indices.append(new_xy.index(new_point_data[index][0:2]))
+                                                else:
+                                                    new_xy.append(new_point_data[index][0:2])
+                                                    new_hv.append(new_point_data[index][2:4])
+                                                    original_triangle.append(i)
+                                                    node_indices.append(len(new_xy) - 1)
 
                                         for k3 in range(1, nbeltpoly3 - 1):
                                             area3, volume3 = areavolumepoly(poly3, 0, k3, k3 + 1)
@@ -252,9 +255,10 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
                                             area23 += area3
                                             volumemeso[j2][j3] += volume3
                                             volume23 += volume3
-                                            new_tin.append([node_indices[0], node_indices[k3], node_indices[k3 + 1]])
-                                            hydro_classes.append(index_to_class_number((nb_cl_h, nb_cl_v), (j2, j3)))
-                                            enclosing_triangle.append(i)
+                                            if return_cut_mesh:
+                                                new_tin.append([node_indices[0], node_indices[k3], node_indices[k3 + 1]])
+                                                hydro_classes.append(index_to_class_number((nb_cl_h, nb_cl_v), (j2, j3)))
+                                                enclosing_triangle.append(i)
 
                         # checking the partitioning poly3 checking area volume nothing lost by the algorithm
 
@@ -281,27 +285,29 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
     hsarea = 100 * areameso / np.sum(areameso)
     hsvolume = 100 * volumemeso / np.sum(volumemeso)
 
-    new_xy = np.array(new_xy).astype(np.float64)
-    new_hv = np.array(new_hv).astype(np.float64)
-    original_triangle = np.array(original_triangle).astype(np.int64)
-    enclosing_triangle = np.array(enclosing_triangle).astype(np.int64)
-    new_tin = np.array(new_tin).astype(np.int64)
-    hydro_classes = np.array(hydro_classes).astype(np.int64)
 
-    ##making sure every point is unique, as numerical errors can make it not so
-    new_xy_unique, indices, inverse_indices, counts = np.unique(new_xy, axis=0, return_index=True, return_inverse=True,
-                                                                return_counts=True)
-    original_triangle_unique = original_triangle[indices]
-    new_hv_unique = new_hv[indices]
-    new_tin_unique, tin_indices, tin_reverse_indices, tin_counts = np.unique(inverse_indices[new_tin], axis=0,
-                                                                             return_index=True, return_inverse=True,
-                                                                             return_counts=True)
-    tin_out = new_tin_unique
-    hydro_classes_unique = hydro_classes[tin_indices]
-    enclosing_triangle_unique = enclosing_triangle[tin_indices]
-    iscut_newmesh = iscut[enclosing_triangle_unique]
 
     if return_cut_mesh:
+        new_xy = np.array(new_xy).astype(np.float64)
+        new_hv = np.array(new_hv).astype(np.float64)
+        original_triangle = np.array(original_triangle).astype(np.int64)
+        enclosing_triangle = np.array(enclosing_triangle).astype(np.int64)
+        new_tin = np.array(new_tin).astype(np.int64)
+        hydro_classes = np.array(hydro_classes).astype(np.int64)
+
+        ##making sure every point is unique, as numerical errors can make it not so
+        new_xy_unique, indices, inverse_indices, counts = np.unique(new_xy, axis=0, return_index=True,
+                                                                    return_inverse=True,
+                                                                    return_counts=True)
+        original_triangle_unique = original_triangle[indices]
+        new_hv_unique = new_hv[indices]
+        new_tin_unique, tin_indices, tin_reverse_indices, tin_counts = np.unique(inverse_indices[new_tin], axis=0,
+                                                                                 return_index=True, return_inverse=True,
+                                                                                 return_counts=True)
+        tin_out = new_tin_unique
+        hydro_classes_unique = hydro_classes[tin_indices]
+        enclosing_triangle_unique = enclosing_triangle[tin_indices]
+        iscut_newmesh = iscut[enclosing_triangle_unique]
 
         if not hyd_data_node is None:
             node_data_out = np.zeros(new_xy_unique.shape[0], dtype=hyd_data_node.dtype)
