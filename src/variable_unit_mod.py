@@ -472,7 +472,7 @@ class HydraulicVariableUnitManagement:
         self.sub_percentage = HydraulicVariable(value=None,
                                              unit="",
                                              name="sub_percentage",
-                                             name_gui="Substrate Percentages",
+                                             name_gui="Substrate Percentage",
                                              descr="",
                                              dtype=np.float64,
                                              index_gui=getframeinfo(currentframe()).lineno,

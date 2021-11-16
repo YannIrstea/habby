@@ -243,7 +243,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                                 elif hdf5.data_2d.sub_classification_method == "coarser-dominant":
                                     s_pref_c = pref_sub[1][sub_t[:, 1] - 1]
                             # Percentage
-                            elif animal.sub_opt == "Percentages":
+                            elif animal.sub_opt == "Percentage":
                                 if hdf5.data_2d.sub_classification_method == "percentage":
                                     s_pref_c = np.sum((sub_t / 100) * pref_sub[1], axis=1)
                                 elif hdf5.data_2d.sub_classification_method == "coarser-dominant":

@@ -209,6 +209,7 @@ def get_biomodels_informations_for_database(path_xml):
                     hvum.sub_dom.unit = substrate_unit
                     hvum_stage.software_detected_list.append(hvum.sub_dom)
                 elif substrate_type == 'Percentages':
+                    substrate_type = substrate_type[:-1]
                     hvum.sub_percentage.software_attributes_list = ["PreferenceSubstrate"]
                     hvum.sub_percentage.original_unit = substrate_original_unit
                     hvum.sub_percentage.unit = substrate_unit
@@ -269,7 +270,7 @@ def get_biomodels_informations_for_database(path_xml):
         height_presence = hvum.h.name in detect_name_list
         velocity_presence = hvum.v.name in detect_name_list
         shear_presence = hvum.shear_stress.name in detect_name_list
-        sub_presence = hvum.sub_coarser.name in detect_name_list or hvum.sub_dom.name in detect_name_list
+        sub_presence = hvum.sub_coarser.name in detect_name_list or hvum.sub_dom.name in detect_name_list or hvum.sub_percentage.name in detect_name_list
 
         # always hv_presence
         if hv_not_valid:
@@ -449,7 +450,7 @@ def check_if_habitat_variable_is_valid(pref_file, stage, hyd_opt, sub_opt):
     # valid
     valid = True
     hyd_opt_valid = ("HV", "H", "V", "Neglect")
-    sub_opt_valid = ("Coarser-Dominant", "Coarser", "Dominant", "Percentages", "Neglect")
+    sub_opt_valid = ("Coarser-Dominant", "Coarser", "Dominant", "Percentage", "Neglect")
 
     # warning
     if hyd_opt == "Neglect" and sub_opt == "Neglect":
