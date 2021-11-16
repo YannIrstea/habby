@@ -28,16 +28,14 @@ import src.hydraulic_results_manager_mod
 matplotlib.use("qt5agg")
 import matplotlib.pyplot as plt
 from multiprocessing import Process, Value, Queue, Event
-from shutil import copyfile
 
-from src.hydraulic_result_mod import HydraulicModelInformation
 from src import hdf5_mod
 from src import estimhab_mod
 from src import stathab_mod
 from src import substrate_mod
 from src import fstress_mod
 from src.variable_unit_mod import HydraulicVariableUnitList
-from src.bio_info_mod import get_biomodels_informations_for_database, check_if_habitat_variable_is_valid
+from src.bio_info_mod import get_biomodels_informations_for_database, check_if_habitat_variable_is_valid, split_stage_list_with_size_class
 from src import lammi_mod
 from src import hydraulic_process_mod
 from src.hydrosignature_mod import hydraulic_class_from_file
@@ -1150,8 +1148,7 @@ def cli_load_hyd(arguments, project_preferences):
     # get_hydrau_description_from_source
     hsra_value = src.hydraulic_results_manager_mod.HydraulicSimulationResultsAnalyzer(filename_path,
                                                                                       project_preferences["path_prj"],
-                                                                                      model_name,
-                                                                                      2)
+                                                                                      model_name)
 
     # cut
     if cut:
@@ -1330,7 +1327,7 @@ def cli_calc_hab(arguments, project_preferences):
             run_choice["pref_file_list"] = arg[15:].split(",")
         # stage_list
         if arg[:11] == 'stage_list=':
-            run_choice["stage_list"] = arg[11:].split(",")
+            run_choice["stage_list"] = split_stage_list_with_size_class(arg[11:])
         # hyd_opt
         if arg[:8] == 'hyd_opt=':
             run_choice["hyd_opt"] = arg[8:].split(",")
@@ -1343,16 +1340,30 @@ def cli_calc_hab(arguments, project_preferences):
         # check_if_habitat_variable_is_valid
         if check_if_habitat_variable_is_valid(run_choice["pref_file_list"][i], run_choice["stage_list"][i],
                                               run_choice["hyd_opt"][i], run_choice["sub_opt"][i]):
-            # append_new_habitat_variable
+            # xml informations
             information_model_dict = get_biomodels_informations_for_database(run_choice["pref_file_list"][i])
-            user_target_list.append_new_habitat_variable(information_model_dict["code_biological_model"],
-                                                         run_choice["stage_list"][i],
-                                                         run_choice["hyd_opt"][i],
-                                                         run_choice["sub_opt"][i],
-                                                         information_model_dict["aquatic_animal_type"],
-                                                         information_model_dict["model_type"],
-                                                         run_choice["pref_file_list"][i],
-                                                         information_model_dict["path_img"])
+            fish_name_full = information_model_dict["code_biological_model"] + "_" + \
+                             run_choice["stage_list"][i] + "_" + \
+                             run_choice["hyd_opt"][i] + "_" + \
+                             run_choice["sub_opt"][i]
+            # hab informations
+            hdf5 = hdf5_mod.Hdf5Management(project_preferences["path_prj"], hab_filename, new=False, edit=False)
+            hdf5.get_hdf5_attributes(close_file=True)
+            hdf5.check_if_file_is_valid_for_calc_hab()
+            if fish_name_full not in hdf5.required_dict_calc_hab["fish_list"]:
+                # append_new_habitat_variable
+                user_target_list.append_new_habitat_variable(information_model_dict["code_biological_model"],
+                                                             run_choice["stage_list"][i],
+                                                             run_choice["hyd_opt"][i],
+                                                             run_choice["sub_opt"][i],
+                                                             information_model_dict["aquatic_animal_type"],
+                                                             information_model_dict["model_type"],
+                                                             run_choice["pref_file_list"][i],
+                                                             information_model_dict["path_img"])
+            else:
+                print("Warning: " + fish_name_full +
+                      " variable exist yet in " + hab_filename + ".")
+
     if user_target_list:
         # run calculation
         progress_value = Value("d", 0)

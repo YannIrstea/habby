@@ -94,7 +94,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
                 # warnings
                 if not print_cmd:
                     sys.stdout = sys.__stdout__
-                    if q and not print_cmd:
+                    if q:
                         q.put(mystdout)
                         sleep(0.1)  # to wait q.put() ..
                 return
@@ -114,7 +114,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
                 # warnings
                 if not print_cmd:
                     sys.stdout = sys.__stdout__
-                    if q and not print_cmd:
+                    if q:
                         q.put(mystdout)
                         sleep(0.1)  # to wait q.put() ..
                 return
@@ -160,7 +160,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
         # warnings
         if not print_cmd:
             sys.stdout = sys.__stdout__
-            if q and not print_cmd:
+            if q:
                 q.put(mystdout)
                 sleep(0.1)  # to wait q.put() ..
         return
@@ -175,7 +175,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
         # warnings
         if not print_cmd:
             sys.stdout = sys.__stdout__
-            if q and not print_cmd:
+            if q:
                 q.put(mystdout)
                 sleep(0.1)  # to wait q.put() ..
         return
@@ -259,7 +259,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
     # warnings
     if not print_cmd:
         sys.stdout = sys.__stdout__
-        if q and not print_cmd:
+        if q:
             q.put(mystdout)
             sleep(0.1)  # to wait q.put() ..
 
@@ -306,7 +306,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
         # warnings
         if not print_cmd:
             sys.stdout = sys.__stdout__
-            if q and not print_cmd:
+            if q:
                 q.put(mystdout)
                 sleep(0.1)  # to wait q.put() ..
         return
@@ -317,7 +317,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
         # warnings
         if not print_cmd:
             sys.stdout = sys.__stdout__
-            if q and not print_cmd:
+            if q:
                 q.put(mystdout)
                 sleep(0.1)  # to wait q.put() ..
         return
@@ -578,7 +578,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
     # warnings
     if not print_cmd:
         sys.stdout = sys.__stdout__
-        if q and not print_cmd:
+        if q:
             q.put(mystdout)
             sleep(0.1)  # to wait q.put() ..
 
@@ -696,7 +696,7 @@ def load_data_and_compute_hs(hydrosignature_description, progress_value, q=[], p
         # warnings
         if not print_cmd:
             sys.stdout = sys.__stdout__
-            if q and not print_cmd:
+            if q:
                 q.put(mystdout)
                 sleep(0.1)  # to wait q.put() ..
 
@@ -739,7 +739,7 @@ def load_data_and_compute_hs(hydrosignature_description, progress_value, q=[], p
     # warnings
     if not print_cmd:
         sys.stdout = sys.__stdout__
-        if q and not print_cmd:
+        if q:
             q.put(mystdout)
             sleep(0.1)  # to wait q.put() ..
 

@@ -95,32 +95,6 @@ class ProcessProgShow(QObject):
         self.process_manager = None
         self.current_finished = 0
 
-    def send_err_log(self, check_ok=False):
-        """
-        This function sends the errors and the warnings to the logs.
-        The stdout was redirected to self.mystdout before calling this function. It only sends the hundred first errors
-        to avoid freezing the GUI. A similar function exists in estimhab_GUI.py. Correct both if necessary.
-
-        :param check_ok: This is an optional paramter. If True, it checks if the function returns any error
-        """
-        error = False
-
-        max_send = 100
-        if self.mystdout is not None:
-            str_found = self.mystdout.getvalue()
-        else:
-            return
-        str_found = str_found.split('\n')
-        for i in range(0, min(len(str_found), max_send)):
-            if len(str_found[i]) > 1:
-                self.send_log.emit(str_found[i])
-            if i == max_send - 1:
-                self.send_log.emit(self.tr('Warning: too many information for the GUI'))
-            if 'Error' in str_found[i] and check_ok:
-                error = True
-        if check_ok:
-            return error
-
     def start_show_prog(self, process_manager):
         self.original_pushbutton_text = self.computation_pushbutton.text()
 

@@ -71,7 +71,7 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
             # warnings
             if not print_cmd:
                 sys.stdout = sys.__stdout__
-                if q and not print_cmd:
+                if q:
                     q.put(mystdout)
                     sleep(0.1)  # to wait q.put() ..
             return
@@ -95,7 +95,7 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
         # warnings
         if not print_cmd:
             sys.stdout = sys.__stdout__
-            if q and not print_cmd:
+            if q:
                 q.put(mystdout)
                 sleep(0.1)  # to wait q.put() ..
         return
@@ -123,7 +123,7 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pre
     # warnings
     if not print_cmd:
         sys.stdout = sys.__stdout__
-        if q and not print_cmd:
+        if q:
             q.put(mystdout)
             sleep(0.1)  # to wait q.put() ..
 

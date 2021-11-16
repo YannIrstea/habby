@@ -209,6 +209,7 @@ def get_biomodels_informations_for_database(path_xml):
                     hvum.sub_dom.unit = substrate_unit
                     hvum_stage.software_detected_list.append(hvum.sub_dom)
                 elif substrate_type == 'Percentages':
+                    substrate_type = substrate_type[:-1]
                     hvum.sub_percentage.software_attributes_list = ["PreferenceSubstrate"]
                     hvum.sub_percentage.original_unit = substrate_original_unit
                     hvum.sub_percentage.unit = substrate_unit
@@ -269,7 +270,7 @@ def get_biomodels_informations_for_database(path_xml):
         height_presence = hvum.h.name in detect_name_list
         velocity_presence = hvum.v.name in detect_name_list
         shear_presence = hvum.shear_stress.name in detect_name_list
-        sub_presence = hvum.sub_coarser.name in detect_name_list or hvum.sub_dom.name in detect_name_list
+        sub_presence = hvum.sub_coarser.name in detect_name_list or hvum.sub_dom.name in detect_name_list or hvum.sub_percentage.name in detect_name_list
 
         # always hv_presence
         if hv_not_valid:
@@ -449,7 +450,7 @@ def check_if_habitat_variable_is_valid(pref_file, stage, hyd_opt, sub_opt):
     # valid
     valid = True
     hyd_opt_valid = ("HV", "H", "V", "Neglect")
-    sub_opt_valid = ("Coarser-Dominant", "Coarser", "Dominant", "Neglect")
+    sub_opt_valid = ("Coarser-Dominant", "Coarser", "Dominant", "Percentage", "Neglect")
 
     # warning
     if hyd_opt == "Neglect" and sub_opt == "Neglect":
@@ -459,7 +460,7 @@ def check_if_habitat_variable_is_valid(pref_file, stage, hyd_opt, sub_opt):
 
     # pref_file exist ?
     information_model_dict = get_biomodels_informations_for_database(pref_file)
-    if information_model_dict is None:  # file not exist
+    if type(information_model_dict) == str:  # file not exist
         valid = False
     else:
         # stage exist ?
@@ -673,6 +674,35 @@ def change_unit(data, unit):
         print('Warning: Unit not recognized : ' + unit)
 
     return data
+
+
+def split_stage_list_with_size_class(stage_list_str):
+    """
+    Get stages list from string stage list from CLI user choices.
+    stage_list_str : str of stages with "," separator.
+    Careful the stage can have "," in own string name as size class "[120,270[".
+    return stage_list: list of stages string
+    """
+    separator = ","
+    spec_char = "["
+    nb_brackets = 0
+    stage_list_str = stage_list_str.strip(separator)  # get rid of leading/trailing seps
+
+    l = [0]
+    for i, c in enumerate(stage_list_str):
+        if c == spec_char:
+            nb_brackets += 1
+        elif c == separator and nb_brackets == 0:
+            l.append(i)
+        elif c == separator and stage_list_str[i - 1] == spec_char:
+            l.append(i)
+
+    l.append(len(stage_list_str))
+
+    stage_list = ([stage_list_str[i:j].strip(separator) for i, j in zip(l, l[1:])])
+
+    return stage_list
+
 
 
 def copy_or_not_user_pref_curve_to_input_folder(animal, project_preferences):
