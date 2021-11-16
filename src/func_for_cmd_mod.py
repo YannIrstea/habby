@@ -1337,7 +1337,6 @@ def cli_calc_hab(arguments, project_preferences):
 
     user_target_list = HydraulicVariableUnitList()
     for i in range(len(run_choice["pref_file_list"])):
-        exist_in_hab = False
         # check_if_habitat_variable_is_valid
         if check_if_habitat_variable_is_valid(run_choice["pref_file_list"][i], run_choice["stage_list"][i],
                                               run_choice["hyd_opt"][i], run_choice["sub_opt"][i]):
@@ -1364,7 +1363,6 @@ def cli_calc_hab(arguments, project_preferences):
             else:
                 print("Warning: " + fish_name_full +
                       " variable exist yet in " + hab_filename + ".")
-
 
     if user_target_list:
         # run calculation
