@@ -34,6 +34,8 @@ from src.project_properties_mod import load_project_properties, save_project_pro
 from src.dev_tools_mod import copy_shapefiles, copy_hydrau_input_files, txt_file_convert_dot_to_comma, strip_accents
 from src.data_2d_mod import Data2d
 from src.translator_mod import get_translator
+from src.hydrosignature_mod import hsexporttxt
+
 
 from habby import HABBY_VERSION_STR
 
@@ -1090,6 +1092,7 @@ class Hdf5Management:
 
         self.close_file()
 
+    # HYDROSIGNATURE
     def write_hydrosignature(self, hs_export_mesh=False):
         # for each reach
         for reach_number in range(self.data_2d.reach_number):
@@ -1170,6 +1173,44 @@ class Hdf5Management:
                         self.data_2d[reach_number][unit_index].hydrosignature[key] = self.file_object[unitpath].attrs[key]
                 self.data_2d[reach_number][unit_index].hydrosignature["hsarea"] = self.file_object[unitpath + "/hsarea"][:]
                 self.data_2d[reach_number][unit_index].hydrosignature["hsvolume"] = self.file_object[unitpath + "/hsvolume"][:]
+
+    def export_hydrosignature_txt(self):
+        """ export_spu_txt exported each calc hab """
+        if not os.path.exists(self.path_txt):
+            print('Error: ' + qt_tr.translate("hdf5_mod",
+                                              'The path to the text file is not found. Text files not created \n'))
+        else:
+            for reach_number in range(self.data_2d.reach_number):
+                name = self.basename + "_" + self.data_2d[reach_number].reach_name + '_HSresult.txt'
+                if os.path.isfile(os.path.join(self.path_txt, name)):
+                    if not self.project_preferences['erase_id']:
+                        name = self.basename + "_" + self.data_2d[reach_number].reach_name + '_HSresult_' + \
+                               time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                    else:
+                        try:
+                            os.remove(os.path.join(self.path_txt, name))
+                        except PermissionError:
+                            print('Error: ' + qt_tr.translate("hdf5_mod",
+                                                              'Could not modify text file as it is open in another program. \n'))
+                            continue
+                # hsexporttxt
+                for unit_number in range(self.data_2d[reach_number].unit_number):
+                    hsexporttxt(self.path_txt,
+                                name,
+                                self.data_2d[reach_number][unit_number].hydrosignature["classhv"],
+                                self.data_2d[reach_number][unit_number].unit_name,
+                                self.data_2d[reach_number][unit_number].hydrosignature["nb_mesh"],
+                                self.data_2d[reach_number][unit_number].hydrosignature["total_area"],
+                                self.data_2d[reach_number][unit_number].hydrosignature["total_volume"],
+                                self.data_2d[reach_number][unit_number].hydrosignature["mean_depth"],
+                                self.data_2d[reach_number][unit_number].hydrosignature["mean_velocity"],
+                                self.data_2d[reach_number][unit_number].hydrosignature["mean_froude"],
+                                self.data_2d[reach_number][unit_number].hydrosignature["min_depth"],
+                                self.data_2d[reach_number][unit_number].hydrosignature["max_depth"],
+                                self.data_2d[reach_number][unit_number].hydrosignature["min_velocity"],
+                                self.data_2d[reach_number][unit_number].hydrosignature["max_velocity"],
+                                self.data_2d[reach_number][unit_number].hydrosignature["hsarea"],
+                                self.data_2d[reach_number][unit_number].hydrosignature["hsvolume"])
 
     # ESTIMHAB
     def create_hdf5_estimhab(self, estimhab_dict, project_preferences):

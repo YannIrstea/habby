@@ -87,7 +87,7 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
         # deta = bxy[1] * axy[0] - bxy[0] * axy[1]
 
         if narea[i] == 0:
-            print('before hs an hydraulic triangle have an area=0 ')
+            print('Warning: before hs an hydraulic triangle have an area=0 ')
         else:
             nb_mesh += 1
             poly1 = {'x': [hyd_xy_node[hyd_tin[i][0]][0], hyd_xy_node[hyd_tin[i][1]][0], hyd_xy_node[hyd_tin[i][2]][0]],
@@ -146,7 +146,7 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
                             ib = 0
                     if nbeltpoly2 > 5:
                         print(
-                            "hydrosignature : polygonation contrary to the YLC theory while in phase poly2 MAJOR BUG !!!")
+                            "Warning: hydrosignature polygonation contrary to the YLC theory while in phase poly2 MAJOR BUG !!!")
                         return
                     elif nbeltpoly2 >= 3:
 
@@ -225,7 +225,7 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
                                             id = 0
                                     if nbeltpoly3 > 5:
                                         print(
-                                            "hydrosignature : polygonation contrary to the YLC theory while in phase poly3 MAJOR BUG !!!")
+                                            "Warning: hydrosignature polygonation contrary to the YLC theory while in phase poly3 MAJOR BUG !!!")
                                         return
                                     elif nbeltpoly3 >= 3:
                                         node_indices = []  # the index each node in the present polygon has in the new list of nodes (hyd_xyhv)
@@ -265,18 +265,18 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
                         if area2 != 0:
                             if np.abs(area23 - area2) / area2 > uncertainty and area2 > uncertainty:
                                 print(
-                                    'Uncertainty allowed on the area calculation, exceeded while in phase poly3 BUG ???')
+                                    'Warning: Uncertainty allowed on the area calculation, exceeded while in phase poly3 BUG ???')
                         if volume2 != 0:
                             if np.abs(volume23 - volume2) / volume2 > uncertainty and volume2 > uncertainty:
                                 print(
-                                    'Uncertainty allowed on the volume calculation, exceeded while in phase poly3 BUG ???')
+                                    'Warning: Uncertainty allowed on the volume calculation, exceeded while in phase poly3 BUG ???')
         # checking the partitioning poly2 checking area volume nothing lost by the algorithm
         if area1 != 0:
             if np.abs(area12 - area1) / area1 > uncertainty and area1 > uncertainty:
-                print('Uncertainty allowed on the area calculation, exceeded while in phase poly2 BUG ???')
+                print('Warning: Uncertainty allowed on the area calculation, exceeded while in phase poly2 BUG ???')
         if volume1 != 0:
             if np.abs(volume12 - volume1) / volume1 > uncertainty and volume1 > uncertainty:
-                print('Uncertainty allowed on the volume calculation, exceeded while in phase poly2 BUG ???')
+                print('Warning: Uncertainty allowed on the volume calculation, exceeded while in phase poly2 BUG ???')
 
         # progress
         progress_value.value = progress_value.value + delta_mesh

@@ -656,14 +656,6 @@ def load_data_and_compute_hs(hydrosignature_description, progress_value, q=[], p
                         hyd_data_mesh, i_whole_profile,
                         return_cut_mesh=False)
 
-                # hsexporttxt
-                if hydrosignature_description["hs_export_txt"]:
-                    hsexporttxt(os.path.join(hdf5.path_prj, "output", "text"),
-                                os.path.splitext(hdf5.filename)[0] + "_HSresult.txt",
-                                hydrosignature_description["classhv"], new_data_2d[reach_number][unit_number].unit_name,
-                                nb_mesh, total_area, total_volume, mean_depth, mean_velocity,
-                                mean_froude, min_depth, max_depth, min_velocity, max_velocity, hsarea, hsvolume)
-
                 # attr
                 hs_dict = {"nb_mesh": nb_mesh,
                            "total_area": total_area,
@@ -691,6 +683,44 @@ def load_data_and_compute_hs(hydrosignature_description, progress_value, q=[], p
                     new_data_2d[reach_number][unit_number]["mesh"]["data"] = DataFrame(mesh_data_out)
                     new_data_2d[reach_number][unit_number]["node"]["data"] = DataFrame(node_data_out)
 
+        if hydrosignature_description["hs_export_txt"]:
+            hdf5.export_hydrosignature_txt()
+
+        # write to initial hdf5
+        hdf5.write_hydrosignature(hs_export_mesh=False)
+        hdf5.close_file()
+
+        # hs input hydraulic class save to input folder
+        folder_name_new_hs = os.path.splitext(hdf5.filename)[0]
+        new_hs_input_class_folder_path_out = os.path.join(project_preferences["path_prj"], "input", folder_name_new_hs)
+        if not os.path.exists(new_hs_input_class_folder_path_out):
+            os.makedirs(new_hs_input_class_folder_path_out)
+        sh_copy(os.path.join(
+            hydrosignature_description["classhv_input_class_file_info"]["path"],
+            hydrosignature_description["classhv_input_class_file_info"]["file"]),
+            os.path.join(new_hs_input_class_folder_path_out,
+                         hydrosignature_description["classhv_input_class_file_info"]["file"]))
+
+        if hydrosignature_description["hs_export_mesh"]:
+            # create new with new data_2d meshs
+            hdf5_new = hdf5_mod.Hdf5Management(path_prj, hdf5.filename[:-4] + "_HS" + hdf5.extension, new=True, edit=True)
+            new_data_2d.hvum.hydraulic_class.hdf5 = True
+            new_data_2d.hvum.hydraulic_class.position = "mesh"
+            if new_data_2d.hvum.hydraulic_class.name not in new_data_2d.hvum.hdf5_and_computable_list.names():
+                new_data_2d.hvum.hdf5_and_computable_list.append(new_data_2d.hvum.hydraulic_class)
+            if hdf5_new.hdf5_type == "hydraulic":
+                hdf5_new.create_hdf5_hyd(new_data_2d, new_data_2d_whole, project_preferences)
+            elif hdf5_new.extension == ".hab":
+                hdf5_new.create_hdf5_hab(new_data_2d, new_data_2d_whole, project_preferences)
+            # add hs
+            hdf5_new = hdf5_mod.Hdf5Management(path_prj, hdf5.filename[:-4] + "_HS" + hdf5.extension, new=False, edit=True)
+            hdf5_new.get_hdf5_attributes(close_file=False)
+            hdf5_new.load_units_index()
+            hdf5_new.load_data_2d()
+            hdf5_new.load_whole_profile()
+            hdf5_new.data_2d = new_data_2d
+            hdf5_new.write_hydrosignature(hs_export_mesh=True)
+            hdf5_new.close_file()
     else:
         print("Error: " + hdf5.filename + " " + error)
         # warnings
@@ -699,42 +729,6 @@ def load_data_and_compute_hs(hydrosignature_description, progress_value, q=[], p
             if q:
                 q.put(mystdout)
                 sleep(0.1)  # to wait q.put() ..
-
-    # write to initial hdf5
-    hdf5.write_hydrosignature(hs_export_mesh=False)
-    hdf5.close_file()
-
-    # hs input hydraulic class save to input folder
-    folder_name_new_hs = os.path.splitext(hdf5.filename)[0]
-    new_hs_input_class_folder_path_out = os.path.join(project_preferences["path_prj"], "input", folder_name_new_hs)
-    if not os.path.exists(new_hs_input_class_folder_path_out):
-        os.makedirs(new_hs_input_class_folder_path_out)
-    sh_copy(os.path.join(
-        hydrosignature_description["classhv_input_class_file_info"]["path"],
-        hydrosignature_description["classhv_input_class_file_info"]["file"]),
-        os.path.join(new_hs_input_class_folder_path_out,
-                     hydrosignature_description["classhv_input_class_file_info"]["file"]))
-
-    if hydrosignature_description["hs_export_mesh"]:
-        # create new with new data_2d meshs
-        hdf5_new = hdf5_mod.Hdf5Management(path_prj, hdf5.filename[:-4] + "_HS" + hdf5.extension, new=True, edit=True)
-        new_data_2d.hvum.hydraulic_class.hdf5 = True
-        new_data_2d.hvum.hydraulic_class.position = "mesh"
-        if new_data_2d.hvum.hydraulic_class.name not in new_data_2d.hvum.hdf5_and_computable_list.names():
-            new_data_2d.hvum.hdf5_and_computable_list.append(new_data_2d.hvum.hydraulic_class)
-        if hdf5_new.hdf5_type == "hydraulic":
-            hdf5_new.create_hdf5_hyd(new_data_2d, new_data_2d_whole, project_preferences)
-        elif hdf5_new.extension == ".hab":
-            hdf5_new.create_hdf5_hab(new_data_2d, new_data_2d_whole, project_preferences)
-        # add hs
-        hdf5_new = hdf5_mod.Hdf5Management(path_prj, hdf5.filename[:-4] + "_HS" + hdf5.extension, new=False, edit=True)
-        hdf5_new.get_hdf5_attributes(close_file=False)
-        hdf5_new.load_units_index()
-        hdf5_new.load_data_2d()
-        hdf5_new.load_whole_profile()
-        hdf5_new.data_2d = new_data_2d
-        hdf5_new.write_hydrosignature(hs_export_mesh=True)
-        hdf5_new.close_file()
 
     # warnings
     if not print_cmd:
