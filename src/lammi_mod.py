@@ -1260,7 +1260,7 @@ def construct_from_lammi(transectsfiledefintion):
                         if len(splline) == len(cheklevell[cheklevel]):
                             for i, item in enumerate(splline):
                                 if item.lower() != cheklevell[cheklevel][i].lower():
-                                    if not (cheklevel == 0 and i > 1):
+                                    if not cheklevel == 0:
                                         bok = False
                                         break
                         else:
