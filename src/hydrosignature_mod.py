@@ -19,7 +19,7 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
 
     """
 
-    g = 9.80665  # value of gravitational acceleration on Earth [m**2/s]
+    g = 9.80665  # value of gravitational acceleration on Earth [m**2/s] #
     uncertainty = 0.01  # a checking parameter for the algorithm
     translationxy = np.min(hyd_xy_node,
                            axis=0)  # offsets coordinates so that absolute values will be smaller, to reduce numerical errors
