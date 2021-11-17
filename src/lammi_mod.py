@@ -39,6 +39,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
     model_type -- type of hydraulic model, type: str
     path_prj -- absolute path to project, type: str
     """
+
     def __init__(self, filename, folder_path, model_type, path_prj):
         super().__init__(filename, folder_path, model_type, path_prj)
         # file attributes
@@ -146,7 +147,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                                 index_variable = 1
                             elif variables_wish.name == self.hvum.z.name:
                                 index_variable = 2
-                            variables_wish.data[reach_number].append(lqdico[timestep_index]["node_hvz"][:, index_variable].astype(variables_wish.dtype))
+                            variables_wish.data[reach_number].append(
+                                lqdico[timestep_index]["node_hvz"][:, index_variable].astype(variables_wish.dtype))
                         if variables_wish.position == "mesh":
                             variables_wish.data[reach_number].append(
                                 lqdico[timestep_index]["mesh_substrate"][:, sub_case].astype(variables_wish.dtype))
@@ -212,7 +214,8 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
 
     # open the data ( and save the 1d figure if needed)
     [coord_pro, vh_pro, nb_pro_reach, sub_pro, div, q_step] = load_lammi(facies_path, transect_path, path_im,
-                                                                         new_dir, project_preferences, savefig1d, transect_name,
+                                                                         new_dir, project_preferences, savefig1d,
+                                                                         transect_name,
                                                                          facies_name)
 
     # manage failed cases
@@ -964,15 +967,18 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, project_prefere
         # save
         if formate == 0:
             plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' +
-                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'), dpi=project_preferences['resolution'],
+                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'),
+                        dpi=project_preferences['resolution'],
                         transparent=True)
         if formate == 1:
             plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' +
-                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'), dpi=project_preferences['resolution'],
+                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'),
+                        dpi=project_preferences['resolution'],
                         transparent=True)
         if formate == 2:
             plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' +
-                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg'), dpi=project_preferences['resolution'],
+                                     time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg'),
+                        dpi=project_preferences['resolution'],
                         transparent=True)
 
     # get an (x,y) view of the progile position
@@ -1140,9 +1146,9 @@ def main():
 
 def is_number(n):
     try:
-        float(n)   # Type-casting the string to `float`.
-                   # If string is not a valid `float`,
-                   # it'll raise `ValueError` exception
+        float(n)  # Type-casting the string to `float`.
+        # If string is not a valid `float`,
+        # it'll raise `ValueError` exception
     except ValueError:
         return False
     return True
@@ -1150,9 +1156,9 @@ def is_number(n):
 
 def is_integer(n):
     try:
-        int(n)   # Type-casting the string to `float`.
-                   # If string is not a valid `float`,
-                   # it'll raise `ValueError` exception
+        int(n)  # Type-casting the string to `float`.
+        # If string is not a valid `float`,
+        # it'll raise `ValueError` exception
     except ValueError:
         return False
     return True
@@ -1195,12 +1201,14 @@ def construct_from_lammi(transectsfiledefintion):
                     else:
                         bok = False
                     if not bok:
-                        return None, None, 'Transect.txt line ' + str(iline) + ' the mention' + level[cheklevel] + ' is mandatory'
+                        return None, None, 'Transect.txt line ' + str(iline) + ' the mention' + level[
+                            cheklevel] + ' is mandatory'
                     else:
                         cheklevel += 1
                 elif cheklevel == 1:
                     if len(splline) != 1 or not (is_number(splline[0])):
-                        return None, None, 'Transect.txt line ' + str(iline) + ' a single number for the transect length is mandatory'
+                        return None, None, 'Transect.txt line ' + str(
+                            iline) + ' a single number for the transect length is mandatory'
                     else:
                         ldr = float(line)
                         cheklevel += 1
@@ -1208,7 +1216,8 @@ def construct_from_lammi(transectsfiledefintion):
                     try:
                         filenameprn = os.path.join(sourcedirectory, os.path.basename(line))
                     except ValueError:
-                        return None, None, 'Transect.txt line ' + str(iline) + ' a path with a namefile.prn is mandatory'
+                        return None, None, 'Transect.txt line ' + str(
+                            iline) + ' a path with a namefile.prn is mandatory'
                     if not os.path.isfile(filenameprn):
                         return None, None, filenameprn + ' This file is required in the LAMMI input directory ' \
                                                          'according to the Transect.txt file definition ' + sourcedirectory
@@ -1221,7 +1230,7 @@ def construct_from_lammi(transectsfiledefintion):
     newnodeindex = []
     nbiq = 0
     y0, z00, slope = 500, 500, 0.04
-    hmoyupstreamq=[]
+    hmoyupstreamq = []
     for iprn in range(len(transectprn)):
         if iprn == 0:  # for a given cross-section  for each discharge the mesh description of the river began at the same xdep
             xdep = 0  # the current upstream abcissa for the current discharge
@@ -1259,7 +1268,8 @@ def construct_from_lammi(transectsfiledefintion):
                         if cheklevel == 0:
                             stationname = splline[2]
                         if not bok:
-                            return None, None, transectprn[iprn][0] + ' line ' + str(iline) + ' the mention ' + level[cheklevel] + ' is mandatory'
+                            return None, None, transectprn[iprn][0] + ' line ' + str(iline) + ' the mention ' + level[
+                                cheklevel] + ' is mandatory'
                         else:
                             cheklevel += 1
                     elif cheklevel == 5:  # Q number_of_vertices
@@ -1284,7 +1294,7 @@ def construct_from_lammi(transectsfiledefintion):
                                            'refererence file : ' + referencefile
                             if iq != 0:
                                 if nbvertices != ivertices:
-                                    return None, None, transectprn[iprn][0] + ' line ' + str(iline) +\
+                                    return None, None, transectprn[iprn][0] + ' line ' + str(iline) + \
                                            ' the number of verticals provided previously was not what was expected'
                             nbvertices, ivertices = int(splline[1]), 0
                             cheklevel += 1
@@ -1309,7 +1319,7 @@ def construct_from_lammi(transectsfiledefintion):
                                     k = j + 1 if j < 5 else j  # substrat transformation Code EDF R&D (Cailleux 1954) to Code Cemagref EVHA
                                     subpercentagecemagref[ivertices][k] += float(splline[j])
                             if not bok:
-                                return None, None, transectprn[iprn][0] + ' line ' + str(iline) +\
+                                return None, None, transectprn[iprn][0] + ' line ' + str(iline) + \
                                        ' the first eight value must be integer values of percentages of ' \
                                        'substrate Code EDF R&D (Cailleux 1954) '
                             if np.sum(subpercentagecemagref[ivertices, :]) != 100:
@@ -1352,19 +1362,19 @@ def construct_from_lammi(transectsfiledefintion):
                                     for k in range(nbvertices):
                                         if k == 0:
                                             area = la[k] * (hv[k][0] + (
-                                                        hv[k][0] + (hv[k][0] * la[k + 1] + hv[k + 1][0] * la[k]) / (
-                                                            la[k] + la[k + 1])) / 2) / 2
+                                                    hv[k][0] + (hv[k][0] * la[k + 1] + hv[k + 1][0] * la[k]) / (
+                                                    la[k] + la[k + 1])) / 2) / 2
                                         elif k == nbvertices - 1:
                                             area += la[k] * (hv[k][0] + (
                                                     hv[k][0] + (hv[k][0] * la[k - 1] + hv[k - 1][0] * la[k]) / (
                                                     la[k] + la[k - 1])) / 2) / 2
                                         else:
                                             area += la[k] * ((hv[k][0] + (
-                                                        hv[k][0] * la[k + 1] + hv[k + 1][0] * la[k]) / (
-                                                                          la[k] + la[k + 1])) + (
+                                                    hv[k][0] * la[k + 1] + hv[k + 1][0] * la[k]) / (
+                                                                      la[k] + la[k + 1])) + (
                                                                      hv[k][0] + (
-                                                                         hv[k][0] * la[k - 1] + hv[k - 1][0] * la[
-                                                                     k]) / (
+                                                                     hv[k][0] * la[k - 1] + hv[k - 1][0] * la[
+                                                                 k]) / (
                                                                              la[k] + la[k - 1]))) / 4
                                     hmoyupstreamq.append(area / np.sum(la))
                                 iqq = iq - 1
