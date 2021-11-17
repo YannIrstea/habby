@@ -11,9 +11,11 @@ import sys
 
 habby_dev_path = r'C:/habby_dev'
 if operatingsystem() == 'Linux':
-    habby_dev_path = r'/datas/habby_dev'
+    user_path = os.path.expanduser("~")
+    habby_dev_path = os.path.join(user_path, "habby_dev")
 elif operatingsystem() == 'Darwin':
-    habby_dev_path = r'/datas/habby_dev'
+    user_path = os.path.expanduser("~")
+    habby_dev_path = os.path.join(user_path, "habby_dev")
 sys.path.append(os.path.join(habby_dev_path, "habby"))
 
 _osgeo_pyds = collect_data_files('osgeo', include_py_files=True)

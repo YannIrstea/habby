@@ -49,5 +49,5 @@ if %VarQuestion%== y ECHO Executable successfully created and setup file creatin
 if %VarQuestion%== y start "" /w "C:\Program Files (x86)\Inno Script Studio\isstudio.exe" -compile tips\executables\setup_from_pyinstaller.iss
 if %VarQuestion%== y ECHO Setup successfully created
 
-:: Get console open to see details
+:: Get console open to see details, press enter
 @pause 
