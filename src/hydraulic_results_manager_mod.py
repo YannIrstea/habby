@@ -254,6 +254,8 @@ class HydraulicSimulationResultsAnalyzer:
                         hsr = HydraulicSimulationResultsSelector(file, self.folder_path, self.model_type,
                                                                  self.path_prj)
                         self.warning_list.extend(hsr.warning_list)
+                        if not hsr.valid_file:
+                            continue
 
                         # hdf5 filename
                         blob2, ext = os.path.splitext(file)
@@ -285,6 +287,8 @@ class HydraulicSimulationResultsAnalyzer:
                 filename = os.path.basename(self.filename_list[0])
                 hsr = HydraulicSimulationResultsSelector(filename, self.folder_path, self.model_type, self.path_prj)
                 self.warning_list.extend(hsr.warning_list)
+                if not hsr.valid_file:
+                    return
                 if self.model_type == 'rubar2d':  # remove extension
                     filename, _ = os.path.splitext(filename)
                 if self.model_type == "basement2d":
@@ -478,6 +482,8 @@ class HydraulicSimulationResultsAnalyzer:
                 hsr = HydraulicSimulationResultsSelector(data_index_file["filename"][0],
                                                          self.folder_path, self.model_type, self.path_prj)
                 self.warning_list.extend(hsr.warning_list)
+                if not hsr.valid_file:
+                    return
                 # get units name from indexHYDRAU.txt file
                 unit_name_from_index_file = data_index_file[headers[discharge_index]]
                 # check if lenght of two loading units
@@ -519,6 +525,8 @@ class HydraulicSimulationResultsAnalyzer:
                 hsr = HydraulicSimulationResultsSelector(namefile,
                                                          self.folder_path, self.model_type, self.path_prj)
                 self.warning_list.extend(hsr.warning_list)
+                if not hsr.valid_file:
+                    return
                 # get units name from indexHYDRAU.txt file
                 unit_name_from_index_file = data_index_file[headers[time_index]][data_index_file[headers[0]].index(namefile)]
 
@@ -560,6 +568,8 @@ class HydraulicSimulationResultsAnalyzer:
                     hsr = HydraulicSimulationResultsSelector(file,
                                                              self.folder_path, self.model_type, self.path_prj)
                     self.warning_list.extend(hsr.warning_list)
+                    if not hsr.valid_file:
+                        continue
                     if hsr.timestep_name_list == ["0.0"] and hsr.timestep_nb == 1:
                         pass
                     else:
@@ -607,6 +617,8 @@ class HydraulicSimulationResultsAnalyzer:
                     hsr = HydraulicSimulationResultsSelector(file,
                                                              self.folder_path, self.model_type, self.path_prj)
                     self.warning_list.extend(hsr.warning_list)
+                    if not hsr.valid_file:
+                        continue
                     # get units name from indexHYDRAU.txt file
                     unit_name_from_index_file = data_index_file[headers[time_index]][rowindex]
                     # check if lenght of two loading units
@@ -657,6 +669,8 @@ class HydraulicSimulationResultsAnalyzer:
                 hsr = HydraulicSimulationResultsSelector(data_index_file[headers[0]][0],
                                                          self.folder_path, self.model_type, self.path_prj)
                 self.warning_list.extend(hsr.warning_list)
+                if not hsr.valid_file:
+                    return
                 # selected files same than indexHYDRAU file
                 if not selectedfiles_textfiles_matching:
                     self.hydrau_description_list = "Error: selected files are different from indexHYDRAU files"
@@ -693,6 +707,8 @@ class HydraulicSimulationResultsAnalyzer:
                 hsr = HydraulicSimulationResultsSelector(data_index_file[headers[0]][0],
                                                          self.folder_path, self.model_type, self.path_prj)
                 self.warning_list.extend(hsr.warning_list)
+                if not hsr.valid_file:
+                    return
                 # get units name from indexHYDRAU.txt file
                 unit_name_from_index_file = data_index_file[headers[time_index]][0]
 
@@ -761,6 +777,8 @@ class HydraulicSimulationResultsAnalyzer:
                     hsr = HydraulicSimulationResultsSelector(file,
                                                              self.folder_path, self.model_type, self.path_prj)
                     self.warning_list.extend(hsr.warning_list)
+                    if not hsr.valid_file:
+                        continue
 
                     # hdf5 filename
                     blob2, ext = os.path.splitext(file)
@@ -814,6 +832,8 @@ class HydraulicSimulationResultsAnalyzer:
                         hsr = HydraulicSimulationResultsSelector(file,
                                                                  self.folder_path, self.model_type, self.path_prj)
                         self.warning_list.extend(hsr.warning_list)
+                        if not hsr.valid_file:
+                            continue
                         unit_list_full_all_reach.append(hsr.timestep_name_list)
                         # get units name from indexHYDRAU.txt file
                         unit_name_from_index_file = data_index_file[headers[time_index]][i]
@@ -876,6 +896,8 @@ class HydraulicSimulationResultsAnalyzer:
                         hsr = HydraulicSimulationResultsSelector(file,
                                                                  self.folder_path, self.model_type, self.path_prj)
                         self.warning_list.extend(hsr.warning_list)
+                        if not hsr.valid_file:
+                            continue
                         # get units name from indexHYDRAU.txt file
                         unit_name_from_index_file = data_index_file[headers[time_index]][i]
                         unit_name_from_index_file2 = []
@@ -952,6 +974,8 @@ class HydraulicSimulationResultsAnalyzer:
                     hsr = HydraulicSimulationResultsSelector(lammi_file,
                                                              self.folder_path, self.model_type, self.path_prj)
                     self.warning_list.extend(hsr.warning_list)
+                    if not hsr.valid_file:
+                        continue
                     # get units name from indexHYDRAU.txt file
                     unit_name_from_index_file = data_index_file[headers[1]][lammi_ind]
 
