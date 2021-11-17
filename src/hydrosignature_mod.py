@@ -4,8 +4,6 @@ import os.path
 import time
 
 
-
-
 def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin, hyd_xy_node, hyd_hv_node,
                                    hyd_data_node=None, hyd_data_mesh=None,
                                    i_whole_profile=None, return_cut_mesh=False):
