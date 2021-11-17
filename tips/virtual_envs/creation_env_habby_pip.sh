@@ -2,12 +2,12 @@
 pip3 install pip --upgrade
 pip3 install virtualenv
 
-cd datas/habby_dev/env_virtuels/
+cd /datas/habby_dev/env_virtuels/
 
 virtualenv --python /usr/bin/python3.6 env_habby_dev_pip
 
 ## activate
-source datas/habby_dev/env_virtuels/env_habby_dev_pip/bin/activate
+source /datas/habby_dev/env_virtuels/env_habby_dev_pip/bin/activate
 
 pip3 install pip --upgrade
 
