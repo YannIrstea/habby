@@ -22,5 +22,5 @@ cd build/pyinstaller/habby
 cd ..
 zip -r habby.zip habby
 
-echo "Get console open to see details, press enter"
+echo "Get console open to see details, press enter!"
 read a
