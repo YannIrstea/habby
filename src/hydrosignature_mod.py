@@ -254,8 +254,10 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
                                             volumemeso[j2][j3] += volume3
                                             volume23 += volume3
                                             if return_cut_mesh:
-                                                new_tin.append([node_indices[0], node_indices[k3], node_indices[k3 + 1]])
-                                                hydro_classes.append(index_to_class_number((nb_cl_h, nb_cl_v), (j2, j3)))
+                                                new_tin.append(
+                                                    [node_indices[0], node_indices[k3], node_indices[k3 + 1]])
+                                                hydro_classes.append(
+                                                    index_to_class_number((nb_cl_h, nb_cl_v), (j2, j3)))
                                                 enclosing_triangle.append(i)
 
                         # checking the partitioning poly3 checking area volume nothing lost by the algorithm
