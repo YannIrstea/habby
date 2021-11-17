@@ -8,15 +8,12 @@ from osgeo import gdal, ogr, osr
 from platform import system as operatingsystem
 import sys
 
-
-habby_dev_path = r'C:/habby_dev'
-if operatingsystem() == 'Linux':
-    user_path = os.path.expanduser("~")
-    habby_dev_path = os.path.join(user_path, "habby_dev")
-elif operatingsystem() == 'Darwin':
-    user_path = os.path.expanduser("~")
-    habby_dev_path = os.path.join(user_path, "habby_dev")
-sys.path.append(os.path.join(habby_dev_path, "habby"))
+habby_dev_path = r'C:/habby_dev'  # windows case : habby folder in habby_dev folder
+if operatingsystem() == 'Linux':  # Linux case : habby folder in user sys folder
+    habby_dev_path = os.path.expanduser("~")
+elif operatingsystem() == 'Darwin':  # Mac case : habby folder in user sys folder
+    habby_dev_path = os.path.expanduser("~")
+sys.path.append(os.path.join(habby_dev_path, "habby"))  # add habby folder to current sys path
 
 _osgeo_pyds = collect_data_files('osgeo', include_py_files=True)
 osgeo_pyds = []

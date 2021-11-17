@@ -1,4 +1,4 @@
-habby_dev_path=$HOME/habby_dev
+habby_dev_path=$HOME
 
 source /datas/habby_dev/env_virtuels/env_habby_dev_pip/bin/activate
 
