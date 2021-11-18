@@ -280,7 +280,8 @@ class HydraulicSimulationResultsAnalyzer:
                                                                 reach_type="river",
                                                                 epsg_code="unknown",
                                                                 flow_type="unknown",
-                                                                index_hydrau="False"))  # continuous flow
+                                                                 sub=hsr.sub,
+                                                                 index_hydrau="False"))  # continuous flow
 
             # one file selected_by_user
             if not self.more_than_one_file_selected_by_user:  # don't set elif (because if rubar2d more_than_one_file_selected_by_user set to False)
@@ -518,6 +519,7 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list[0]["reach_type"] = "river"
                 self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
                 self.hydrau_description_list[0]["flow_type"] = "continuous flow"  # transient flow
+                self.hydrau_description_list[0]["sub"] = hsr.sub
 
             # CASE 1.b """
             elif self.hydrau_case == "1.b":
@@ -559,6 +561,7 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list[0]["reach_type"] = "river"
                 self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
                 self.hydrau_description_list[0]["flow_type"] = "continuous flow"  # transient flow
+                self.hydrau_description_list[0]["sub"] = hsr.sub
 
             # CASE 2.a """
             elif self.hydrau_case == "2.a":
@@ -609,6 +612,7 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list[0]["reach_type"] = "river"
                 self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
                 self.hydrau_description_list[0]["flow_type"] = "continuous flow"  # transient flow
+                self.hydrau_description_list[0]["sub"] = hsr.sub
 
             # CASE 2.b """
             elif self.hydrau_case == "2.b":
@@ -662,6 +666,7 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list[0]["reach_type"] = "river"
                 self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
                 self.hydrau_description_list[0]["flow_type"] = "continuous flow"  # transient flow
+                self.hydrau_description_list[0]["sub"] = hsr.sub
 
             # CASE 3.a """
             elif self.hydrau_case == "3.a":
@@ -700,6 +705,7 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list[0]["reach_type"] = "river"
                 self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
                 self.hydrau_description_list[0]["flow_type"] = "transient flow"  # continuous flow
+                self.hydrau_description_list[0]["sub"] = hsr.sub
 
             # CASE 3.b """
             elif self.hydrau_case == "3.b":
@@ -763,6 +769,7 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list[0]["reach_type"] = "river"
                 self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
                 self.hydrau_description_list[0]["flow_type"] = "transient flow"  # continuous flow
+                self.hydrau_description_list[0]["sub"] = hsr.sub
 
             # CASE 4.a """
             elif self.hydrau_case == "4.a":
@@ -812,6 +819,7 @@ class HydraulicSimulationResultsAnalyzer:
                                                              reach_type="river",
                                                              variable_name_unit_dict=variable_name_unit_dict,
                                                              flow_type="transient flow",
+                                                             sub=hsr.sub,
                                                              index_hydrau=True))  # continuous flow
 
             # CASE 4.b """
@@ -887,6 +895,7 @@ class HydraulicSimulationResultsAnalyzer:
                     self.hydrau_description_list[0]["reach_type"] = "river"
                     self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
                     self.hydrau_description_list[0]["flow_type"] = "transient flow"  # continuous flow
+                    self.hydrau_description_list[0]["sub"] = hsr.sub
 
                 # same reach
                 else:
@@ -956,6 +965,7 @@ class HydraulicSimulationResultsAnalyzer:
                                                                  reach_type="river",
                                                                  variable_name_unit_dict=variable_name_unit_dict,
                                                                  flow_type="transient flow",
+                                                                 sub=hsr.sub,
                                                                  index_hydrau=True))  # continuous flow
 
             if self.model_type == "lammi":
@@ -1030,6 +1040,7 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list[0]["reach_type"] = "river"
                 self.hydrau_description_list[0]["variable_name_unit_dict"] = hsr.hvum.software_detected_list
                 self.hydrau_description_list[0]["flow_type"] = "transient flow"  # continuous flow
+                self.hydrau_description_list[0]["sub"] = hsr.sub
 
         # if m3/s
         for hydrau_description_index in range(len(self.hydrau_description_list)):

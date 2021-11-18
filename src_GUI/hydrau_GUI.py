@@ -232,36 +232,37 @@ class HydrauTab(QScrollArea):
     def set_suffix_no_cut(self, no_cut_bool):
         if self.model_list_combobox.currentIndex() > 0:
             if self.hydraulic_model_information.name_models_gui_list[self.model_group.model_index]:
-                # give_info_model_label
-                self.give_info_model_label()
-                # get hdf5_name
-                current_hdf5_name = self.model_group.hdf5_name_lineedit.text()
-                # add no_cut suffix if not exist
-                if not no_cut_bool:
-                    # check if no_cut suffix exist
-                    if not "_no_cut" in os.path.splitext(current_hdf5_name)[0]:
-                        # check if there is extension
-                        if len(os.path.splitext(current_hdf5_name)[1]) > 1:
-                            extension = os.path.splitext(current_hdf5_name)[1]
-                        else:
-                            extension = ""
-                        # create new name
-                        new_hdf5_name = os.path.splitext(current_hdf5_name)[0] + "_no_cut" + extension
-                        # set new name
-                        self.model_group.hdf5_name_lineedit.setText(new_hdf5_name)
-                # remove no_cut suffix if exist
-                elif no_cut_bool:
-                    # check if no_cut suffix exist
-                    if "_no_cut" in os.path.splitext(current_hdf5_name)[0]:
-                        # check if there is extension
-                        if len(os.path.splitext(current_hdf5_name)[1]) > 1:
-                            extension = os.path.splitext(current_hdf5_name)[1]
-                        else:
-                            extension = ""
-                        # create new name
-                        new_hdf5_name = os.path.splitext(current_hdf5_name)[0].replace("_no_cut", "") + extension
-                        # set new name
-                        self.model_group.hdf5_name_lineedit.setText(new_hdf5_name)
+                if self.hydraulic_model_information.dimensions[self.model_group.model_index] == "2":
+                    # give_info_model_label
+                    self.give_info_model_label()
+                    # get hdf5_name
+                    current_hdf5_name = self.model_group.hdf5_name_lineedit.text()
+                    # add no_cut suffix if not exist
+                    if not no_cut_bool:
+                        # check if no_cut suffix exist
+                        if not "_no_cut" in os.path.splitext(current_hdf5_name)[0]:
+                            # check if there is extension
+                            if len(os.path.splitext(current_hdf5_name)[1]) > 1:
+                                extension = os.path.splitext(current_hdf5_name)[1]
+                            else:
+                                extension = ""
+                            # create new name
+                            new_hdf5_name = os.path.splitext(current_hdf5_name)[0] + "_no_cut" + extension
+                            # set new name
+                            self.model_group.hdf5_name_lineedit.setText(new_hdf5_name)
+                    # remove no_cut suffix if exist
+                    elif no_cut_bool:
+                        # check if no_cut suffix exist
+                        if "_no_cut" in os.path.splitext(current_hdf5_name)[0]:
+                            # check if there is extension
+                            if len(os.path.splitext(current_hdf5_name)[1]) > 1:
+                                extension = os.path.splitext(current_hdf5_name)[1]
+                            else:
+                                extension = ""
+                            # create new name
+                            new_hdf5_name = os.path.splitext(current_hdf5_name)[0].replace("_no_cut", "") + extension
+                            # set new name
+                            self.model_group.hdf5_name_lineedit.setText(new_hdf5_name)
 
 
 class ModelInfoGroup(QGroupBox):
@@ -552,7 +553,7 @@ class ModelInfoGroup(QGroupBox):
             # display first hydrau_description_list
             self.hydrau_case = self.hydrau_description_list[0]["hydrau_case"]
             # change suffix
-            if not self.project_preferences["cut_mesh_partialy_dry"]:
+            if not self.project_preferences["cut_mesh_partialy_dry"] and self.hydrau_description_list[0]["model_dimension"] == "2":
                 for telemac_description_num in range(len(self.hydrau_description_list)):
                     namehdf5_old = os.path.splitext(self.hydrau_description_list[telemac_description_num]["hdf5_name"])[0]
                     exthdf5_old = os.path.splitext(self.hydrau_description_list[telemac_description_num]["hdf5_name"])[1]
@@ -597,9 +598,8 @@ class ModelInfoGroup(QGroupBox):
         self.epsg_label.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["epsg_code"])
         self.hdf5_name_lineedit.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"])  # hdf5 name
         extension = "hyd"
-        if "sub" in self.hydrau_description_list[self.input_file_combobox.currentIndex()].keys():
-            if self.hydrau_description_list[self.input_file_combobox.currentIndex()]["sub"]:
-                extension = "hab"
+        if self.hydrau_description_list[self.input_file_combobox.currentIndex()]["sub"]:
+            extension = "hab"
         text_load_button = self.tr("Create ") + str(len(self.hydrau_description_list)) + self.tr(" file ") + "." + extension
         if len(self.hydrau_description_list) > 1:
             text_load_button = self.tr("Create ") + str(len(self.hydrau_description_list)) + self.tr(" files ") + "." + extension
@@ -658,7 +658,7 @@ class ModelInfoGroup(QGroupBox):
                                                                                         + "_to_" + \
                                                                                         new_names_list[-1].replace(".", "_") + ".hyd"
 
-        if not load_specific_properties(self.path_prj, ["cut_mesh_partialy_dry"])[0]:
+        if not load_specific_properties(self.path_prj, ["cut_mesh_partialy_dry"])[0] and self.hydrau_description_list[hyd_desc_index]["model_dimension"] == "2":
             namehdf5_old = \
             os.path.splitext(self.hydrau_description_list[hyd_desc_index]["hdf5_name"])[0]
             exthdf5_old = \
