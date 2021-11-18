@@ -1428,7 +1428,7 @@ def construct_from_lammi(transectsfiledefintion):
                                     lqdico[iq - 1]['node_hvz'] = np.vstack((lqdico[iq - 1]['node_hvz'], node_hvz))
                                     newnodeindex[iq - 1] += 4 * nbvertices + 2
 
-    if nbiq != iq:
+    if nbiq != iq and iprn!=0:
         return None, None, transectprn[iprn][0] + ' the number of discharges provided is less ' \
                                                   'than what was expected in ' + referencefile
 
