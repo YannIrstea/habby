@@ -1260,13 +1260,22 @@ def construct_from_lammi(transectsfiledefintion):
                         if len(splline) == len(cheklevell[cheklevel]):
                             for i, item in enumerate(splline):
                                 if item.lower() != cheklevell[cheklevel][i].lower():
-                                    if not cheklevel == 0:
+                                    if not (cheklevel == 0 and i>1):
                                         bok = False
                                         break
                         else:
                             bok = False
                         if cheklevel == 0:
-                            stationname = splline[2]
+                            if splline[2][-7:].lower() == 'station':
+                                stationname2 = splline[2][:-7]
+                            else:
+                                stationname2 = splline[2]
+                        if iprn == 0:
+                            stationname = stationname2
+                        else:
+                            if stationname != stationname2:
+                                return None, None, transectprn[iprn][0] + ' line ' + str(
+                                    iline) + ' the station Name is not the same as ' + transectprn[0][0]
                         if not bok:
                             return None, None, transectprn[iprn][0] + ' line ' + str(iline) + ' the mention ' + level[
                                 cheklevel] + ' is mandatory'
