@@ -90,7 +90,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
         # readable file ?
         try:
-            valid, _, error_str = construct_from_lammi(self.filename_path)
+            valid, self.lq, error_str = construct_from_lammi(self.filename_path)
             if not valid:
                 self.warning_list.append("Error: " + error_str)
                 self.valid_file = False
@@ -119,8 +119,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
     def get_time_step(self):
         """Get time step information from file."""
-        stationname, lq, lqdico = construct_from_lammi(self.filename_path)
-        self.timestep_name_list = list(map(str, lq))  # always one reach
+        # stationname, lq, lqdico = construct_from_lammi(self.filename_path)
+        self.timestep_name_list = list(map(str, self.lq))  # always one reach
         self.timestep_nb = len(self.timestep_name_list)
         self.timestep_unit = "discharge [m3/s]"
 
@@ -1175,6 +1175,7 @@ def construct_from_lammi(transectsfiledefintion):
     node_xy the x,y coordinate for nodes
     node_hvz the heigth of water, the velocity and the altitude of each node
     '''
+    print('construct_from_lammi')
     quadrangle_to_triangles=4 # chosen by programmer wether he wants 2 or 4 triangle by quadrangles
     sourcedirectory = os.path.dirname(transectsfiledefintion)
     if not os.path.isfile(transectsfiledefintion):
@@ -1532,7 +1533,6 @@ def construct_from_lammi(transectsfiledefintion):
         return None, None, transectprn[iprn][0] + ' the number of discharges provided is less ' \
                                                   'than what was expected in ' + referencefile
 
-    print('OUI')
     return stationname, lq, lqdico
 
 
