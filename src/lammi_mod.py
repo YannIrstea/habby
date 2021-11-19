@@ -1175,7 +1175,7 @@ def construct_from_lammi(transectsfiledefintion):
     node_xy the x,y coordinate for nodes
     node_hvz the heigth of water, the velocity and the altitude of each node
     '''
-    quadrangle_to_triangles=4 # chosen by programmer wether he wants 2 or 4 triangle by quadrangles
+    quadrangle_to_triangles=4 # chosen by programmer wether he wants 2 or 4 triangles by quadrangle 4, even if 4 is recommanded (for mapping reasons)  the 2 methods produce quite the same results in terms of hydrosignature
     sourcedirectory = os.path.dirname(transectsfiledefintion)
     if not os.path.isfile(transectsfiledefintion):
         return None, None, 'Transect.txt this file is required in the LAMMI input directory ' + sourcedirectory
