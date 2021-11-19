@@ -148,10 +148,29 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
             hyd_unit_z_equal = False
 
     """ check_validity """
-    data_2d.check_validity()
+    data_2d.check_duplicates()
+    if len(data_2d[0]) == 0:
+        print("Error: All selected units or timestep have duplicates nodes or meshs.")
+        # warnings
+        if not print_cmd:
+            sys.stdout = sys.__stdout__
+            if q:
+                q.put(mystdout)
+                sleep(0.1)  # to wait q.put() ..
+        return
 
     """ set_min_height_to_0 """
     data_2d.set_min_height_to_0(project_preferences['min_height_hyd'])
+    if len(data_2d[0]) == 0:
+        print("Error: All selected units or timestep are under " +
+              project_preferences['min_height_hyd'] + " water minimum value.")
+        # warnings
+        if not print_cmd:
+            sys.stdout = sys.__stdout__
+            if q:
+                q.put(mystdout)
+                sleep(0.1)  # to wait q.put() ..
+        return
 
     """ remove_dry_mesh """
     data_2d.remove_dry_mesh()

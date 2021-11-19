@@ -47,6 +47,7 @@ class Data2d(list):
         # hs
         self.hs_summary_data = []
         self.sub_mapping_method = ""
+        self.valid = True
 
     def __str__(self):
         string = self.__class__.__name__ + "\n" + \
@@ -278,7 +279,7 @@ class Data2d(list):
             self.unit_list[reach_number].pop(unit_index_to_remove)
         self.get_informations()
 
-    def check_validity(self):
+    def check_duplicates(self):
         # for each reach
         for reach_number in range(self.reach_number):
             unit_to_remove_list = []
@@ -292,7 +293,7 @@ class Data2d(list):
                                                                      self.hvum.z.name].to_numpy())),
                                                             unit_number=unit_number,
                                                             case="at reading."):
-                    print("Warning: The mesh of unit n°" + str(unit_number) + " of reach n°" + str(
+                    print("Error: The mesh of unit n°" + str(unit_number) + " of reach n°" + str(
                         reach_number) + " is not loaded.")
                     unit_to_remove_list.append(unit_number)
                     continue

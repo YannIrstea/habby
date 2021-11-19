@@ -877,9 +877,6 @@ class MyProcessManager(QThread):
     def stop_by_user(self):
         self.process_list.stop_by_user = True
         if self.thread_started:
-            # wait all started
-            while not self.process_list.all_started:
-                pass
             # terminate
             for process in self.process_list:
                 if process.p.is_alive():
@@ -924,7 +921,6 @@ class MyProcessList(list):
         super().__init__()
         self.nb_total = len(self)
         self.nb_finished = 0
-        self.all_started = False
         self.stop_by_user = False
         self.progress_value = 0.0
         self.start_time = time.time()
@@ -935,7 +931,6 @@ class MyProcessList(list):
         # init
         self.nb_total = len(self)
         self.nb_finished = 0
-        self.all_started = False
         self.stop_by_user = False
         self.progress_value = 0.0
         self.start_time = time.time()
@@ -956,17 +951,16 @@ class MyProcessList(list):
                             if self.stop_by_user:
                                 break
                             self.get_progress_value()
+                        process.get_total_time()
 
-        self.all_started = True
         sleep(0.1)  # wait the last send_lod.emit because it's unorganized
-        # print("all_started !!!")
 
-        # get progress value
-        while self.nb_finished != self.nb_total:
-            # print("wait2")
-            if self.stop_by_user:
-                break
-            self.get_progress_value()
+        if self.parallel:
+            while self.nb_finished != self.nb_total:
+                # print("wait2")
+                if self.stop_by_user:
+                    break
+                self.get_progress_value()
 
         # get_total_time
         self.get_total_time()
@@ -1033,7 +1027,6 @@ class MyProcess(QObject):
             self.total_time = 0
         self.total_time_computed = True
         self.mystdout = None
-        # print(self.p.name, self.send_log, self.q.empty())
         if self.send_log is not None:
             error = False
             if not self.q.empty():
@@ -1057,6 +1050,10 @@ class MyProcess(QObject):
                             round(self.total_time)) + " s).")
                     else:
                         self.send_log.emit("- " + self.p.name.replace("_", " ") + self.tr(" crashed (process time = ") + str(
+                            round(self.total_time)) + " s).")
+                else:
+                    self.send_log.emit(
+                        "- " + self.p.name.replace("_", " ") + self.tr(" crashed (process time = ") + str(
                             round(self.total_time)) + " s).")
         else:
             # print("- " + self.p.name.replace("_", " ") + " " + self.state + self.tr(" (process time = ") + str(
