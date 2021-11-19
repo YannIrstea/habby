@@ -1350,15 +1350,10 @@ def construct_from_lammi(transectsfiledefintion):
                             hv[ivertices][0], hv[ivertices][1], la[ivertices] = float(splline[8]), float(
                                 splline[9]), float(splline[10])
                             ivertices += 1
-
-
-
-
                             if nbvertices == ivertices:
                                 cheklevel = 5
                                 # PHASE A : building one tin for a cross-section at a fixed discharge #################################################
                                 ldr = transectprn[iprn][1]
-
 
                                 if quadrangle_to_triangles==2:
                                     tin = np.zeros((4 * nbvertices, 3), dtype=np.int64)
@@ -1423,17 +1418,24 @@ def construct_from_lammi(transectsfiledefintion):
                                         node_hvz[4 * k + 4, :] = [hi, vi, z0 - xdep * slope - hi]
                                         node_hvz[4 * k + 5, :] = [hi, vi, z0 - (xdep + ldr) * slope - hi]
 
-
                                 elif quadrangle_to_triangles==4:
                                     tin = np.zeros((8 * nbvertices, 3), dtype=np.int64)
                                     mesh_substrate = np.zeros((8 * nbvertices, 8), dtype=np.int64)
                                     node_xy = np.zeros((6 * nbvertices + 2, 2), dtype=np.float64)
                                     node_hvz = np.zeros((6 * nbvertices + 2, 3), dtype=np.float64)
+                                    nbmeshk=0
                                     for k in range(4, 6 * nbvertices +2, 3):
-                                        tin[k-4, :] = [k, k -4, k -3]
-                                        tin[k -3, :] = [k, k -3, k -1]
-                                        tin[k-2, :] = [k, k -1, k -2]
-                                        tin[k - 1, :] = [k, k -2, k -4]
+                                        if k==4:
+                                            tin[0, :] = [4, 0, 1]
+                                            tin[1, :] = [4, 1, 3]
+                                            tin[2, :] = [4, 3, 2]
+                                            tin[3, :] = [4, 2, 0]
+                                        else:
+                                            tin[nbmeshk, :] = [k, k -5, k -4]
+                                            tin[nbmeshk+1, :] = [k, k -4, k -1]
+                                            tin[nbmeshk+2, :] = [k, k -1, k -2]
+                                            tin[nbmeshk+3, :] = [k, k -2, k -5]
+                                        nbmeshk+=4
                                     imesh = 0
                                     for k in range(nbvertices):
                                         for kk in range(8):
@@ -1503,17 +1505,6 @@ def construct_from_lammi(transectsfiledefintion):
                                         node_hvz[6 * k + 7, :] = (node_hvz[6 * k + 2, :]+node_hvz[6 * k + 3, :] +
                                                                  node_hvz[6 * k + 5, :]+node_hvz[6 * k + 6, :])/4
 
-
-
-
-
-
-
-
-
-
-
-
                                 # PHASE B : building a complete set of tin/nodes for each discharge by adding tin/nodes builds for each cross section #################################################
                                 if iprn == 0:
                                     lqdico.append({'tin': tin, 'mesh_substrate': mesh_substrate, 'node_xy': node_xy,
@@ -1532,7 +1523,6 @@ def construct_from_lammi(transectsfiledefintion):
         return None, None, transectprn[iprn][0] + ' the number of discharges provided is less ' \
                                                   'than what was expected in ' + referencefile
 
-    print('OUI')
     return stationname, lq, lqdico
 
 
