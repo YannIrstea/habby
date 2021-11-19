@@ -951,7 +951,8 @@ class MyProcessList(list):
                             if self.stop_by_user:
                                 break
                             self.get_progress_value()
-                        process.get_total_time()
+                        if process.progress_value.value != 100:  # not finish but not alive with error or not
+                            process.get_total_time()
 
         sleep(0.1)  # wait the last send_lod.emit because it's unorganized
 
