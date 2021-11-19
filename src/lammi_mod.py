@@ -90,12 +90,10 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
         # readable file ?
         try:
-            valid, self.lq, error_str = construct_from_lammi(self.filename_path)
-            if not valid:
-                self.warning_list.append("Error: " + error_str)
+            self.simulation_name, self.lq, self.lqdico = construct_from_lammi(self.filename_path)
+            if not self.simulation_name:
+                self.warning_list.append("Error: " + self.lqdico)
                 self.valid_file = False
-            else:
-                self.simulation_name = valid
         except OSError:
             self.warning_list.append("Error: The file can not be opened.")
             self.valid_file = False
@@ -119,7 +117,6 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
     def get_time_step(self):
         """Get time step information from file."""
-        # stationname, lq, lqdico = construct_from_lammi(self.filename_path)
         self.timestep_name_list = list(map(str, self.lq))  # always one reach
         self.timestep_nb = len(self.timestep_name_list)
         self.timestep_unit = "discharge [m3/s]"
@@ -131,8 +128,6 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         timestep_name_wish_list -- list of targeted timestep to be load, type: list of str
         """
         self.load_specific_timestep(timestep_name_wish_list)
-
-        stationname, lq, lqdico = construct_from_lammi(self.filename_path)
 
         # prepare original data for data_2d
         for reach_number in range(self.reach_number):  # for each reach
@@ -148,15 +143,15 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                             elif variables_wish.name == self.hvum.z.name:
                                 index_variable = 2
                             variables_wish.data[reach_number].append(
-                                lqdico[timestep_index]["node_hvz"][:, index_variable].astype(variables_wish.dtype))
+                                self.lqdico[timestep_index]["node_hvz"][:, index_variable].astype(variables_wish.dtype))
                         if variables_wish.position == "mesh":
                             variables_wish.data[reach_number].append(
-                                lqdico[timestep_index]["mesh_substrate"][:, sub_case].astype(variables_wish.dtype))
+                                self.lqdico[timestep_index]["mesh_substrate"][:, sub_case].astype(variables_wish.dtype))
                             sub_case += 1
 
                 # struct
-                self.hvum.xy.data[reach_number].append(lqdico[timestep_index]["node_xy"])
-                self.hvum.tin.data[reach_number].append(lqdico[timestep_index]["tin"].astype(np.int64))
+                self.hvum.xy.data[reach_number].append(self.lqdico[timestep_index]["node_xy"])
+                self.hvum.tin.data[reach_number].append(self.lqdico[timestep_index]["tin"].astype(np.int64))
 
         return self.get_data_2d()
 
