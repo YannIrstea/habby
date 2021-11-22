@@ -234,9 +234,6 @@ class MainWindows(QMainWindow):
         else:
             self.central_widget.write_log(self.tr('Create or open a project.'))
 
-        # run_as_limited_edition
-        self.run_as_limited_edition()
-
         # open window
         self.show()
 
@@ -356,7 +353,6 @@ class MainWindows(QMainWindow):
             #     self.central_widget.stathab_tab.setEnabled(False)
             # if hasattr(self.central_widget, "fstress_tab"):
             #     self.central_widget.fstress_tab.setEnabled(False)
-
 
     # PROJECT
 
@@ -508,6 +504,9 @@ class MainWindows(QMainWindow):
                                    preference_names=["language"],
                                    preference_values=[self.lang])
         #print("self.central_widget.setFocus()")
+
+        self.run_as_limited_edition()
+
         self.central_widget.setFocus()
 
         self.central_widget.write_log(self.tr('Project created.'))
@@ -615,6 +614,9 @@ class MainWindows(QMainWindow):
         user_preferences.save_user_preferences_json()
 
         self.my_menu_bar()
+
+        # run_as_limited_edition
+        self.run_as_limited_edition()
 
         # check version
         project_version_tuple = tuple(map(int, project_preferences["version_habby"].split('.')))  # version tuple
@@ -765,8 +767,6 @@ class MainWindows(QMainWindow):
 
         # write log
         self.central_widget.tracking_journal_QTextEdit.clear()
-
-        self.run_as_limited_edition()
 
         # enabled lowest part
         self.central_widget.welcome_tab.current_prj_groupbox.setEnabled(True)
