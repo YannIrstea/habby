@@ -598,6 +598,7 @@ class Hdf5Management:
             reach_group = data_2d_whole_profile_group + "/" + reach_group_name
             # for each desired_units
             available_unit_list = list(self.file_object[reach_group].keys())
+            available_unit_list.sort(key=lambda x: float(x.split('_')[1]))
             for unit_number, unit_group_name in enumerate(available_unit_list):
                 self.data_2d_whole.unit_list[reach_number].append(unit_group_name)
                 unit_group = reach_group + "/" + unit_group_name
@@ -625,7 +626,7 @@ class Hdf5Management:
             reach_group = data_2d_group + "/" + reach_group_name
             # for each desired_units
             available_unit_list = list(self.file_object[reach_group].keys())
-            available_unit_list = sorted(available_unit_list, key=lambda x: float(x[5:]))
+            available_unit_list.sort(key=lambda x: float(x.split('_')[1]))
             for unit_number, unit_group_name in enumerate(available_unit_list):
                 if unit_number in self.units_index[reach_number]:
                     # group name
@@ -688,6 +689,7 @@ class Hdf5Management:
             reach_group = data_2d_group + "/" + reach_group_name
             # for each desired_units
             available_unit_list = list(self.file_object[reach_group].keys())
+            available_unit_list.sort(key=lambda x: float(x.split('_')[1]))
             desired_units_list = [available_unit_list[unit_index] for unit_index in self.data_2d.units_index[reach_number]]  # get only desired_units
             self.whole_profile_unit_corresp.append([])
             for unit_number, unit_group_name in enumerate(desired_units_list):
