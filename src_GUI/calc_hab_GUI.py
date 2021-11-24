@@ -85,7 +85,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.hdf5_merge = []  # the list with the name and path of the hdf5 file
         self.text_ini = []  # the text with the tooltip
         self.plot_new = False
-        self.tooltip = []  # the list with tooltip of merge file (useful for chronicle_GUI.py)
         self.ind_current = None
         self.general_option_hyd_combobox_index = 0
         self.general_option_sub_combobox_index = 0
@@ -723,10 +722,14 @@ class BioInfo(estimhab_GUI.StatModUseful):
     def get_current_hab_informations(self):
         # create hdf5 class
         if self.habitat_file_combobox.currentText():
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, self.habitat_file_combobox.currentText(), new=False, edit=False)
-            hdf5.get_hdf5_attributes(close_file=True)
-            hdf5.check_if_file_is_valid_for_calc_hab()
-            self.current_hab_informations_dict = hdf5.required_dict_calc_hab
+            try:
+                hdf5 = hdf5_mod.Hdf5Management(self.path_prj, self.habitat_file_combobox.currentText(), new=False,
+                                               edit=False)
+                hdf5.get_hdf5_attributes(close_file=True)
+                hdf5.check_if_file_is_valid_for_calc_hab()
+                self.current_hab_informations_dict = hdf5.required_dict_calc_hab
+            except OSError:
+                self.habitat_file_combobox.removeItem(self.habitat_file_combobox.currentIndex())
 
     def remove_duplicates(self):
         # get full name
@@ -777,8 +780,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
         try:
             try:
                 # load
-                project_preferences = load_project_properties(self.path_prj)
-                files = project_preferences["HABITAT"]["hdf5"]
+                project_properties = load_project_properties(self.path_prj)
+                files = project_properties["HABITAT"]["hdf5"]
             except IOError:
                 self.send_log.emit("Warning: " + self.tr("The .habby project file does not exist."))
                 return
@@ -788,7 +791,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
         current_file = self.habitat_file_combobox.currentText()
         self.habitat_file_combobox.blockSignals(True)
         self.habitat_file_combobox.clear()
-        self.tooltip = []
         self.hdf5_merge = []
 
         # get filename
@@ -798,23 +800,30 @@ class BioInfo(estimhab_GUI.StatModUseful):
         if files is not None:
             for idx, f in enumerate(files):
                 if os.path.isfile(os.path.join(path_hdf5, f)):
-                    [sub_ini, hydro_ini] = hdf5_mod.get_initial_files(path_hdf5, f)
-                    hydro_ini = os.path.basename(hydro_ini)
-                    textini = 'Hydraulic: ' + hydro_ini + '\nSubstrate: ' + sub_ini
-                    self.habitat_file_combobox.addItem(f)
-                    self.habitat_file_combobox.setItemData(idx, textini, Qt.ToolTipRole)
-                    self.tooltip.append(textini)
-                    name = f
-                    self.hdf5_merge.append(name)
+                    hdf5_file = hdf5_mod.Hdf5Management(self.path_prj, f, new=False, edit=False)
+                    try:
+                        hdf5_file.get_hdf5_attributes(close_file=False)
+                        if hdf5_file.file_object:
+                            hydro_ini = hdf5_file.data_2d.hyd_filename_source
+                            sub_ini = hdf5_file.data_2d.sub_filename_source
+                            hydro_ini = os.path.basename(hydro_ini)
+                            textini = 'Hydraulic: ' + hydro_ini + '\nSubstrate: ' + sub_ini
+                            self.habitat_file_combobox.addItem(f)
+                            self.habitat_file_combobox.setItemData(idx, textini, Qt.ToolTipRole)
+                            name = f
+                            self.hdf5_merge.append(name)
+                        hdf5_file.close_file()
+                    except:
+                        print("Error: HABBY " + f + " seems to be corrupted. Delete it manually.")
                 else:
                     self.send_log.emit("Warning: " + f + self.tr(", this .hab file has been deleted by the user."))
                     # remove
-                    project_preferences["HABITAT"]["hdf5"].remove(f)
+                    project_properties["HABITAT"]["hdf5"].remove(f)
 
         if current_file and current_file in files:
             self.habitat_file_combobox.setCurrentIndex(files.index(current_file))
         # save
-        save_project_properties(self.path_prj, project_preferences)
+        save_project_properties(self.path_prj, project_properties)
 
         self.habitat_file_combobox.blockSignals(False)
 
@@ -935,7 +944,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                             F"progress_value=Value('d', 0), " \
                             F"q=Queue(), " \
                             F"print_cmd=True, " \
-                            F"project_preferences=load_project_properties({repr(path_prj_script)}))" + "\n"
+                            F"project_properties=load_project_properties({repr(path_prj_script)}))" + "\n"
         self.send_log.emit("py" + cmd_str)
 
 

@@ -230,7 +230,6 @@ class MainWindows(QMainWindow):
             if self.habby_project_file_corrupted:
                 self.central_widget.write_log(self.tr('Error: .habby file is corrupted : ' +
                                                       os.path.join(user_preferences.data["path_prj"], user_preferences.data["name_prj"] + ".habby")))
-            self.central_widget.write_log(self.tr('Create or open a project.'))
         else:
             self.central_widget.write_log(self.tr('Create or open a project.'))
 
@@ -529,6 +528,7 @@ class MainWindows(QMainWindow):
         self.path_prj = os.path.dirname(filename_path)
         self.name_prj = os.path.splitext(os.path.basename(filename_path))[0]
 
+        # load_project_properties
         project_properties = load_project_properties(self.path_prj)
 
         # check if project has been renamed or moved
@@ -542,15 +542,15 @@ class MainWindows(QMainWindow):
             project_properties["old_path_prj"] = self.path_prj
 
         # load_project_properties
-        project_preferences = load_project_properties(self.path_prj)
+        project_properties = load_project_properties(self.path_prj)
 
         # the text in the Qwidget will be used to save the project
-        self.name_prj = project_preferences["name_prj"]
-        self.path_prj = project_preferences["path_prj"]
-        self.central_widget.path_last_file_loaded = project_preferences["path_last_file_loaded"]
+        self.name_prj = project_properties["name_prj"]
+        self.path_prj = project_properties["path_prj"]
+        self.central_widget.path_last_file_loaded = project_properties["path_last_file_loaded"]
 
-        self.username_prj = project_preferences["user_name"]
-        self.descri_prj = project_preferences["description"]
+        self.username_prj = project_properties["user_name"]
+        self.descri_prj = project_properties["description"]
         self.central_widget.welcome_tab.name_prj_label.setText(self.name_prj)
         self.central_widget.welcome_tab.path_prj_label.setText(self.path_prj)
         self.central_widget.welcome_tab.user_name_lineedit.setText(self.username_prj)
@@ -564,7 +564,7 @@ class MainWindows(QMainWindow):
         self.recreate_tabs_attributes()
 
         # # update estimhab and stathab
-        # if project_preferences["STATHAB"]["hdf5"]:  # if there is data for STATHAB
+        # if project_properties["STATHAB"]["hdf5"]:  # if there is data for STATHAB
         #     self.central_widget.stathab_tab.load_from_hdf5_gui()
 
         # update hydro
@@ -619,14 +619,14 @@ class MainWindows(QMainWindow):
         self.run_as_limited_edition()
 
         # check version
-        project_version_tuple = tuple(map(int, project_preferences["version_habby"].split('.')))  # version tuple
+        project_version_tuple = tuple(map(int, project_properties["version_habby"].split('.')))  # version tuple
         if len(project_version_tuple) == 2:
             # old semantic versioning with 'only X.Y'. New is 'X.Y.Z'
             project_version_tuple = project_version_tuple + (0, )
         habby_version_tuple = tuple(map(int, self.version.split('.')))  # version tuple
         if project_version_tuple[:-1] < habby_version_tuple[:-1]:  # Only if X.Y version level
             self.central_widget.write_log(self.tr('Warning: Current project is an old HABBY project produced by '
-                                                  'HABBY v' + project_preferences["version_habby"] + '. '
+                                                  'HABBY v' + project_properties["version_habby"] + '. '
                                                   'Working with this can lead to software crashes. '
                                                   'It is advisable to recreate a new project. '
                                                   'Actual HABBY version : v' + self.version))
@@ -1054,9 +1054,9 @@ class MainWindows(QMainWindow):
         self.menubar.clear()
 
         if self.path_prj:
-            project_preferences = load_project_properties(self.path_prj)
-            self.physic_tabs = project_preferences["physic_tabs"]
-            self.stat_tabs = project_preferences["stat_tabs"]
+            project_properties = load_project_properties(self.path_prj)
+            self.physic_tabs = project_properties["physic_tabs"]
+            self.stat_tabs = project_properties["stat_tabs"]
 
         # add all first level menu
         self.menubar = self.menuBar()
@@ -1678,14 +1678,14 @@ class MainWindows(QMainWindow):
             filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
             if os.path.isfile(filename_path_pro):
                 # load
-                project_preferences = load_project_properties(self.path_prj)
+                project_properties = load_project_properties(self.path_prj)
 
                 # remove
-                if file_to_remove in project_preferences[hdf5.input_type]["hdf5"]:
-                    project_preferences[hdf5.input_type]["hdf5"].remove(file_to_remove)
+                if file_to_remove in project_properties[hdf5.input_type]["hdf5"]:
+                    project_properties[hdf5.input_type]["hdf5"].remove(file_to_remove)
 
                     # save
-                    save_project_properties(self.path_prj, project_preferences)
+                    save_project_properties(self.path_prj, project_properties)
 
         # empty list
         self.central_widget.data_explorer_tab.data_explorer_frame.file_to_remove_list = []
@@ -1715,15 +1715,15 @@ class MainWindows(QMainWindow):
         filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
         if os.path.isfile(filename_path_pro):
             # load
-            project_preferences = load_project_properties(self.path_prj)
+            project_properties = load_project_properties(self.path_prj)
 
             # rename
-            if file_to_rename in project_preferences[hdf5.input_type]["hdf5"]:
-                file_to_rename_index = project_preferences[hdf5.input_type]["hdf5"].index(file_to_rename)
-                project_preferences[hdf5.input_type]["hdf5"][file_to_rename_index] = file_renamed
+            if file_to_rename in project_properties[hdf5.input_type]["hdf5"]:
+                file_to_rename_index = project_properties[hdf5.input_type]["hdf5"].index(file_to_rename)
+                project_properties[hdf5.input_type]["hdf5"][file_to_rename_index] = file_renamed
 
                 # save
-                save_project_properties(self.path_prj, project_preferences)
+                save_project_properties(self.path_prj, project_properties)
 
         # reconnect
         self.central_widget.data_explorer_tab.data_explorer_frame.names_hdf5_QListWidget.blockSignals(False)
@@ -2082,9 +2082,9 @@ class CentralW(QWidget):
         #print("add_all_tab", self.path_prj)
         # load project pref
         if os.path.isfile(fname) and self.name_prj != '':
-            project_preferences = load_project_properties(self.path_prj)
-            go_physic = project_preferences["physic_tabs"]
-            go_stat = project_preferences["stat_tabs"]
+            project_properties = load_project_properties(self.path_prj)
+            go_physic = project_properties["physic_tabs"]
+            go_stat = project_properties["stat_tabs"]
             go_research = False
 
             # add all tabs

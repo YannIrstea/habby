@@ -28,7 +28,9 @@ from PyQt5.QtWidgets import QWidget, QPushButton, \
 from lxml import etree as ET
 import sys
 
+import src.hdf5_mod
 import src.merge_mod
+import src.project_properties_mod
 import src.substrate_mod
 import src.tools_mod
 from src import hdf5_mod
@@ -448,9 +450,9 @@ class SubstrateAndMerge(QWidget):
             self.send_log.emit('Error: ' + QCoreApplication.translate("SubHydroW", 'The project is not saved. '
                                'Save the project in the General tab before saving hydraulic data. \n'))
         else:
-            project_preferences = load_project_properties(self.path_prj)
-            if project_preferences[type]["hdf5"]:
-                name = project_preferences[type]["hdf5"][-1]
+            project_properties = load_project_properties(self.path_prj)
+            if project_properties[type]["hdf5"]:
+                name = project_properties[type]["hdf5"][-1]
 
             if type == "SUBSTRATE":  # substrate
                 self.last_sub_file_name_label.setText(name)
@@ -496,10 +498,10 @@ class SubstrateAndMerge(QWidget):
                               'Save the project in the General tab before saving hydrological data. \n')
         else:
             # change path_last_file_loaded, model_type (path)
-            project_preferences = load_project_properties(self.path_prj)  # load_project_properties
-            project_preferences["path_last_file_loaded"] = filename_path_file  # change value
-            project_preferences[self.model_type]["path"] = filename_path_file  # change value
-            save_project_properties(self.path_prj, project_preferences)  # save_project_properties
+            project_properties = load_project_properties(self.path_prj)  # load_project_properties
+            project_properties["path_last_file_loaded"] = filename_path_file  # change value
+            project_properties[self.model_type]["path"] = filename_path_file  # change value
+            save_project_properties(self.path_prj, project_properties)  # save_project_properties
 
     def find_path_hdf5(self):
         """
@@ -597,7 +599,7 @@ class SubstrateAndMerge(QWidget):
             filter += '*' + ext + ' '
         filter += ')' + ";; All File (*.*)"
 
-        self.project_preferences = load_project_properties(self.path_prj)
+        self.project_properties = load_project_properties(self.path_prj)
 
         # get last path
         if self.read_attribute_xml(self.model_type) != self.path_prj and self.read_attribute_xml(
@@ -721,7 +723,6 @@ class SubstrateAndMerge(QWidget):
                     self.progress_layout_constant.progress_label.setText(
                         "{0:.0f}/{1:.0f}".format(0.0, 1.0))
 
-
     def load_sub_gui(self, sub_mapping_method):
         """
         This function is used to load the substrate data. The substrate data can be in three forms: a) in the form of a shp
@@ -779,7 +780,7 @@ class SubstrateAndMerge(QWidget):
                 # process_manager
                 self.progress_layout_polygon.process_manager.set_sub_mode(self.path_prj,
                                                                   self.sub_description,
-                                                                  self.project_preferences)
+                                                                  self.project_properties)
                 # process_prog_show
                 self.progress_layout_polygon.start_process()
 
@@ -789,7 +790,7 @@ class SubstrateAndMerge(QWidget):
                 # process_manager
                 self.progress_layout_point.process_manager.set_sub_mode(self.path_prj,
                                                                   self.sub_description,
-                                                                  self.project_preferences)
+                                                                  self.project_properties)
                 # process_prog_show
                 self.progress_layout_point.start_process()
 
@@ -799,7 +800,7 @@ class SubstrateAndMerge(QWidget):
                 # process_manager
                 self.progress_layout_constant.process_manager.set_sub_mode(self.path_prj,
                                                                   self.sub_description,
-                                                                  self.project_preferences)
+                                                                  self.project_properties)
                 # process_prog_show
                 self.progress_layout_constant.start_process()
 
@@ -813,12 +814,12 @@ class SubstrateAndMerge(QWidget):
         This function update the QComBox on substrate data which is on the substrate tab. The similiar function
         for hydrology is in Main_Windows_1.py as it is more practical to have it there to collect all the signals.
         """
-        names = hdf5_mod.get_filename_by_type_physic("hydraulic", os.path.join(self.path_prj, "hdf5"))
+        names = src.hdf5_mod.get_filename_by_type_physic("hydraulic", os.path.join(self.path_prj, "hdf5"))
         self.input_hyd_combobox.clear()
         self.input_hyd_combobox.addItems(names)
         self.input_hyd_combobox.setCurrentIndex(0)
 
-        names = hdf5_mod.get_filename_by_type_physic("substrate", os.path.join(self.path_prj, "hdf5"))
+        names = src.hdf5_mod.get_filename_by_type_physic("substrate", os.path.join(self.path_prj, "hdf5"))
         self.input_sub_combobox.clear()
         self.input_sub_combobox.addItems(names)
         self.input_sub_combobox.setCurrentIndex(0)
@@ -959,7 +960,7 @@ class SubstrateAndMerge(QWidget):
                             F"\tprogress_value=Value('d', 0), " \
                             F"\tq=Queue(), " \
                             F"\tprint_cmd=True, " \
-                            F"\tproject_preferences=load_project_properties({repr(path_prj_script)}))" + "\n"
+                            F"\tproject_properties=load_project_properties({repr(path_prj_script)}))" + "\n"
         self.send_log.emit("py" + cmd_str)
 
     def create_merge_script(self):
@@ -989,6 +990,6 @@ class SubstrateAndMerge(QWidget):
                             F"\tprogress_value=progress_value, " \
                             F"\tq=q, " \
                             F"\tprint_cmd=True, " \
-                            F"\tproject_preferences=load_project_properties({repr(path_prj_script)}))" + "\n"
+                            F"\tproject_properties=load_project_properties({repr(path_prj_script)}))" + "\n"
         self.send_log.emit("py" + cmd_str)
 

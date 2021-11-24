@@ -21,13 +21,14 @@ from PyQt5.QtWidgets import QScrollArea, QLabel, QComboBox, QListWidget, QAbstra
     QGridLayout, QGroupBox, QLineEdit, QHBoxLayout, QTableView, QSizePolicy, QListWidgetItem, QFileDialog, QHeaderView, \
     QFrame
 
-import src.dev_tools_mod
-from src import hdf5_mod, tools_mod
+from src_GUI.dev_tools_GUI import change_button_color, MyTableModelHab, QGroupBoxCollapsible
+from src_GUI.process_manager_GUI import ProcessProgShow
+from src.dev_tools_mod import isstranumber, frange
+from src.hdf5_mod import get_filename_by_type_physic, Hdf5Management
+from src.tools_mod import check_matching_units, read_chronicle_from_text_file, export_empty_text_from_hdf5, compute_interpolation
 from src.process_manager_mod import MyProcessManager
 from src.project_properties_mod import load_project_properties
 from src.variable_unit_mod import HydraulicVariableUnitManagement
-from src_GUI.dev_tools_GUI import change_button_color, MyTableModelHab, QGroupBoxCollapsible
-from src_GUI.process_manager_GUI import ProcessProgShow
 
 
 class InterpolationTab(QScrollArea):
@@ -212,7 +213,7 @@ class InterpolationTab(QScrollArea):
 
     def refresh_gui(self):
         # get list of file name by type
-        names = hdf5_mod.get_filename_by_type_physic("habitat", os.path.join(self.path_prj, "hdf5"))
+        names = get_filename_by_type_physic("habitat", os.path.join(self.path_prj, "hdf5"))
         current_index = self.hab_filenames_qcombobox.currentIndex()
         # self.hab_filenames_qcombobox.blockSignals(True)
         self.hab_filenames_qcombobox.clear()
@@ -270,7 +271,7 @@ class InterpolationTab(QScrollArea):
             # clean
             self.hab_reach_qcombobox.clear()
             # create hdf5 class to get hdf5 inforamtions
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
+            hdf5 = Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
             if hdf5.file_object:
                 hdf5.get_hdf5_attributes(close_file=True)
                 if len(hdf5.data_2d.reach_list) == 1:
@@ -298,7 +299,7 @@ class InterpolationTab(QScrollArea):
             # clean
             self.disable_and_clean_group_widgets(False)
             # clean
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
+            hdf5 = Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
             hdf5.get_hdf5_attributes(close_file=True)
             unit_type = hdf5.data_2d.unit_type
             unit_type = unit_type.replace("m3/s", "m<sup>3</sup>/s")
@@ -347,7 +348,7 @@ class InterpolationTab(QScrollArea):
             return
 
         # is float string
-        if not src.dev_tools_mod.isstranumber(from_sequ) or not src.dev_tools_mod.isstranumber(to_sequ) or not src.dev_tools_mod.isstranumber(by_sequ):
+        if not isstranumber(from_sequ) or not isstranumber(to_sequ) or not isstranumber(by_sequ):
             self.send_log.emit('Error: ' + self.tr('The sequence values must be of numerical type.'))
             return
 
@@ -374,7 +375,7 @@ class InterpolationTab(QScrollArea):
             by_sequ = float(by_sequ)  # by
 
             # dict range
-            chonicle_from_seq = dict(units=list(src.dev_tools_mod.frange(from_sequ, to_sequ, by_sequ)))
+            chonicle_from_seq = dict(units=list(frange(from_sequ, to_sequ, by_sequ)))
 
             # types
             text_unit = self.unit_type_qlabel.text()
@@ -400,7 +401,7 @@ class InterpolationTab(QScrollArea):
 
         # exeption: you should be able to clik on "cancel"
         if filename_path:
-            chronicle_from_file, types_from_file = tools_mod.read_chronicle_from_text_file(filename_path)
+            chronicle_from_file, types_from_file = read_chronicle_from_text_file(filename_path)
 
             if not chronicle_from_file:
                 self.send_log.emit(types_from_file)
@@ -418,14 +419,14 @@ class InterpolationTab(QScrollArea):
         hdf5name = self.hab_filenames_qcombobox.currentText()
 
         # load hdf5 data
-        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
+        hdf5 = Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
         hdf5.get_hdf5_attributes(close_file=True)
 
         # get reach_name
         reach_index = hdf5.data_2d.reach_list.index(self.hab_reach_qcombobox.currentText())
 
         # check matching units for interpolation
-        valid, text = tools_mod.check_matching_units(hdf5.data_2d.unit_type, types)
+        valid, text = check_matching_units(hdf5.data_2d.unit_type, types)
 
         if not valid:
             self.send_log.emit("Warning: " + self.tr("Interpolation not done.") + text)
@@ -433,7 +434,7 @@ class InterpolationTab(QScrollArea):
             self.plot_chronicle_qpushbutton.setEnabled(False)
             self.export_txt_chronicle_qpushbutton.setEnabled(False)
         if valid:
-            data_to_table, horiz_headers, vertical_headers = tools_mod.compute_interpolation(hdf5.data_2d,
+            data_to_table, horiz_headers, vertical_headers = compute_interpolation(hdf5.data_2d,
                                                                                          hvum.user_target_list,
                                                                                          reach_index,
                                                                                          chronicle,
@@ -464,7 +465,7 @@ class InterpolationTab(QScrollArea):
         hdf5name = self.hab_filenames_qcombobox.currentText()
         if hdf5name:
             # create hdf5 class
-            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
+            hdf5 = Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
             # get hdf5 inforamtions
             hdf5.get_hdf5_attributes(close_file=True)
             unit_type = hdf5.data_2d.unit_type
@@ -474,7 +475,7 @@ class InterpolationTab(QScrollArea):
             max_unit = max(unit_number)
 
             # export
-            exported = tools_mod.export_empty_text_from_hdf5(unit_type, min_unit, max_unit, hdf5name, self.path_prj)
+            exported = export_empty_text_from_hdf5(unit_type, min_unit, max_unit, hdf5name, self.path_prj)
             if exported:
                 self.send_log.emit(self.tr("Empty text has been exported in 'output/text' project folder. Open and fill it "
                                    "with the desired values and then import it in HABBY."))
@@ -512,10 +513,10 @@ class InterpolationTab(QScrollArea):
                 unit_type = dict(units=self.unit_type_qlabel.text())
             # reread from text file (re-read file)
             else:
-                units, unit_type = tools_mod.read_chronicle_from_text_file(source)
+                units, unit_type = read_chronicle_from_text_file(source)
 
             # load figure option
-            project_preferences = load_project_properties(self.path_prj)
+            project_properties = load_project_properties(self.path_prj)
 
             interp_attr = lambda: None
             interp_attr.reach = self.hab_reach_qcombobox.currentText()
@@ -527,7 +528,7 @@ class InterpolationTab(QScrollArea):
             self.process_manager.set_interpolation_hdf5_mode(self.path_prj,
                                                     self.hab_filenames_qcombobox.currentText(),
                                                     interp_attr,
-                                                    project_preferences)
+                                                    project_properties)
 
             # process_prog_show
             self.process_prog_show.start_show_prog(self.process_manager)
@@ -565,10 +566,10 @@ class InterpolationTab(QScrollArea):
                 unit_type = dict(units=text_unit[text_unit.find('[') + 1:text_unit.find(']')])
             # reread from text file (re-read file)
             else:
-                units, unit_type = tools_mod.read_chronicle_from_text_file(source)
+                units, unit_type = read_chronicle_from_text_file(source)
 
             # load figure option
-            project_preferences = load_project_properties(self.path_prj)
+            project_properties = load_project_properties(self.path_prj)
 
             interp_attr = lambda: None
             interp_attr.reach = self.hab_reach_qcombobox.currentText()
@@ -581,7 +582,7 @@ class InterpolationTab(QScrollArea):
             self.process_manager.set_interpolation_hdf5_mode(self.path_prj,
                                                              hdf5name,
                                                              interp_attr,
-                                                             project_preferences)
+                                                             project_properties)
 
             # process_prog_show
             self.process_prog_show.start_show_prog(self.process_manager)

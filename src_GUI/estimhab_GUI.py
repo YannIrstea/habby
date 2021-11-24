@@ -279,8 +279,8 @@ class StatModUseful(QScrollArea):
         #         path_input = os.path.join(self.path_prj, child.text)
         # else:
         #     self.send_log.emit('Warning: ' + QCoreApplication.translate("StatModUseful", "The project is not saved. Save the project in the General tab."))
-        project_preferences = load_project_properties(self.path_prj)
-        path_input = project_preferences['path_input']
+        project_properties = load_project_properties(self.path_prj)
+        path_input = project_properties['path_input']
 
         return path_input
 
@@ -802,7 +802,7 @@ class EstimhabW(StatModUseful):
         self.check_all_q()
 
         # run and save
-        project_preferences = load_project_properties(self.path_prj)
+        project_properties = load_project_properties(self.path_prj)
         sys.stdout = mystdout = StringIO()
 
         self.estimhab_dict = dict(q=q,
@@ -824,7 +824,7 @@ class EstimhabW(StatModUseful):
         # process
         state = Value("d", 0)
         self.p = Process(target=estimhab_mod.estimhab_process,
-                         args=(self.estimhab_dict, project_preferences, self.path_prj,
+                         args=(self.estimhab_dict, project_properties, self.path_prj,
                                state),
                          name="Estimhab")
         self.p.start()

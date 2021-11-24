@@ -51,27 +51,27 @@ lwd_rect = 1.0
 
 
 # other
-def plot_suitability_curve(state, information_model_dict, selected_fish_stage, project_preferences, get_fig=False,
+def plot_suitability_curve(state, information_model_dict, selected_fish_stage, project_properties, get_fig=False,
                            qt_tr=False):
     """
     This function is used to plot the univariate preference curves of one or all stages.
     """
     mpl.rcParams['pdf.fonttype'] = 42
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    mpl.rcParams['savefig.directory'] = os.path.join(project_preferences["path_prj"], "output", "figures")
+    mpl.rcParams["savefig.dpi"] = project_properties["resolution"]  # change default resolution to save
+    mpl.rcParams['savefig.directory'] = os.path.join(project_properties["path_prj"], "output", "figures")
     if not get_fig:
         default_size = plt.rcParams['figure.figsize']
-        mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-        mpl.rcParams['font.size'] = project_preferences['font_size']
-        if project_preferences['font_size'] > 7:
-            mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
+        mpl.rcParams['figure.figsize'] = project_properties['width'] / 2.54, project_properties['height'] / 2.54
+        mpl.rcParams['font.size'] = project_properties['font_size']
+        if project_properties['font_size'] > 7:
+            mpl.rcParams['legend.fontsize'] = project_properties['font_size'] - 2
     # get translation
-    # qt_tr = get_translator(project_preferences['path_prj'])
-    mpl.rcParams['font.family'] = project_preferences['font_family']
+    # qt_tr = get_translator(project_properties['path_prj'])
+    mpl.rcParams['font.family'] = project_properties['font_family']
     mpl.rcParams['legend.loc'] = 'best'
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
-    if project_preferences['marker']:
+    mpl.rcParams['lines.linewidth'] = project_properties['line_width']
+    mpl.rcParams['axes.grid'] = project_properties['grid']
+    if project_properties['marker']:
         mar = '.'
     else:
         mar = None
@@ -178,7 +178,7 @@ def plot_suitability_curve(state, information_model_dict, selected_fish_stage, p
         return fig, ax
 
 
-def plot_suitability_curve_hem(state, information_model_dict, selected_fish_stage, project_preferences, get_fig=False,
+def plot_suitability_curve_hem(state, information_model_dict, selected_fish_stage, project_properties, get_fig=False,
                                qt_tr=False):
     """
     This function is used to plot the preference curves.
@@ -194,23 +194,23 @@ def plot_suitability_curve_hem(state, information_model_dict, selected_fish_stag
         (to modfied it more)
     """
 
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    mpl.rcParams['savefig.directory'] = os.path.join(project_preferences["path_prj"], "output", "figures")
+    mpl.rcParams["savefig.dpi"] = project_properties["resolution"]  # change default resolution to save
+    mpl.rcParams['savefig.directory'] = os.path.join(project_properties["path_prj"], "output", "figures")
     mpl.rcParams['pdf.fonttype'] = 42
     if not get_fig:
         default_size = plt.rcParams['figure.figsize']
-        mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-        mpl.rcParams['font.size'] = project_preferences['font_size']
-        if project_preferences['font_size'] > 7:
-            mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
+        mpl.rcParams['figure.figsize'] = project_properties['width'] / 2.54, project_properties['height'] / 2.54
+        mpl.rcParams['font.size'] = project_properties['font_size']
+        if project_properties['font_size'] > 7:
+            mpl.rcParams['legend.fontsize'] = project_properties['font_size'] - 2
     # get translation
     if not qt_tr:
-        qt_tr = get_translator(project_preferences['path_prj'])
-    mpl.rcParams['font.family'] = project_preferences['font_family']
+        qt_tr = get_translator(project_properties['path_prj'])
+    mpl.rcParams['font.family'] = project_properties['font_family']
     mpl.rcParams['legend.loc'] = 'best'
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
-    if project_preferences['marker']:
+    mpl.rcParams['lines.linewidth'] = project_properties['line_width']
+    mpl.rcParams['axes.grid'] = project_properties['grid']
+    if project_properties['marker']:
         mar = 'o'
     else:
         mar = None
@@ -255,7 +255,7 @@ def plot_suitability_curve_hem(state, information_model_dict, selected_fish_stag
         return fig, axarr
 
 
-def plot_suitability_curve_bivariate(state, information_model_dict, selected_fish_stage, project_preferences,
+def plot_suitability_curve_bivariate(state, information_model_dict, selected_fish_stage, project_properties,
                                      get_fig=False, qt_tr=False):
     """
     This function is used to plot the preference curves.
@@ -271,22 +271,22 @@ def plot_suitability_curve_bivariate(state, information_model_dict, selected_fis
         (to modfied it more)
     """
 
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    mpl.rcParams['savefig.directory'] = os.path.join(project_preferences["path_prj"], "output", "figures")
+    mpl.rcParams["savefig.dpi"] = project_properties["resolution"]  # change default resolution to save
+    mpl.rcParams['savefig.directory'] = os.path.join(project_properties["path_prj"], "output", "figures")
     mpl.rcParams['pdf.fonttype'] = 42
     if not get_fig:
         default_size = plt.rcParams['figure.figsize']
-        mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-        mpl.rcParams['font.size'] = project_preferences['font_size']
-        if project_preferences['font_size'] > 7:
-            mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
+        mpl.rcParams['figure.figsize'] = project_properties['width'] / 2.54, project_properties['height'] / 2.54
+        mpl.rcParams['font.size'] = project_properties['font_size']
+        if project_properties['font_size'] > 7:
+            mpl.rcParams['legend.fontsize'] = project_properties['font_size'] - 2
     # get translation
-    # qt_tr = get_translator(project_preferences['path_prj'])
-    mpl.rcParams['font.family'] = project_preferences['font_family']
+    # qt_tr = get_translator(project_properties['path_prj'])
+    mpl.rcParams['font.family'] = project_properties['font_family']
     mpl.rcParams['legend.loc'] = 'best'
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
-    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
+    mpl.rcParams['lines.linewidth'] = project_properties['line_width']
+    mpl.rcParams['axes.grid'] = project_properties['grid']
+    cmap = copy(mpl.cm.get_cmap(project_properties['color_map']))  # get color map
 
     if selected_fish_stage is not None:
         print("Error: No figure for all stages.")
@@ -339,14 +339,14 @@ def plot_suitability_curve_bivariate(state, information_model_dict, selected_fis
         return fig, ax
 
 
-def plot_hydrosignature(state, data, vclass, hclass, title, type, project_preferences, axe_mod_choosen=2):
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+def plot_hydrosignature(state, data, vclass, hclass, title, type, project_properties, axe_mod_choosen=2):
+    mpl.rcParams["savefig.dpi"] = project_properties["resolution"]  # change default resolution to save
     mpl.rcParams['pdf.fonttype'] = 42
-    mpl.rcParams['font.family'] = project_preferences['font_family']
+    mpl.rcParams['font.family'] = project_properties['font_family']
     default_size = plt.rcParams['figure.figsize']
-    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
+    mpl.rcParams['figure.figsize'] = project_properties['width'] / 2.54, project_properties['height'] / 2.54
     # get translation
-    qt_tr = get_translator(project_preferences['path_prj'])
+    qt_tr = get_translator(project_properties['path_prj'])
 
     # axe_mod_choosen
     if axe_mod_choosen == 1:
@@ -437,7 +437,7 @@ def plot_hydrosignature(state, data, vclass, hclass, title, type, project_prefer
     plt.show()
 
 
-def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, project_preferences):
+def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, project_properties):
     """
     This function creates the figure of the spu as a function of time for each reach. if there is only one
     time step, it reverse to a bar plot. Otherwise it is a line plot.
@@ -446,31 +446,31 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
     :param spu_all: the "surface pondere utile" (SPU) for each reach
     :param name_fish: the list of fish latin name + stage
     :param path_im: the path where to save the image
-    :param project_preferences: the dictionnary with the figure options
+    :param project_properties: the dictionnary with the figure options
     :param name_hdf5: a string on which to base the name of the files
     :param unit_name: the name of the time steps if not 0,1,2,3
     """
     # get translation
-    qt_tr = get_translator(project_preferences['path_prj'])
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
+    qt_tr = get_translator(project_properties['path_prj'])
+    mpl.rcParams["savefig.dpi"] = project_properties["resolution"]  # change default resolution to save
     default_size = plt.rcParams['figure.figsize']
-    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-    mpl.rcParams['font.size'] = project_preferences['font_size']
-    if project_preferences['font_size'] > 7:
-        mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
-    mpl.rcParams['font.family'] = project_preferences['font_family']
+    mpl.rcParams['figure.figsize'] = project_properties['width'] / 2.54, project_properties['height'] / 2.54
+    mpl.rcParams['font.size'] = project_properties['font_size']
+    if project_properties['font_size'] > 7:
+        mpl.rcParams['legend.fontsize'] = project_properties['font_size'] - 2
+    mpl.rcParams['font.family'] = project_properties['font_family']
     mpl.rcParams['legend.loc'] = 'best'
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
+    mpl.rcParams['lines.linewidth'] = project_properties['line_width']
+    mpl.rcParams['axes.grid'] = project_properties['grid']
     mpl.rcParams['pdf.fonttype'] = 42
-    if project_preferences['marker']:
+    if project_properties['marker']:
         mar = '.'
     else:
         mar = None
     mar2 = "2"
-    path_im = project_preferences['path_figure']
-    erase1 = project_preferences['erase_id']
-    types_plot = project_preferences['type_plot']
+    path_im = project_properties['path_figure']
+    erase1 = project_properties['erase_id']
+    types_plot = project_properties['type_plot']
     # colors
     color_list, style_list = get_colors_styles_line_from_nb_input(len(habitat_variable_list))
 
@@ -553,14 +553,14 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
 
         # export or not
         if types_plot == "image export" or types_plot == "both":
-            if not project_preferences['erase_id']:
+            if not project_properties['erase_id']:
                 filename = filename + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
-                test = remove_image(filename, path_im, project_preferences['format'])
+                test = remove_image(filename, path_im, project_properties['format'])
                 if not test:
                     return
-            plt.savefig(os.path.join(path_im, filename + project_preferences['format']),
-                        dpi=project_preferences['resolution'],
+            plt.savefig(os.path.join(path_im, filename + project_properties['format']),
+                        dpi=project_properties['resolution'],
                         transparent=True)
 
     # many time step - lines
@@ -658,11 +658,11 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
             if not erase1:
                 filename = filename + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
             else:
-                test = remove_image(filename, path_im, project_preferences['format'])
+                test = remove_image(filename, path_im, project_properties['format'])
                 if not test:
                     return
-            plt.savefig(os.path.join(path_im, filename + project_preferences['format']),
-                        dpi=project_preferences['resolution'], transparent=True)
+            plt.savefig(os.path.join(path_im, filename + project_properties['format']),
+                        dpi=project_properties['resolution'], transparent=True)
 
     # output for plot_GUI
     state.value = 100  # process finished
@@ -675,7 +675,7 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
 
 
 def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2d, animal_list, reach_number, types,
-                               project_preferences):
+                               project_properties):
     """
     This function creates the figure of the spu as a function of time for each reach. if there is only one
     time step, it reverse to a bar plot. Otherwise it is a line plot.
@@ -684,24 +684,24 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
     :param spu_all: the "surface pondere utile" (SPU) for each reach
     :param name_fish: the list of fish latin name + stage
     :param path_im: the path where to save the image
-    :param project_preferences: the dictionnary with the figure options
+    :param project_properties: the dictionnary with the figure options
     :param name_base: a string on which to base the name of the files
     :param sim_name: the name of the time steps if not 0,1,2,3
     """
     # get translation
-    qt_tr = get_translator(project_preferences['path_prj'])
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    mpl.rcParams['savefig.directory'] = os.path.join(project_preferences["path_prj"], "output", "figures")
-    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-    mpl.rcParams['font.size'] = project_preferences['font_size']
-    if project_preferences['font_size'] > 7:
-        mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
-    mpl.rcParams['font.family'] = project_preferences['font_family']
+    qt_tr = get_translator(project_properties['path_prj'])
+    mpl.rcParams["savefig.dpi"] = project_properties["resolution"]  # change default resolution to save
+    mpl.rcParams['savefig.directory'] = os.path.join(project_properties["path_prj"], "output", "figures")
+    mpl.rcParams['figure.figsize'] = project_properties['width'] / 2.54, project_properties['height'] / 2.54
+    mpl.rcParams['font.size'] = project_properties['font_size']
+    if project_properties['font_size'] > 7:
+        mpl.rcParams['legend.fontsize'] = project_properties['font_size'] - 2
+    mpl.rcParams['font.family'] = project_properties['font_family']
     mpl.rcParams['legend.loc'] = 'best'
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
+    mpl.rcParams['lines.linewidth'] = project_properties['line_width']
+    mpl.rcParams['axes.grid'] = project_properties['grid']
     mpl.rcParams['pdf.fonttype'] = 42
-    if project_preferences['marker']:
+    if project_properties['marker']:
         mar = 'o'
     else:
         mar = None
@@ -865,21 +865,21 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
     plt.show()
 
 
-def plot_stat_data(state, stat_data_dict, stat_mod, project_preferences):
+def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
     # get translation
-    # qt_tr = get_translator(project_preferences['path_prj'])
-    path_prj = project_preferences['path_prj']
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    mpl.rcParams['savefig.directory'] = os.path.join(project_preferences["path_prj"], "output", "figures")
-    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-    mpl.rcParams['font.size'] = project_preferences['font_size']
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
-    if project_preferences['font_size'] > 7:
-        mpl.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
-    mpl.rcParams['font.family'] = project_preferences['font_family']
+    # qt_tr = get_translator(project_properties['path_prj'])
+    path_prj = project_properties['path_prj']
+    mpl.rcParams["savefig.dpi"] = project_properties["resolution"]  # change default resolution to save
+    mpl.rcParams['savefig.directory'] = os.path.join(project_properties["path_prj"], "output", "figures")
+    mpl.rcParams['figure.figsize'] = project_properties['width'] / 2.54, project_properties['height'] / 2.54
+    mpl.rcParams['font.size'] = project_properties['font_size']
+    mpl.rcParams['lines.linewidth'] = project_properties['line_width']
+    mpl.rcParams['axes.grid'] = project_properties['grid']
+    if project_properties['font_size'] > 7:
+        mpl.rcParams['legend.fontsize'] = project_properties['font_size'] - 2
+    mpl.rcParams['font.family'] = project_properties['font_family']
     mpl.rcParams['legend.loc'] = 'best'
-    erase1 = project_preferences['erase_id']
+    erase1 = project_properties['erase_id']
     path_im = os.path.join(path_prj, "output", "figures")
     mpl.rcParams['pdf.fonttype'] = 42
 
@@ -947,12 +947,12 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_preferences):
     plt.subplots_adjust(right=0.73)
 
     # save image
-    name_pict = stat_mod + "_hydraulic_" + reach_name + project_preferences['format']
+    name_pict = stat_mod + "_hydraulic_" + reach_name + project_properties['format']
     if os.path.exists(os.path.join(path_im, name_pict)):
         if not erase1:
-            name_pict = stat_mod + "_hydraulic_" + reach_name + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']
+            name_pict = stat_mod + "_hydraulic_" + reach_name + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_properties['format']
     plt.savefig(os.path.join(path_im, name_pict),
-                dpi=project_preferences['resolution'],
+                dpi=project_properties['resolution'],
                 transparent=True)
 
     """ plot hv """
@@ -1016,12 +1016,12 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_preferences):
     plt.subplots_adjust(right=0.73)
 
     # save image
-    name_pict = stat_mod + "_hv_" + reach_name + project_preferences['format']
+    name_pict = stat_mod + "_hv_" + reach_name + project_properties['format']
     if os.path.exists(os.path.join(path_im, name_pict)):
         if not erase1:
-            name_pict = stat_mod + "_hv_" + reach_name + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']
+            name_pict = stat_mod + "_hv_" + reach_name + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_properties['format']
     plt.savefig(os.path.join(path_im, name_pict),
-                dpi=project_preferences['resolution'],
+                dpi=project_properties['resolution'],
                 transparent=True)
 
     # get data with mouse
@@ -1040,8 +1040,8 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_preferences):
 
 
 # all cases
-def plot_map_node(state, data_xy, data_tin, data_plot, plot_string_dict, light_data_2d, project_preferences):
-    mpl_map_change_parameters(project_preferences)
+def plot_map_node(state, data_xy, data_tin, data_plot, plot_string_dict, light_data_2d, project_properties):
+    mpl_map_change_parameters(project_properties)
 
     # title and filename
     title = plot_string_dict["title"]
@@ -1059,7 +1059,7 @@ def plot_map_node(state, data_xy, data_tin, data_plot, plot_string_dict, light_d
     extent_list = light_data_2d.data_extent  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))
+    cmap = copy(mpl.cm.get_cmap(project_properties['color_map']))
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1087,11 +1087,11 @@ def plot_map_node(state, data_xy, data_tin, data_plot, plot_string_dict, light_d
     color_bar.set_label(colorbar_label)
 
     # post_plot_map
-    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
+    post_plot_map(fig, ax_map, extent_list, filename, project_properties, state)
 
 
-def plot_map_mesh(state, data_xy, data_tin, data_plot, plot_string_dict, light_data_2d, project_preferences):
-    mpl_map_change_parameters(project_preferences)
+def plot_map_mesh(state, data_xy, data_tin, data_plot, plot_string_dict, light_data_2d, project_properties):
+    mpl_map_change_parameters(project_properties)
 
     # title and filename
     title = plot_string_dict["title"]
@@ -1109,7 +1109,7 @@ def plot_map_mesh(state, data_xy, data_tin, data_plot, plot_string_dict, light_d
     extent_list = light_data_2d.data_extent  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))
+    cmap = copy(mpl.cm.get_cmap(project_properties['color_map']))
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1138,7 +1138,7 @@ def plot_map_mesh(state, data_xy, data_tin, data_plot, plot_string_dict, light_d
     color_bar.set_label(colorbar_label)
 
     # post_plot_map
-    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
+    post_plot_map(fig, ax_map, extent_list, filename, project_properties, state)
 
 
 def plot_to_check_mesh_merging(hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data, merge_xy, merge_tin, merge_data):
@@ -1263,12 +1263,12 @@ def plot_to_check_mesh_merging(hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data, merge
 
 # 3d
 def view_mayavi(state, data_2d, data_2d_whole, varname, reach_number, unit_number, data_description,
-                project_preferences):
+                project_properties):
     state.value = 100  # process finished
     # BOTOM
     bottom_mesh = mlab.triangular_mesh(data_2d_whole[reach_number][unit_number]["node"]["xy"][:, 0],
                                        data_2d_whole[reach_number][unit_number]["node"]["xy"][:, 1],
-                                       data_2d_whole[reach_number][unit_number]["node"]["z"] * project_preferences[
+                                       data_2d_whole[reach_number][unit_number]["node"]["z"] * project_properties[
                                            "vertical_exaggeration"],
                                        data_2d_whole[reach_number][unit_number]["mesh"]["tin"],
                                        representation="surface")  # , scalars=t
@@ -1277,7 +1277,7 @@ def view_mayavi(state, data_2d, data_2d_whole, varname, reach_number, unit_numbe
     other_mesh = mlab.triangular_mesh(data_2d[reach_number][unit_number]["node"]["xy"][:, 0],
                                       data_2d[reach_number][unit_number]["node"]["xy"][:, 1],
                                       data_2d[reach_number][unit_number]["node"]["data"][varname].to_numpy() *
-                                      project_preferences["vertical_exaggeration"],
+                                      project_properties["vertical_exaggeration"],
                                       data_2d[reach_number][unit_number]["mesh"]["tin"],
                                       color=(0, 0, 1),
                                       representation="surface")  # , scalars=t
@@ -1287,8 +1287,8 @@ def view_mayavi(state, data_2d, data_2d_whole, varname, reach_number, unit_numbe
 
 
 # map mesh
-def plot_map_onlymesh(state, data_xy, data_tin, plot_string_dict, data_description, project_preferences):
-    mpl_map_change_parameters(project_preferences)
+def plot_map_onlymesh(state, data_xy, data_tin, plot_string_dict, data_description, project_properties):
+    mpl_map_change_parameters(project_properties)
 
     # title and filename
     title = plot_string_dict["title"]
@@ -1301,7 +1301,7 @@ def plot_map_onlymesh(state, data_xy, data_tin, plot_string_dict, data_descripti
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))  # get color map
+    cmap = copy(mpl.cm.get_cmap(project_properties['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1336,10 +1336,10 @@ def plot_map_onlymesh(state, data_xy, data_tin, plot_string_dict, data_descripti
     ax_legend.remove()
 
     # post_plot_map
-    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
+    post_plot_map(fig, ax_map, extent_list, filename, project_properties, state)
 
 
-def plot_map_substrate(state, data_xy, data_tin, data_plot, plot_string_dict, light_data_2d, project_preferences):
+def plot_map_substrate(state, data_xy, data_tin, data_plot, plot_string_dict, light_data_2d, project_properties):
     """
     The function to plot the substrate data, which was loaded before. This function will only work if the substrate
     data is given using the cemagref code.
@@ -1348,14 +1348,14 @@ def plot_map_substrate(state, data_xy, data_tin, data_plot, plot_string_dict, li
     :param data_tin: the connectivity table
     :param sub_pg: the information on subtrate by element for the "coarser part"
     :param sub_dom: the information on subtrate by element for the "dominant part"
-    :param project_preferences: the figure option as a doctionnary
+    :param project_properties: the figure option as a doctionnary
     :param xtxt: if the data was given in txt form, the orignal x data
     :param ytxt: if the data was given in txt form, the orignal y data
     :param subtxt: if the data was given in txt form, the orignal sub data
     :param path_im: the path where to save the figure
     :param reach_number: If we plot more than one reach, this is the reach number
     """
-    mpl_map_change_parameters(project_preferences)
+    mpl_map_change_parameters(project_properties)
 
     # title and filename
     title = plot_string_dict["title"]
@@ -1371,7 +1371,7 @@ def plot_map_substrate(state, data_xy, data_tin, data_plot, plot_string_dict, li
     extent_list = light_data_2d.data_extent  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_preferences['color_map'])
+    cmap = mpl.cm.get_cmap(project_properties['color_map'])
     if light_data_2d.sub_classification_code == "Cemagref":
         max_class = 8
         listcathegories = list(range(1, max_class + 2))
@@ -1407,11 +1407,11 @@ def plot_map_substrate(state, data_xy, data_tin, data_plot, plot_string_dict, li
     color_bar.set_label(colorbar_label)
 
     # post_plot_map
-    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
+    post_plot_map(fig, ax_map, extent_list, filename, project_properties, state)
 
 
-def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict, light_data_2d, project_preferences):
-    mpl_map_change_parameters(project_preferences)
+def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict, light_data_2d, project_properties):
+    mpl_map_change_parameters(project_properties)
 
     # title and filename
     title = plot_string_dict["title"]
@@ -1429,7 +1429,7 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict,
     extent_list = light_data_2d.data_extent  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = copy(mpl.cm.get_cmap(project_preferences['color_map']))
+    cmap = copy(mpl.cm.get_cmap(project_properties['color_map']))
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1456,19 +1456,19 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict,
     color_bar.set_label(colorbar_label)
 
     # post_plot_map
-    post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state)
+    post_plot_map(fig, ax_map, extent_list, filename, project_properties, state)
 
 
 # param
-def mpl_map_change_parameters(project_preferences):
-    mpl.rcParams["savefig.dpi"] = project_preferences["resolution"]  # change default resolution to save
-    mpl.rcParams['savefig.directory'] = os.path.join(project_preferences["path_prj"], "output", "figures")
+def mpl_map_change_parameters(project_properties):
+    mpl.rcParams["savefig.dpi"] = project_properties["resolution"]  # change default resolution to save
+    mpl.rcParams['savefig.directory'] = os.path.join(project_properties["path_prj"], "output", "figures")
     mpl.rcParams['agg.path.chunksize'] = 10000  # Exceeded cell block limit (set 'agg.path.chunksize' rcparam)"
-    mpl.rcParams['figure.figsize'] = project_preferences['width'] / 2.54, project_preferences['height'] / 2.54
-    mpl.rcParams['font.size'] = project_preferences['font_size']
-    rc('font', **{'family': 'sans-serif', 'sans-serif': [project_preferences['font_family']]})
-    mpl.rcParams['lines.linewidth'] = project_preferences['line_width']
-    mpl.rcParams['axes.grid'] = project_preferences['grid']
+    mpl.rcParams['figure.figsize'] = project_properties['width'] / 2.54, project_properties['height'] / 2.54
+    mpl.rcParams['font.size'] = project_properties['font_size']
+    rc('font', **{'family': 'sans-serif', 'sans-serif': [project_properties['font_family']]})
+    mpl.rcParams['lines.linewidth'] = project_properties['line_width']
+    mpl.rcParams['axes.grid'] = project_properties['grid']
     mpl.rcParams['pdf.fonttype'] = 42
     mpl.rcParams['axes.linewidth'] = 0.5  # set the value globally
 
@@ -1526,7 +1526,7 @@ def pre_plot_map(title, variable_title, reach_title, unit_title):
     return fig, ax_map, ax_legend
 
 
-def post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state):
+def post_plot_map(fig, ax_map, extent_list, filename, project_properties, state):
     """
     dataLim = data bbox minimum
     viewLim = data bbox set
@@ -1535,8 +1535,8 @@ def post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state
     ax_map.axis("scaled")  # x and y axes have same proportions
 
     # compute axe_real_height and axe_real_width
-    axe_real_height = project_preferences['height'] * top_limit_position / 100  # axe_real_height [meter]
-    axe_real_width = project_preferences['width'] * right_limit_position / 100  # axe_real_width [meter]
+    axe_real_height = project_properties['height'] * top_limit_position / 100  # axe_real_height [meter]
+    axe_real_width = project_properties['width'] * right_limit_position / 100  # axe_real_width [meter]
 
     # compute data_height and data_width
     data_height = extent_list[3] - extent_list[1]  # data_height [meter]
@@ -1601,28 +1601,28 @@ def post_plot_map(fig, ax_map, extent_list, filename, project_preferences, state
     ax_scale.add_artist(scalebar)
 
     # export
-    if project_preferences['type_plot'] == "image export" or project_preferences['type_plot'] == "both":
-        if not project_preferences['erase_id']:
-            plt.savefig(os.path.join(project_preferences['path_figure'],
-                                     filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_preferences['format']),
-                        dpi=project_preferences['resolution'], transparent=True)
+    if project_properties['type_plot'] == "image export" or project_properties['type_plot'] == "both":
+        if not project_properties['erase_id']:
+            plt.savefig(os.path.join(project_properties['path_figure'],
+                                     filename + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_properties['format']),
+                        dpi=project_properties['resolution'], transparent=True)
 
         else:
-            test = remove_image(filename, project_preferences['path_figure'], project_preferences['format'])
+            test = remove_image(filename, project_properties['path_figure'], project_properties['format'])
             if not test:
                 return
-            plt.savefig(os.path.join(project_preferences['path_figure'], filename + project_preferences['format']),
-                        dpi=project_preferences['resolution'],
+            plt.savefig(os.path.join(project_properties['path_figure'], filename + project_properties['format']),
+                        dpi=project_properties['resolution'],
                         transparent=True)
         state.value = 100  # process finished
 
     # output for plot_GUI
     state.value = 100  # process finished
-    if project_preferences['type_plot'] == "interactive" or project_preferences['type_plot'] == "both":
+    if project_properties['type_plot'] == "interactive" or project_properties['type_plot'] == "both":
         # fig.canvas.draw()
         # fig.canvas.flush_events()
         plt.show()
-    if project_preferences['type_plot'] == "image export":
+    if project_properties['type_plot'] == "image export":
         plt.close(fig)
 
 
@@ -1674,12 +1674,12 @@ def compute_scale_value(fig, ax_map):
     return scale_computed_num_cm, scale_computed_str
 
 
-def create_gif_from_files(state, variable, reach_name, unit_names, name_hdf5, project_preferences):
-    path_im = project_preferences['path_figure']
+def create_gif_from_files(state, variable, reach_name, unit_names, name_hdf5, project_properties):
+    path_im = project_properties['path_figure']
 
     list_of_file_path = [os.path.join(path_im, name_hdf5[:-4] + "_" + reach_name + '_' + unit_name.replace(".",
                                                                                                            "_") + "_" + variable.replace(
-        " ", "_") + "_map" + project_preferences['format']) for unit_name in unit_names]
+        " ", "_") + "_map" + project_properties['format']) for unit_name in unit_names]
     print("list_of_file_path", list_of_file_path)
     list_of_exist_tf = [False] * len(list_of_file_path)
 

@@ -21,8 +21,8 @@ from src import hdf5_mod
 from src.translator_mod import get_translator
 
 
-def estimhab_process(estimhab_dict, project_preferences, path_prj, progress_value):
-    qt_tr = get_translator(project_preferences['path_prj'])
+def estimhab_process(estimhab_dict, project_properties, path_prj, progress_value):
+    qt_tr = get_translator(project_properties['path_prj'])
 
     # compute
     q_all, h_all, w_all, vel_all, VH, SPU, qtarg_dict = estimhab(estimhab_dict, qt_tr)
@@ -42,7 +42,7 @@ def estimhab_process(estimhab_dict, project_preferences, path_prj, progress_valu
 
     # create hdf5
     hdf5 = hdf5_mod.Hdf5Management(path_prj, filename, new=True)
-    hdf5.create_hdf5_estimhab(estimhab_dict, project_preferences)
+    hdf5.create_hdf5_estimhab(estimhab_dict, project_properties)
 
     # load
     hdf5 = hdf5_mod.Hdf5Management(path_prj, filename, new=False)
@@ -69,7 +69,7 @@ def estimhab(estimhab_dict, qt_tr):
     :param path_bio: the path to the xml file with the information on the fishes
     :param fish_xml: the name of the xml file to be analyzed
     :param pict: if true the figure is shown. If false, the figure is not shown
-    :param project_preferences: a dictionnary with the figure option
+    :param project_properties: a dictionnary with the figure option
     :param path_txt: the path where to send the text data
     :param fish_name: the name fo the fish to be analysed (if not there, use the xml name)
     :return: habitat value and useful surface (VH and SPU) as a function of discharge

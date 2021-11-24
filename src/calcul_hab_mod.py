@@ -29,7 +29,7 @@ from src.translator_mod import get_translator
 
 
 def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[], print_cmd=False,
-                        project_preferences={}):
+                        project_properties={}):
     """
     This function calculates the habitat and create the outputs for the habitat calculation. The outputs are: text
     output (spu and cells by cells), shapefile, paraview files, one 2d figure by time step. The 1d figure
@@ -51,7 +51,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
     :param path_im_bio: the path where are the image of the fish
     :param q: used in the second thread
     :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
-    :param project_preferences: the options to crete the figure if save_fig1d is True
+    :param project_properties: the options to crete the figure if save_fig1d is True
     :param xmlfiles: the list of the xml file (only useful to get the preference curve report, so not used by habby_cmd)
 
     ** Technical comments**
@@ -65,13 +65,13 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
         sys.stdout = mystdout = StringIO()
 
     # get translation
-    qt_tr = get_translator(project_preferences['path_prj'])
+    qt_tr = get_translator(project_properties['path_prj'])
 
     # progress
     progress_value.value = 10
 
     # if exists
-    if not os.path.exists(os.path.join(project_preferences['path_prj'], "hdf5", hab_filename)):
+    if not os.path.exists(os.path.join(project_properties['path_prj'], "hdf5", hab_filename)):
         print('Error: ' + qt_tr.translate("calcul_hab_mod", "The specified file : " + hab_filename + " don't exist."))
         # warnings
         if not print_cmd:
@@ -82,7 +82,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
         return
 
     # load data and get variable to compute
-    hdf5_path = os.path.dirname(os.path.join(project_preferences['path_prj'], "hdf5"))
+    hdf5_path = os.path.dirname(os.path.join(project_properties['path_prj'], "hdf5"))
     hdf5 = Hdf5Management(hdf5_path, hab_filename, new=False, edit=True)
     hdf5.load_hdf5(user_target_list=animal_variable_list)
 
@@ -363,15 +363,15 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
 
     # copy_or_not_user_pref_curve_to_input_folder
     for animal2 in animal_variable_list:
-        copy_or_not_user_pref_curve_to_input_folder(animal2, project_preferences)
+        copy_or_not_user_pref_curve_to_input_folder(animal2, project_properties)
 
     # export
     export_dict = dict()
     nb_export = 0
     for key in hdf5.available_export_list:
-        if project_preferences[key][1]:
+        if project_properties[key][1]:
             nb_export += 1
-        export_dict[key + "_" + hdf5.extension[1:]] = project_preferences[key][1]
+        export_dict[key + "_" + hdf5.extension[1:]] = project_properties[key][1]
 
     # export_spu_txt
     hdf5.export_spu_txt()

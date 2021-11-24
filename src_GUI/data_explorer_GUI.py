@@ -23,7 +23,7 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QWidget, QAbstract
     QComboBox, QMessageBox, QFrame, QCheckBox, QHeaderView, QVBoxLayout, QHBoxLayout, QGridLayout, \
     QSizePolicy, QScrollArea, QTableView, QMenu, QAction, QListWidgetItem, QRadioButton
 
-from src import hdf5_mod
+from src.hdf5_mod import get_filename_by_type_physic, Hdf5Management
 from src.project_properties_mod import load_project_properties, load_specific_properties
 from src_GUI.dev_tools_GUI import MyTableModel, QGroupBoxCollapsible, QHLine, DoubleClicOutputGroup
 from src_GUI.process_manager_GUI import ProcessProgLayout
@@ -219,7 +219,7 @@ class DataExplorerFrame(QFrame):
             elif index == 3:
                 type_name = "habitat"
 
-            names = hdf5_mod.get_filename_by_type_physic(type_name, os.path.join(self.path_prj, "hdf5"))
+            names = get_filename_by_type_physic(type_name, os.path.join(self.path_prj, "hdf5"))
             if names:
                 # change list widget
                 self.names_hdf5_QListWidget.addItems(names)
@@ -246,7 +246,7 @@ class DataExplorerFrame(QFrame):
             for selection_el in selection:
                 # read
                 hdf5name = selection_el.text()
-                self.hdf5 = hdf5_mod.Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
+                self.hdf5 = Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
                 self.hdf5.get_hdf5_attributes(close_file=True)
                 self.plot_group.hdf5 = self.hdf5
                 self.habitatvalueremover_group.hdf5 = self.hdf5
@@ -829,14 +829,14 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         # Go plot
         if types_hdf5 and names_hdf5 and self.hvum.user_target_list and plot_attr.reach and plot_attr.units and plot_attr.plot_type:
             # figure option
-            project_preferences = load_project_properties(self.path_prj)
-            project_preferences['type_plot'] = plot_attr.export_type  # "interactive", "image export", "both
+            project_properties = load_project_properties(self.path_prj)
+            project_properties['type_plot'] = plot_attr.export_type  # "interactive", "image export", "both
 
             plot_attr.hvum = self.hvum
             plot_attr.plot_map_QCheckBoxisChecked = self.plot_map_QCheckBox.isChecked()
 
             # process_manager
-            self.progress_layout.process_manager.set_plot_hdf5_mode(self.path_prj, names_hdf5, plot_attr, project_preferences)
+            self.progress_layout.process_manager.set_plot_hdf5_mode(self.path_prj, names_hdf5, plot_attr, project_properties)
 
             # process_prog_show
             self.progress_layout.start_process()
@@ -1166,9 +1166,9 @@ class DataExporterGroup(QGroupBoxCollapsible):
             self.export_production_stoped = False
 
             # figure option
-            project_preferences = load_project_properties(self.path_prj)
+            project_properties = load_project_properties(self.path_prj)
 
-            # fake temporary project_preferences
+            # fake temporary project_properties
             if self.current_type == 1:  # hydraulic
                 index_dict = 0
             else:
@@ -1176,17 +1176,17 @@ class DataExporterGroup(QGroupBoxCollapsible):
 
             # set to False all export before setting specific export to True
             for key in self.available_export_list:
-                project_preferences[key][index_dict] = False
+                project_properties[key][index_dict] = False
 
             # setting specific export to True
             for key in export_dict.keys():
-                project_preferences[key[:-4]][index_dict] = export_dict[key]
+                project_properties[key[:-4]][index_dict] = export_dict[key]
 
             if True in export_dict.values():
 
                 self.progress_layout.process_manager.set_export_hdf5_mode(self.path_prj,
                                                                           names_hdf5,
-                                                                          project_preferences)
+                                                                          project_properties)
 
                 # process_prog_show
                 self.progress_layout.start_process()
@@ -1205,7 +1205,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
                   ' model="' + self.model_type + '"' + \
                   ' inputfile="' + os.path.join(self.path_prj, "input", self.name_hdf5.split(".")[0], "indexHYDRAU.txt") + '"' + \
                   ' unit_list=' + str(self.hydrau_description_list[self.input_file_combobox.currentIndex()]['unit_list']).replace("\'", "'").replace(' ', '') + \
-                  ' cut=' + str(self.project_preferences['cut_mesh_partialy_dry']) + \
+                  ' cut=' + str(self.project_properties['cut_mesh_partialy_dry']) + \
                   ' outputfilename="' + self.name_hdf5 + '"' + \
                   ' path_prj="' + path_prj_script + '"'
         self.send_log.emit("script" + cmd_str)
@@ -1224,7 +1224,7 @@ class DataExporterGroup(QGroupBoxCollapsible):
                             F"\tprogress_value=progress_value, " \
                             F"\tq=q, " \
                             F"\tprint_cmd=True, " \
-                            F"\tproject_preferences=load_project_properties({repr(path_prj_script)}))" + "\n"
+                            F"\tproject_properties=load_project_properties({repr(path_prj_script)}))" + "\n"
         self.send_log.emit("py" + cmd_str)
 
 

@@ -34,7 +34,7 @@ from src.hydraulic_results_manager_mod import HydraulicSimulationResultsSelector
 from src.data_2d_mod import Data2d
 
 
-def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=False, project_preferences={}):
+def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=False, project_properties={}):
     """
     This function calls the function load_hydraulic and call the function cut_2d_grid()
 
@@ -50,14 +50,14 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
             all timestep are selected (from cmd command).
     :param q: used by the second thread to get the error back to the GUI at the end of the thread
     :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
-    :param project_preferences: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
+    :param project_properties: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
     """
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
 
     # minimum water height
-    if not project_preferences:
-        project_preferences = create_default_project_properties_dict()
+    if not project_properties:
+        project_properties = create_default_project_properties_dict()
 
     # progress
     progress_value.value = 10
@@ -160,10 +160,10 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
         return
 
     """ set_min_height_to_0 """
-    data_2d.set_min_height_to_0(project_preferences['min_height_hyd'])
+    data_2d.set_min_height_to_0(project_properties['min_height_hyd'])
     if len(data_2d[0]) == 0:
         print("Error: All selected units or timestep are under " +
-              project_preferences['min_height_hyd'] + " water minimum value.")
+              project_properties['min_height_hyd'] + " water minimum value.")
         # warnings
         if not print_cmd:
             sys.stdout = sys.__stdout__
@@ -185,19 +185,19 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
         return
 
     """ semi_wetted_mesh_cutting for only 2d models"""
-    if project_preferences["cut_mesh_partialy_dry"] and hydrau_description["model_dimension"] != "1":
+    if project_properties["cut_mesh_partialy_dry"] and hydrau_description["model_dimension"] != "1":
         data_2d.semi_wetted_mesh_cutting(hydrau_description["unit_list"],
                                          progress_value,
                                          delta_file)
-    if len(data_2d[0]) == 0:
-        print("Error: All selected units or timestep are not hydraulically operable.")
-        # warnings
-        if not print_cmd:
-            sys.stdout = sys.__stdout__
-            if q:
-                q.put(mystdout)
-                sleep(0.1)  # to wait q.put() ..
-        return
+        if len(data_2d[0]) == 0:
+            print("Error: All selected units or timestep are not hydraulically operable.")
+            # warnings
+            if not print_cmd:
+                sys.stdout = sys.__stdout__
+                if q:
+                    q.put(mystdout)
+                    sleep(0.1)  # to wait q.put() ..
+            return
 
     """ bank hydraulic aberations  """
     # data_2d.fix_aberrations(npasses=1, tolerance=0.01, connectedness_criterion=True, bank_depth=0.05)
@@ -216,8 +216,6 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
     data_2d.get_dimension()
 
     # hyd description
-    data_2d.filename_source = hydrau_description["filename_source"]
-    data_2d.path_filename_source = hydrau_description["path_filename_source"]
     data_2d.hyd_model_type = hydrau_description["model_type"]
     data_2d.hyd_model_dimension = hydrau_description["model_dimension"]
     data_2d.epsg_code = hydrau_description["epsg_code"]
@@ -236,7 +234,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
     data_2d.hyd_varying_mesh = hyd_varying_mesh
     data_2d.hyd_unit_z_equal = hyd_unit_z_equal
     data_2d.hyd_unit_correspondence = hydrau_description["hyd_unit_correspondence"]
-    data_2d.hyd_cuted_mesh_partialy_dry = project_preferences["cut_mesh_partialy_dry"]
+    data_2d.hyd_cuted_mesh_partialy_dry = project_properties["cut_mesh_partialy_dry"]
     data_2d.hyd_hydrau_case = hydrau_description["hydrau_case"]
     if data_2d.hyd_hydrau_case in {"1.b", "2.b"}:
         data_2d.hyd_timestep_source_list = [hydrau_description["timestep_list"]]
@@ -249,31 +247,37 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
     hdf5 = hdf5_mod.Hdf5Management(path_prj, hdf5_name, new=True)
     # HYD
     if not data_2d.hvum.hdf5_and_computable_list.subs():
-        project_preferences_index = 0
+        project_properties_index = 0
+        data_2d.filename_source = hydrau_description["filename_source"]
+        data_2d.path_filename_source = hydrau_description["path_filename_source"]
         hdf5.create_hdf5_hyd(data_2d,
                              data_2d_whole_profile,
-                             project_preferences)
+                             project_properties)
     # HAB
     else:
-        project_preferences_index = 1
+        project_properties_index = 1
+        data_2d.hyd_filename_source = hydrau_description["filename_source"]
+        data_2d.hyd_path_filename_source = hydrau_description["path_filename_source"]
+        data_2d.sub_filename_source = hydrau_description["filename_source"]
+        data_2d.sub_path_filename_source = hydrau_description["path_filename_source"]
         data_2d.sub_mapping_method = hsr.sub_mapping_method
         data_2d.sub_classification_code = hsr.sub_classification_code
         data_2d.sub_classification_method = hsr.sub_classification_method
         hdf5.create_hdf5_hab(data_2d,
                              data_2d_whole_profile,
-                             project_preferences)
+                             project_properties)
 
     # create_index_hydrau_text_file
-    if not project_preferences["restarted"]:
+    if not project_properties["restarted"]:
         create_or_copy_index_hydrau_text_file(hydrau_description)
 
     # export
     export_dict = dict()
     nb_export = 0
     for key in hdf5.available_export_list:
-        if project_preferences[key][project_preferences_index]:
+        if project_properties[key][project_properties_index]:
             nb_export += 1
-        export_dict[key + "_" + hdf5.extension[1:]] = project_preferences[key][project_preferences_index]
+        export_dict[key + "_" + hdf5.extension[1:]] = project_properties[key][project_properties_index]
 
     # warnings
     if not print_cmd:
@@ -286,7 +290,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
 
 
 def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, progress_value, q=[], print_cmd=False,
-                        project_preferences={}):
+                        project_properties={}):
     """
     This function call the merging of the grid between the grid from the hydrological data and the substrate data.
     It then save the merged data and the substrate data in a common hdf5 file. This function is called in a second
@@ -312,11 +316,11 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
     # progress
     progress_value.value = 10
 
-    if not project_preferences:
-        project_preferences = load_project_properties(path_prj)
+    if not project_properties:
+        project_properties = load_project_properties(path_prj)
 
     # get_translator
-    qt_tr = get_translator(project_preferences['path_prj'])
+    qt_tr = get_translator(project_properties['path_prj'])
 
     # if exists
     if not os.path.exists(os.path.join(path_prj, "hdf5", hdf5_name_hyd)):
@@ -409,14 +413,20 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
             data_2d_merge = hdf5_hydro.data_2d
             data_2d_whole_merge = hdf5_hydro.data_2d_whole
             data_2d_merge.set_sub_cst_value(hdf5_sub)
+            data_2d_merge.hyd_filename_source = hdf5_hydro.data_2d.filename_source
+            data_2d_merge.hyd_path_filename_source = hdf5_hydro.data_2d.path_filename_source
         # intersect
         else:
+            hyd_filename_source = hdf5_hydro.data_2d.filename_source
+            hyd_path_filename_source = hdf5_hydro.data_2d.path_filename_source
             data_2d_merge = Data2d(reach_number=hdf5_hydro.data_2d.reach_number,
                                    unit_list=hdf5_hydro.data_2d.unit_list)  # new
-            # get hyd attr
+            hdf5_hydro.data_2d.__dict__.pop("path_filename_source")
+            hdf5_hydro.data_2d.__dict__.pop("filename_source")
             data_2d_merge.__dict__ = hdf5_hydro.data_2d.__dict__.copy()
-            data_2d_merge.__dict__["hyd_filename_source"] = data_2d_merge.__dict__.pop("filename_source")
-            data_2d_merge.__dict__["hyd_path_filename_source"] = data_2d_merge.__dict__.pop("path_filename_source")
+            data_2d_merge.hyd_filename_source = hyd_filename_source
+            data_2d_merge.hyd_path_filename_source = hyd_path_filename_source
+
             # get sub attr
             for attribute_name in hdf5_sub.data_2d.__dict__.keys():
                 attribute_value = getattr(hdf5_sub.data_2d, attribute_name)
@@ -570,7 +580,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
     # create hdf5 hab
     data_2d_merge.filename = hdf5_name_hab
     hdf5 = hdf5_mod.Hdf5Management(path_prj, hdf5_name_hab, new=True)
-    hdf5.create_hdf5_hab(data_2d_merge, data_2d_whole_merge, project_preferences)
+    hdf5.create_hdf5_hab(data_2d_merge, data_2d_whole_merge, project_properties)
 
     if data_2d_merge.hs_calculated:
         # load_hydrosignature hyd
@@ -590,9 +600,9 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
     export_dict = dict()
     nb_export = 0
     for key in hdf5.available_export_list:
-        if project_preferences[key][1]:
+        if project_properties[key][1]:
             nb_export += 1
-        export_dict[key + "_" + hdf5.extension[1:]] = project_preferences[key][1]
+        export_dict[key + "_" + hdf5.extension[1:]] = project_properties[key][1]
 
     # warnings
     if not print_cmd:
@@ -605,18 +615,18 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
     progress_value.value = 100.0
 
 
-def load_data_and_compute_hs(hydrosignature_description, progress_value, q=[], print_cmd=False, project_preferences={}):
+def load_data_and_compute_hs(hydrosignature_description, progress_value, q=[], print_cmd=False, project_properties={}):
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
 
     # minimum water height
-    if not project_preferences:
-        project_preferences = create_default_project_properties_dict()
+    if not project_properties:
+        project_properties = create_default_project_properties_dict()
 
     # progress
     progress_value.value = 10
 
-    path_prj = project_preferences["path_prj"]
+    path_prj = project_properties["path_prj"]
 
     # load
     hdf5 = hdf5_mod.Hdf5Management(path_prj, hydrosignature_description["hdf5_name"], new=False, edit=True)
@@ -711,7 +721,7 @@ def load_data_and_compute_hs(hydrosignature_description, progress_value, q=[], p
 
         # hs input hydraulic class save to input folder
         folder_name_new_hs = os.path.splitext(hdf5.filename)[0]
-        new_hs_input_class_folder_path_out = os.path.join(project_preferences["path_prj"], "input", folder_name_new_hs)
+        new_hs_input_class_folder_path_out = os.path.join(project_properties["path_prj"], "input", folder_name_new_hs)
         if not os.path.exists(new_hs_input_class_folder_path_out):
             os.makedirs(new_hs_input_class_folder_path_out)
         sh_copy(os.path.join(
@@ -728,9 +738,9 @@ def load_data_and_compute_hs(hydrosignature_description, progress_value, q=[], p
             if new_data_2d.hvum.hydraulic_class.name not in new_data_2d.hvum.hdf5_and_computable_list.names():
                 new_data_2d.hvum.hdf5_and_computable_list.append(new_data_2d.hvum.hydraulic_class)
             if hdf5_new.hdf5_type == "hydraulic":
-                hdf5_new.create_hdf5_hyd(new_data_2d, new_data_2d_whole, project_preferences)
+                hdf5_new.create_hdf5_hyd(new_data_2d, new_data_2d_whole, project_properties)
             elif hdf5_new.extension == ".hab":
-                hdf5_new.create_hdf5_hab(new_data_2d, new_data_2d_whole, project_preferences)
+                hdf5_new.create_hdf5_hab(new_data_2d, new_data_2d_whole, project_properties)
             # add hs
             hdf5_new = hdf5_mod.Hdf5Management(path_prj, hdf5.filename[:-4] + "_HS" + hdf5.extension, new=False, edit=True)
             hdf5_new.get_hdf5_attributes(close_file=False)

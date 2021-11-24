@@ -704,12 +704,11 @@ def split_stage_list_with_size_class(stage_list_str):
     return stage_list
 
 
-
-def copy_or_not_user_pref_curve_to_input_folder(animal, project_preferences):
+def copy_or_not_user_pref_curve_to_input_folder(animal, project_properties):
     # copy xml curves to input project folder
     if "INRAE_EDF_OFB" in os.path.dirname(animal.pref_file):  # user case
         name_xml = os.path.basename(animal.pref_file)
         path = os.path.dirname(animal.pref_file)
-        if not os.path.exists(os.path.join(project_preferences["path_input"], "user_models")):
-            os.makedirs(os.path.join(project_preferences["path_input"], "user_models"))
-        copy_files([name_xml], [path], os.path.join(project_preferences["path_input"], "user_models"))
+        if not os.path.exists(os.path.join(project_properties["path_input"], "user_models")):
+            os.makedirs(os.path.join(project_properties["path_input"], "user_models"))
+        copy_files([name_xml], [path], os.path.join(project_properties["path_input"], "user_models"))

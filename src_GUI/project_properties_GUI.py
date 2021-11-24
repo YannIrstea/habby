@@ -325,22 +325,22 @@ class ProjectPropertiesDialog(QDialog):
 
     def set_pref_gui_from_dict(self, default=False):
         if default:
-            project_preferences = create_default_project_properties_dict()
+            project_properties = create_default_project_properties_dict()
         else:
             # read actual figure option
-            project_preferences = load_project_properties(self.path_prj)
+            project_properties = load_project_properties(self.path_prj)
 
         # min_height_hyd
-        self.min_height_lineedit.setText(str(project_preferences['min_height_hyd']))
+        self.min_height_lineedit.setText(str(project_properties['min_height_hyd']))
 
         # CutMeshPartialyDry
-        if project_preferences['cut_mesh_partialy_dry']:  # is a string not a boolean
+        if project_properties['cut_mesh_partialy_dry']:  # is a string not a boolean
             self.cut_2d_grid_checkbox.setChecked(True)
         else:
             self.cut_2d_grid_checkbox.setChecked(False)
 
         # erase_id
-        if project_preferences['erase_id']:  # is a string not a boolean
+        if project_properties['erase_id']:  # is a string not a boolean
             self.erase_data_checkbox.setChecked(True)
         else:
             self.erase_data_checkbox.setChecked(False)
@@ -356,10 +356,10 @@ class ProjectPropertiesDialog(QDialog):
                      ]
         self.pvd_variable_z_combobox.clear()
         self.pvd_variable_z_combobox.addItems(item_list)
-        self.pvd_variable_z_combobox.setCurrentIndex(item_list.index(project_preferences["pvd_variable_z"]))
+        self.pvd_variable_z_combobox.setCurrentIndex(item_list.index(project_properties["pvd_variable_z"]))
 
         # vertical_exaggeration
-        self.vertical_exaggeration_lineedit.setText(str(project_preferences["vertical_exaggeration"]))
+        self.vertical_exaggeration_lineedit.setText(str(project_properties["vertical_exaggeration"]))
 
         # check uncheck output checkboxs
         for checkbox in self.output_checkbox_list:
@@ -368,42 +368,42 @@ class ProjectPropertiesDialog(QDialog):
                 index = 0
             if type == "hab":
                 index = 1
-            checkbox.setChecked(project_preferences[checkbox.objectName()[:-4]][index])
+            checkbox.setChecked(project_properties[checkbox.objectName()[:-4]][index])
 
         # color_map
-        self.color_map_combobox.setCurrentIndex(self.color_map_combobox.findText(project_preferences['color_map']))
+        self.color_map_combobox.setCurrentIndex(self.color_map_combobox.findText(project_properties['color_map']))
 
         # fig_size
-        self.fig_size_lineedit.setText(str(project_preferences['width']) + ',' + str(project_preferences['height']))
+        self.fig_size_lineedit.setText(str(project_properties['width']) + ',' + str(project_properties['height']))
 
         # font size
-        self.font_size_lineedit.setText(str(project_preferences['font_size']))
+        self.font_size_lineedit.setText(str(project_properties['font_size']))
 
         # font_family
         font_family_list = [self.font_family_combobox.itemText(i) for i in range(self.font_family_combobox.count())]
-        self.font_family_combobox.setCurrentIndex(font_family_list.index(project_preferences['font_family']))
+        self.font_family_combobox.setCurrentIndex(font_family_list.index(project_properties['font_family']))
 
         # line_width
-        self.line_width_lineedit.setText(str(project_preferences['line_width']))
+        self.line_width_lineedit.setText(str(project_properties['line_width']))
 
         # grid
-        if project_preferences['grid']:  # is a string not a boolean
+        if project_properties['grid']:  # is a string not a boolean
             self.grid_checkbox.setChecked(True)
         else:
             self.grid_checkbox.setChecked(False)
 
         # format
         fig_format_list = [self.fig_format_combobox.itemText(i) for i in range(self.fig_format_combobox.count())]
-        self.fig_format_combobox.setCurrentIndex(fig_format_list.index(project_preferences['format']))
+        self.fig_format_combobox.setCurrentIndex(fig_format_list.index(project_properties['format']))
 
         # resolution
-        self.resolution_lineedit.setText(str(project_preferences['resolution']))
+        self.resolution_lineedit.setText(str(project_properties['resolution']))
 
         # fish_name_type
-        self.type_fishname_combobox.setCurrentIndex(int(project_preferences['fish_name_type']))
+        self.type_fishname_combobox.setCurrentIndex(int(project_properties['fish_name_type']))
 
         # marker
-        if project_preferences['marker']:  # is a string not a boolean
+        if project_properties['marker']:  # is a string not a boolean
             self.marquers_hab_fig_checkbox.setChecked(True)
         else:
             self.marquers_hab_fig_checkbox.setChecked(False)
@@ -428,19 +428,19 @@ class ProjectPropertiesDialog(QDialog):
         else:
             [checkbox.setChecked(True) for checkbox in self.output_checkbox_list]
 
-    def collect_project_preferences_choice(self):
+    def collect_project_properties_choice(self):
         """
         Function to collect user choices of project preferences GUI
         """
         # get default option for security and facility
-        project_preferences = load_project_properties(self.path_prj)
+        project_properties = load_project_properties(self.path_prj)
 
         fig_size = self.fig_size_lineedit.text()
         if fig_size:
             fig_size = fig_size.split(',')
             try:
-                project_preferences['width'] = np.float(fig_size[0])
-                project_preferences['height'] = np.float(fig_size[1])
+                project_properties['width'] = np.float(fig_size[0])
+                project_properties['height'] = np.float(fig_size[1])
             except IndexError:
                 self.send_log.emit('Error: ' + self.tr('The size of the figure should be in the format: num1,num2.\n'))
             except ValueError:
@@ -448,54 +448,54 @@ class ProjectPropertiesDialog(QDialog):
         # color map
         c1 = str(self.color_map_combobox.currentText())
         if c1:
-            project_preferences['color_map'] = c1
+            project_properties['color_map'] = c1
         # font size
         font_size = self.font_size_lineedit.text()
         if font_size:
             try:
-                project_preferences['font_size'] = int(font_size)
+                project_properties['font_size'] = int(font_size)
             except ValueError:
                 self.send_log.emit('Error: ' + self.tr('Font size should be an integer. \n'))
         # font_family
         font_family = self.font_family_combobox.currentText()
         if font_family:
             try:
-                project_preferences['font_family'] = font_family
+                project_properties['font_family'] = font_family
             except ValueError:
                 self.send_log.emit('Error: ' + self.tr('Font family not recognized. \n'))
         # line width
         line_width = self.line_width_lineedit.text()
         if line_width:
             try:
-                project_preferences['line_width'] = int(line_width)
+                project_properties['line_width'] = int(line_width)
             except ValueError:
                 self.send_log.emit('Error: ' + self.tr('Line width should be an integer. \n'))
         # grid
         if self.grid_checkbox.isChecked():
-            project_preferences['grid'] = True
+            project_properties['grid'] = True
         else:
-            project_preferences['grid'] = False
+            project_properties['grid'] = False
         # format
-        project_preferences['format'] = self.fig_format_combobox.currentText()
+        project_properties['format'] = self.fig_format_combobox.currentText()
         # resolution
         try:
-            project_preferences['resolution'] = int(self.resolution_lineedit.text())
+            project_properties['resolution'] = int(self.resolution_lineedit.text())
         except ValueError:
             self.send_log.emit('Error: ' + self.tr('The resolution should be an integer. \n'))
-        if project_preferences['resolution'] < 0:
+        if project_properties['resolution'] < 0:
             self.send_log.emit('Error: ' + self.tr('The resolution should be higher than zero \n'))
             return
-        if project_preferences['resolution'] > 2000:
+        if project_properties['resolution'] > 2000:
             self.send_log.emit(
                 self.tr('Warning: ') + self.tr('The resolution is higher than 2000 dpi. Figures might be very large.\n'))
 
         # fish name type
-        project_preferences['fish_name_type'] = int(self.type_fishname_combobox.currentIndex())
+        project_properties['fish_name_type'] = int(self.type_fishname_combobox.currentIndex())
         # marker
         if self.marquers_hab_fig_checkbox.isChecked():
-            project_preferences['marker'] = True
+            project_properties['marker'] = True
         else:
-            project_preferences['marker'] = False
+            project_properties['marker'] = False
 
         # outputs
         for checkbox in self.output_checkbox_list:
@@ -505,40 +505,40 @@ class ProjectPropertiesDialog(QDialog):
             if type == "hab":
                 index = 1
             if checkbox.isChecked():
-                project_preferences[checkbox.objectName()[:-4]][index] = True
+                project_properties[checkbox.objectName()[:-4]][index] = True
             else:
-                project_preferences[checkbox.objectName()[:-4]][index] = False
+                project_properties[checkbox.objectName()[:-4]][index] = False
 
         # vertical_exaggeration
         try:
-            project_preferences['vertical_exaggeration'] = int(self.vertical_exaggeration_lineedit.text())
+            project_properties['vertical_exaggeration'] = int(self.vertical_exaggeration_lineedit.text())
             if int(self.vertical_exaggeration_lineedit.text()) < 1:
                 self.send_log.emit(
                     "Error: " + self.tr("Vertical exaggeration value must be superior than 1. Value set to 1."))
-                project_preferences['vertical_exaggeration'] = 1
+                project_properties['vertical_exaggeration'] = 1
         except:
             self.send_log.emit("Error: " + self.tr("Vertical exaggeration value is not integer. Value set to 1."))
-            project_preferences['vertical_exaggeration'] = 1
+            project_properties['vertical_exaggeration'] = 1
 
         # pvd_variable_z
-        project_preferences['pvd_variable_z'] = self.pvd_variable_z_combobox.currentText()
+        project_properties['pvd_variable_z'] = self.pvd_variable_z_combobox.currentText()
 
         # other option
         try:
-            project_preferences['min_height_hyd'] = float(self.min_height_lineedit.text())
+            project_properties['min_height_hyd'] = float(self.min_height_lineedit.text())
         except ValueError:
             self.send_log.emit('Error: ' + self.tr('Minimum Height should be a number'))
         if self.erase_data_checkbox.isChecked():
-            project_preferences['erase_id'] = True
+            project_properties['erase_id'] = True
         else:
-            project_preferences['erase_id'] = False
+            project_properties['erase_id'] = False
         # CutMeshPartialyDry
         if self.cut_2d_grid_checkbox.isChecked():
-            project_preferences['cut_mesh_partialy_dry'] = True
+            project_properties['cut_mesh_partialy_dry'] = True
         else:
-            project_preferences['cut_mesh_partialy_dry'] = False
+            project_properties['cut_mesh_partialy_dry'] = False
 
-        return project_preferences
+        return project_properties
 
     def save_preferences(self):
         """
@@ -549,7 +549,7 @@ class ProjectPropertiesDialog(QDialog):
         If you change things here, it is necessary to start a new project as the old projects will not be compatible.
         For the new version of HABBY, it will be necessary to insure compatibility by adding xml attribute.
         """
-        project_preferences = self.collect_project_preferences_choice()
+        project_properties = self.collect_project_properties_choice()
 
         # save the data in the xml file
         fname = os.path.join(self.path_prj, self.name_prj + '.habby')
@@ -563,12 +563,12 @@ class ProjectPropertiesDialog(QDialog):
             self.msg2.setStandardButtons(QMessageBox.Ok)
             self.msg2.show()
         else:
-            save_project_properties(self.path_prj, project_preferences)
+            save_project_properties(self.path_prj, project_properties)
 
         self.send_log.emit(self.tr('# Project properties saved.'))
 
-        # project_preferences['cut_mesh_partialy_dry'] to change suffix no_cut
-        self.cut_mesh_partialy_dry_signal.emit(project_preferences['cut_mesh_partialy_dry'])
+        # project_properties['cut_mesh_partialy_dry'] to change suffix no_cut
+        self.cut_mesh_partialy_dry_signal.emit(project_properties['cut_mesh_partialy_dry'])
 
         self.close()
 

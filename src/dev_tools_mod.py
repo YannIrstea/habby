@@ -168,5 +168,21 @@ def strip_accents(s):
                    if unicodedata.category(c) != 'Mn')
 
 
+def get_all_filename(dirname, ext):
+    """
+    This function gets the name of all file with a particular extension in a folder. Useful to get all the output
+    from one hydraulic model.
+
+    :param dirname: the path to the directory (string)
+    :param ext: the extension (.txt for example). It is a string, the point needs to be the first character.
+    :return: a list with the filename (filename no dir) for each extension
+    """
+    filenames = []
+    for file in os.listdir(dirname):
+        if file.endswith(ext):
+            filenames.append(file)
+    return filenames
+
+
 polygon_type_values = (3, 2003, 3003, 0x80000003, -2147483645)  # wkbPolygon, wkbPolygonM, wkbPolygonZM, wkbPolygon25D, wkbPolygon25D
 point_type_values = (1, 2001, 3001, 0x80000001, -2147483647)  # wkbPoint, wkbPointM, wkbPointZM, wkbPoint25D, wkbPoint25D

@@ -39,8 +39,8 @@ def setup(t, l):
 """ animal report """
 
 
-def export_report(xmlfile, project_preferences, qt_tr, progress_value, delta_animal):
-    # qt_tr = get_translator(project_preferences['path_prj'])
+def export_report(xmlfile, project_properties, qt_tr, progress_value, delta_animal):
+    # qt_tr = get_translator(project_properties['path_prj'])
 
     plt.close()
     plt.rcParams['figure.figsize'] = 21, 29.7  # a4
@@ -57,7 +57,7 @@ def export_report(xmlfile, project_preferences, qt_tr, progress_value, delta_ani
             fig, axe_curve = plot_suitability_curve(None,
                                    information_model_dict,
                                    None,
-                                    project_preferences,
+                                    project_properties,
                                    True,
                                    qt_tr)
         else:
@@ -65,14 +65,14 @@ def export_report(xmlfile, project_preferences, qt_tr, progress_value, delta_ani
             fig, axe_curve = plot_suitability_curve_hem(None,
                                                         information_model_dict,
                                                         None,
-                                                        project_preferences,
+                                                        project_properties,
                                                         True,
                                                         qt_tr)
     else:
         fig, axe_curve = plot_suitability_curve_bivariate(None,
                                                           information_model_dict,
                                                           None,
-                                         project_preferences,
+                                         project_properties,
                                          True,
                                    qt_tr)
 
@@ -153,9 +153,9 @@ def export_report(xmlfile, project_preferences, qt_tr, progress_value, delta_ani
                  weight='bold')
 
     # filename
-    filename = os.path.join(project_preferences['path_figure'],
+    filename = os.path.join(project_properties['path_figure'],
                             'report_' + information_model_dict["code_biological_model"] +
-                            project_preferences["format"])
+                            project_properties["format"])
 
     # save
     try:

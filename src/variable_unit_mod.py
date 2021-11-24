@@ -797,9 +797,9 @@ class HydraulicVariableUnitManagement:
                 self.xy.data[reach_ind].append([])
                 self.tin.data[reach_ind].append([])
 
-    def get_final_variable_list_from_project_preferences(self, project_preferences, hdf5_type):
+    def get_final_variable_list_from_project_properties(self, project_properties, hdf5_type):
         """
-        Get all variables to compute from dict (project_preferences) for exports.
+        Get all variables to compute from dict (project_properties) for exports.
         :return:
         """
         # INDEX IF HYD OR HAB
@@ -811,15 +811,15 @@ class HydraulicVariableUnitManagement:
         mesh = False
         node = False
         # get_variables_from_dict
-        if project_preferences["mesh_units"][index]:
+        if project_properties["mesh_units"][index]:
             mesh = True
-        if project_preferences["point_units"][index]:
+        if project_properties["point_units"][index]:
             node = True
-        if project_preferences["mesh_detailled_text"][index]:
+        if project_properties["mesh_detailled_text"][index]:
             mesh = True
-        if project_preferences["point_detailled_text"][index]:
+        if project_properties["point_detailled_text"][index]:
             node = True
-        if project_preferences["variables_units"][index]:
+        if project_properties["variables_units"][index]:
             mesh = True
             node = True
             # pvd_variable_z ?

@@ -740,12 +740,12 @@ class StathabW(estimhab_GUI.StatModUseful):
         #     sys.stdout = sys.__stdout__
         #     self.send_err_log()
         if self.riverint == 1:  # univariate
-            filenames = hdf5_mod.get_all_filename(self.path_bio_stathab, '.csv')
+            filenames = src.dev_tools_mod.get_all_filename(self.path_bio_stathab, '.csv')
             for f in filenames:
                 if 'uni' in f and f[-7:-4] not in name_fish:
                     name_fish.append(f[-7:-4])
         if self.riverint == 2:
-            filenames = hdf5_mod.get_all_filename(self.path_bio_stathab, '.csv')
+            filenames = src.dev_tools_mod.get_all_filename(self.path_bio_stathab, '.csv')
             for f in filenames:
                 if 'biv' in f:
                     name_fish.append(f[-7:-4])
@@ -798,11 +798,11 @@ class StathabW(estimhab_GUI.StatModUseful):
                               'Save the project in the General tab before saving hydrological data. \n')
         else:
             # change path_last_file_loaded, model_type (path)
-            project_preferences = load_project_properties(self.path_prj)  # load_project_properties
-            project_preferences["path_last_file_loaded"] = self.dir_name  # change value
-            project_preferences[self.model_type]["path"] = self.dir_name  # change value
-            project_preferences[self.model_type]["fish_selected"] = self.fish_selected  # change value
-            save_project_properties(self.path_prj, project_preferences)  # save_project_properties
+            project_properties = load_project_properties(self.path_prj)  # load_project_properties
+            project_properties["path_last_file_loaded"] = self.dir_name  # change value
+            project_properties[self.model_type]["path"] = self.dir_name  # change value
+            project_properties[self.model_type]["fish_selected"] = self.fish_selected  # change value
+            save_project_properties(self.path_prj, project_properties)  # save_project_properties
 
     def run_stathab_gui(self):
         """

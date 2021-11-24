@@ -23,7 +23,7 @@ from PyQt5.QtGui import QPixmap, QFont
 import matplotlib as mpl
 mpl.use("Qt5Agg")  # backends and toolbar for pyqt5
 
-from src import project_properties_mod
+from src.project_properties_mod import load_project_properties
 
 
 class WelcomeW(QScrollArea):
@@ -118,10 +118,9 @@ class WelcomeW(QScrollArea):
             pass
         # otherwise, fill it
         else:
-            preference_names = project_properties_mod.load_specific_properties(self.path_prj,
-                                                                               preference_names=["user_name", "description"])
-            self.user_name_lineedit.setText(preference_names[0])
-            self.description_prj_textedit.setText(preference_names[1])
+            project_properties = load_project_properties(self.path_prj)
+            self.user_name_lineedit.setText(project_properties["user_name"])
+            self.description_prj_textedit.setText(project_properties["description"])
 
         # current_prj_groupbox
         self.current_prj_groupbox = QGroupBox(self.tr("Current project"))

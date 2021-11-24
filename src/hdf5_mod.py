@@ -16,21 +16,20 @@ https://github.com/YannIrstea/habby
 """
 import os
 import time
+
 import h5py
 import numpy as np
 from PyQt5.QtCore import QCoreApplication as qt_tr
 from PyQt5.QtCore import QLocale
 from stl import mesh
 from multiprocessing import Value, Pool, Lock, cpu_count
-import shutil
 from pandas import DataFrame
-from traceback import print_exc
 
 from src.hl_mod import unstructuredGridToVTK
 from src.paraview_mod import writePVD
 from src.export_manager_mod import export_mesh_layer_to_gpkg, merge_gpkg_to_one, export_node_layer_to_gpkg, export_mesh_txt,\
     setup, export_point_txt, export_report
-from src.project_properties_mod import load_project_properties, save_project_properties, get_name_prj
+from src.project_properties_mod import load_project_properties, save_project_properties
 from src.dev_tools_mod import copy_shapefiles, copy_hydrau_input_files, txt_file_convert_dot_to_comma, strip_accents
 from src.data_2d_mod import Data2d
 from src.translator_mod import get_translator
@@ -56,12 +55,16 @@ class Hdf5Management:
         self.path_txt = os.path.join(self.path_prj, "output", "text")
         self.path_3d = os.path.join(self.path_prj, "output", "3D")
         self.path_figure = os.path.join(self.path_prj, "output", "figures")
-        self.name_prj = get_name_prj(path_prj)  # name of project
+        self.name_prj = None
+        for file in os.listdir(path_prj):
+            if ".habby" in file:
+                self.name_prj = os.path.splitext(file)[0]
+                break
         self.absolute_path_prj_xml = os.path.join(self.path_prj, self.name_prj + '.habby')
         # hdf5 attributes fix
         self.extensions = ('.hyd', '.sub', '.hab')  # all available extensions
         self.export_source = "auto"  # or "manual" if export launched from data explorer
-        self.project_preferences = load_project_properties(self.path_prj)
+        self.project_properties = load_project_properties(self.path_prj)
         # dict
         self.data_2d = None
         self.data_2d_whole = None
@@ -155,7 +158,7 @@ class Hdf5Management:
             self.file_object.attrs['filename'] = self.filename
         elif not self.new:
             if self.hdf5_type != "ESTIMHAB":
-                self.project_preferences = load_project_properties(self.path_prj)
+                self.project_properties = load_project_properties(self.path_prj)
                 """ get xml parent element name """
                 if self.hdf5_type == "hydraulic":
                     self.input_type = self.file_object.attrs['hyd_model_type']
@@ -195,101 +198,95 @@ class Hdf5Management:
             return
         else:
             # load_project_properties
-            project_preferences = load_project_properties(self.path_prj)
+            project_properties = load_project_properties(self.path_prj)
 
             # change values
-            if self.filename in project_preferences[model_type]["hdf5"]:
-                project_preferences[model_type]["hdf5"].remove(self.filename)
-            project_preferences[model_type]["hdf5"].append(self.filename)
-            project_preferences[model_type]["path"] = input_file_path
+            if self.filename in project_properties[model_type]["hdf5"]:
+                project_properties[model_type]["hdf5"].remove(self.filename)
+            project_properties[model_type]["hdf5"].append(self.filename)
+            project_properties[model_type]["path"] = input_file_path
 
             # save_project_properties
-            save_project_properties(self.path_prj, project_preferences)
+            save_project_properties(self.path_prj, project_properties)
 
     # HDF5 INFORMATIONS
-    def set_hdf5_attributes(self, attribute_name_list=[], attribute_value_list=[]):
-        # specific attributes
-        if attribute_name_list and attribute_value_list:
-            for attribute_name, attribute_value in zip(attribute_name_list, attribute_value_list):
-                self.file_object.attrs[attribute_name] = attribute_value
-        # all data_2d attributes
-        else:
-            # global
-            self.file_object.attrs["data_extent"] = self.data_2d.data_extent
-            self.file_object.attrs["data_height"] = self.data_2d.data_height
-            self.file_object.attrs["data_width"] = self.data_2d.data_width
+    def set_hdf5_attributes(self):
+        # global
+        self.file_object.attrs["data_extent"] = self.data_2d.data_extent
+        self.file_object.attrs["data_height"] = self.data_2d.data_height
+        self.file_object.attrs["data_width"] = self.data_2d.data_width
 
-            for attribute_name in self.data_2d.__dict__.keys():
-                attribute_value = getattr(self.data_2d, attribute_name)
-                if attribute_name in ("unit_list", "unit_list_full"):
-                    # check if duplicate name present in unit_list
-                    for reach_number in range(self.data_2d.reach_number):
-                        if len(set(attribute_value[reach_number])) != len(attribute_value[reach_number]):
-                            a = attribute_value[reach_number]
-                            duplicates = list(set([x for x in a if a.count(x) > 1]))
-                            for unit_number, unit_element in enumerate(attribute_value[reach_number]):
-                                for duplicate in duplicates:
-                                    if unit_element == duplicate:
-                                        attribute_value[reach_number][unit_number] = duplicate + "_" + str(
-                                            unit_number)
-                        # unit_list with different unit by reach
-                        self.file_object.attrs[attribute_name] = str(attribute_value)
-                elif attribute_name == "unit_index":
-                    pass
-                elif attribute_name == "hyd_unit_correspondence":
+        for attribute_name in self.data_2d.__dict__.keys():
+            attribute_value = getattr(self.data_2d, attribute_name)
+            if attribute_name in ("unit_list", "unit_list_full"):
+                # check if duplicate name present in unit_list
+                for reach_number in range(self.data_2d.reach_number):
+                    if len(set(attribute_value[reach_number])) != len(attribute_value[reach_number]):
+                        a = attribute_value[reach_number]
+                        duplicates = list(set([x for x in a if a.count(x) > 1]))
+                        for unit_number, unit_element in enumerate(attribute_value[reach_number]):
+                            for duplicate in duplicates:
+                                if unit_element == duplicate:
+                                    attribute_value[reach_number][unit_number] = duplicate + "_" + str(
+                                        unit_number)
+                    # unit_list with different unit by reach
                     self.file_object.attrs[attribute_name] = str(attribute_value)
-                elif attribute_name == "reach_list":
+            elif attribute_name == "unit_index":
+                pass
+            elif attribute_name == "hyd_unit_correspondence":
+                self.file_object.attrs[attribute_name] = str(attribute_value)
+            elif attribute_name == "reach_list":
+                self.file_object.attrs[attribute_name] = attribute_value
+            elif attribute_name in {"hs_summary_data", "hvum", "units_index"}:  # don't save to attr
+                pass
+            else:
+                if type(attribute_value) == bool:
                     self.file_object.attrs[attribute_name] = attribute_value
-                elif attribute_name in {"hs_summary_data", "hvum", "units_index"}:  # don't save to attr
-                    pass
                 else:
-                    if type(attribute_value) == bool:
+                    if type(attribute_value) == str:
+                        if "m<sup>3</sup>/s" in attribute_value:
+                            attribute_value = attribute_value.replace("m<sup>3</sup>/s", "m3/s")
                         self.file_object.attrs[attribute_name] = attribute_value
                     else:
-                        if type(attribute_value) == str:
-                            if "m<sup>3</sup>/s" in attribute_value:
-                                attribute_value = attribute_value.replace("m<sup>3</sup>/s", "m3/s")
-                            self.file_object.attrs[attribute_name] = attribute_value
-                        else:
-                            self.file_object.attrs[attribute_name] = attribute_value
+                        self.file_object.attrs[attribute_name] = attribute_value
 
-            # variable_list
-            if self.data_2d.hvum.hdf5_and_computable_list:
-                # variables attrs
-                self.data_2d.hvum.hdf5_and_computable_list.sort_by_names_gui()
-                self.file_object.attrs[
-                    "mesh_variable_original_name_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().names()
-                self.file_object.attrs[
-                    "node_variable_original_name_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().names()
-                self.file_object.attrs[
-                    "mesh_variable_original_unit_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().units()
-                self.file_object.attrs[
-                    "node_variable_original_unit_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().units()
-                self.file_object.attrs[
-                    "mesh_variable_original_min_list"] = ["{0:.1f}".format(min) for min in
-                                                          self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().min()]
-                self.file_object.attrs[
-                    "node_variable_original_min_list"] = ["{0:.1f}".format(min) for min in
-                                                          self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().min()]
-                self.file_object.attrs[
-                    "mesh_variable_original_max_list"] = ["{0:.1f}".format(max) for max in
-                                                          self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().max()]
-                self.file_object.attrs[
-                    "node_variable_original_max_list"] = ["{0:.1f}".format(max) for max in
-                                                          self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().max()]
+        # variable_list
+        if self.data_2d.hvum.hdf5_and_computable_list:
+            # variables attrs
+            self.data_2d.hvum.hdf5_and_computable_list.sort_by_names_gui()
+            self.file_object.attrs[
+                "mesh_variable_original_name_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().names()
+            self.file_object.attrs[
+                "node_variable_original_name_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().names()
+            self.file_object.attrs[
+                "mesh_variable_original_unit_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().units()
+            self.file_object.attrs[
+                "node_variable_original_unit_list"] = self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().units()
+            self.file_object.attrs[
+                "mesh_variable_original_min_list"] = ["{0:.1f}".format(min) for min in
+                                                      self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().min()]
+            self.file_object.attrs[
+                "node_variable_original_min_list"] = ["{0:.1f}".format(min) for min in
+                                                      self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().min()]
+            self.file_object.attrs[
+                "mesh_variable_original_max_list"] = ["{0:.1f}".format(max) for max in
+                                                      self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().meshs().max()]
+            self.file_object.attrs[
+                "node_variable_original_max_list"] = ["{0:.1f}".format(max) for max in
+                                                      self.data_2d.hvum.hdf5_and_computable_list.hdf5s().no_habs().nodes().max()]
 
-            # hab variables
-            if self.hdf5_type == "habitat":
-                self.file_object.attrs["hab_animal_list"] = ", ".join(
-                    self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().names())
-                self.file_object.attrs["hab_animal_number"] = str(
-                    len(self.data_2d.hvum.hdf5_and_computable_list.meshs().habs()))
-                self.file_object.attrs["hab_animal_pref_list"] = ", ".join(
-                    self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().pref_files())
-                self.file_object.attrs["hab_animal_stage_list"] = ", ".join(
-                    self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().stages())
-                self.file_object.attrs["hab_animal_type_list"] = ", ".join(
-                    self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().aquatic_animal_types())
+        # hab variables
+        if self.hdf5_type == "habitat":
+            self.file_object.attrs["hab_animal_list"] = ", ".join(
+                self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().names())
+            self.file_object.attrs["hab_animal_number"] = str(
+                len(self.data_2d.hvum.hdf5_and_computable_list.meshs().habs()))
+            self.file_object.attrs["hab_animal_pref_list"] = ", ".join(
+                self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().pref_files())
+            self.file_object.attrs["hab_animal_stage_list"] = ", ".join(
+                self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().stages())
+            self.file_object.attrs["hab_animal_type_list"] = ", ".join(
+                self.data_2d.hvum.hdf5_and_computable_list.meshs().habs().aquatic_animal_types())
 
     def get_hdf5_attributes(self, close_file=False):
         # print("get_hdf5_attributes")
@@ -740,12 +737,12 @@ class Hdf5Management:
         # variables
         self.user_target_list = user_target_list
         if self.user_target_list == "defaut":  # when hdf5 is created (by project preferences)
-            self.data_2d.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
-                                                                       hdf5_type=self.hdf5_type)
-        elif type(self.user_target_list) == dict:  # project_preferences
-            self.project_preferences = self.user_target_list
-            self.data_2d.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
-                                                                       hdf5_type=self.hdf5_type)
+            self.data_2d.hvum.get_final_variable_list_from_project_properties(self.project_properties,
+                                                                              hdf5_type=self.hdf5_type)
+        elif type(self.user_target_list) == dict:  # project_properties
+            self.project_properties = self.user_target_list
+            self.data_2d.hvum.get_final_variable_list_from_project_properties(self.project_properties,
+                                                                              hdf5_type=self.hdf5_type)
         elif user_target_list is None:
             pass
         else:  # all
@@ -767,7 +764,7 @@ class Hdf5Management:
             self.data_2d.compute_variables(self.data_2d.hvum.all_final_variable_list.to_compute())
 
     # HYDRAULIC
-    def create_hdf5_hyd(self, data_2d, data_2d_whole, project_preferences):
+    def create_hdf5_hyd(self, data_2d, data_2d_whole, project_properties):
         """
         :param data_2d: data 2d dict with keys :
         'mesh':
@@ -819,7 +816,7 @@ class Hdf5Management:
         # save temporary to attribute
         self.data_2d = data_2d
         self.data_2d_whole = data_2d_whole
-        self.project_preferences = project_preferences
+        self.project_properties = project_properties
 
         # save hyd attributes to hdf5 file
         self.set_hdf5_attributes()
@@ -834,15 +831,11 @@ class Hdf5Management:
         self.write_data_2d_info()
 
         # copy input files to input project folder
-        if not project_preferences["restarted"] and self.data_2d.hvum.hydraulic_class.name not in self.data_2d.hvum.hdf5_and_computable_list.names():
-            if self.data_2d.hyd_model_type == "lammi":
-                # if lammi Transect.txt
-                prj_list_file = [s for s in os.listdir(self.data_2d.path_filename_source) if s.endswith('.prn')]
-                self.data_2d.filename_source = self.data_2d.filename_source + ", " + ", ".join(prj_list_file)
+        if not project_properties["restarted"] and self.data_2d.hvum.hydraulic_class.name not in self.data_2d.hvum.hdf5_and_computable_list.names():
             copy_hydrau_input_files(self.data_2d.path_filename_source,
                                 self.data_2d.filename_source,
                                 self.filename,
-                                os.path.join(project_preferences["path_prj"], "input"))
+                                os.path.join(project_properties["path_prj"], "input"))
 
         # save XML
         self.save_xml(self.data_2d.hyd_model_type,
@@ -867,7 +860,7 @@ class Hdf5Management:
         self.close_file()
 
         # copy input files to input project folder
-        if not self.project_preferences["restarted"]:
+        if not self.project_properties["restarted"]:
             copy_shapefiles(
                 os.path.join(self.data_2d.path_filename_source, self.data_2d.filename_source),
                 self.filename,
@@ -888,12 +881,12 @@ class Hdf5Management:
         # variables
         self.user_target_list = user_target_list
         if self.user_target_list == "defaut":  # when hdf5 is created (by project preferences)
-            self.data_2d.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
-                                                                       hdf5_type=self.hdf5_type)
-        elif type(self.user_target_list) == dict:  # project_preferences
-            self.project_preferences = self.user_target_list
-            self.data_2d.hvum.get_final_variable_list_from_project_preferences(self.project_preferences,
-                                                                       hdf5_type=self.hdf5_type)
+            self.data_2d.hvum.get_final_variable_list_from_project_properties(self.project_properties,
+                                                                              hdf5_type=self.hdf5_type)
+        elif type(self.user_target_list) == dict:  # project_properties
+            self.project_properties = self.user_target_list
+            self.data_2d.hvum.get_final_variable_list_from_project_properties(self.project_properties,
+                                                                              hdf5_type=self.hdf5_type)
         else:
             self.data_2d.hvum.get_final_variable_list_from_wish(self.user_target_list)
 
@@ -910,7 +903,7 @@ class Hdf5Management:
             self.data_2d.compute_variables(self.data_2d.hvum.all_final_variable_list.to_compute())
 
     # HABITAT
-    def create_hdf5_hab(self, data_2d, data_2d_whole, project_preferences):
+    def create_hdf5_hab(self, data_2d, data_2d_whole, project_properties):
         """
         :param data_2d: data 2d dict with keys :
         'mesh':
@@ -948,7 +941,7 @@ class Hdf5Management:
         # save temporary to attribute
         self.data_2d = data_2d
         self.data_2d_whole = data_2d_whole
-        self.project_preferences = project_preferences
+        self.project_properties = project_properties
 
         # save hyd attributes to hdf5 file
         self.set_hdf5_attributes()
@@ -963,17 +956,17 @@ class Hdf5Management:
         self.write_data_2d_info()
 
         # copy input files to input project folder (only not merged, .hab directly from a input file as ASCII, LAMMI)
-        if not project_preferences["restarted"] and self.data_2d.hvum.hydraulic_class.name not in self.data_2d.hvum.hdf5_and_computable_list.names():
+        if not project_properties["restarted"] and self.data_2d.hvum.hydraulic_class.name not in self.data_2d.hvum.hdf5_and_computable_list.names():
             if self.data_2d.hyd_model_type in ("ascii", "lammi") and not hasattr(self.data_2d, "sub_filename_source"):
                 if self.data_2d.hyd_model_type == "lammi":
                     # if lammi Transect.txt
                     prj_list_file = [s for s in os.listdir(self.data_2d.path_filename_source) if s.endswith('.prn')]
-                    self.data_2d.filename_source = self.data_2d.filename_source + ", " + ", ".join(prj_list_file)
+                    self.data_2d.hyd_filename_source = self.data_2d.hyd_filename_source + ", " + ", ".join(prj_list_file)
                 # copy_hydrau_input_files
                 copy_hydrau_input_files(self.data_2d.path_filename_source,
-                                        self.data_2d.filename_source,
+                                        self.data_2d.hyd_filename_source,
                                         self.filename,
-                                        os.path.join(project_preferences["path_prj"], "input"))
+                                        os.path.join(project_properties["path_prj"], "input"))
 
         # save XML
         self.save_xml("HABITAT", "")
@@ -1183,7 +1176,7 @@ class Hdf5Management:
             for reach_number in range(self.data_2d.reach_number):
                 name = self.basename + "_" + self.data_2d[reach_number].reach_name + '_HSresult.txt'
                 if os.path.isfile(os.path.join(self.path_txt, name)):
-                    if not self.project_preferences['erase_id']:
+                    if not self.project_properties['erase_id']:
                         name = self.basename + "_" + self.data_2d[reach_number].reach_name + '_HSresult_' + \
                                time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
                     else:
@@ -1213,12 +1206,12 @@ class Hdf5Management:
                                 self.data_2d[reach_number][unit_number].hydrosignature["hsvolume"])
 
     # ESTIMHAB
-    def create_hdf5_estimhab(self, estimhab_dict, project_preferences):
+    def create_hdf5_estimhab(self, estimhab_dict, project_properties):
         # hdf5_type
         self.hdf5_type = "ESTIMHAB"
 
         # save dict to attribute
-        self.project_preferences = project_preferences
+        self.project_properties = project_properties
 
         # intput data
         self.file_object.attrs["path_bio_estimhab"] = estimhab_dict["path_bio"]
@@ -1297,7 +1290,7 @@ class Hdf5Management:
 
         # check if exist and erase
         if os.path.exists(os.path.join(self.path_txt, output_filename + '.txt')):
-            if not self.project_preferences["erase_id"]:
+            if not self.project_properties["erase_id"]:
                 output_filename = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
                 intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
 
@@ -1678,7 +1671,7 @@ class Hdf5Management:
             for unit_number in range(self.data_2d_whole[reach_number].unit_number):
                 # get data
                 xy = self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name]
-                z = self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.z.name] * self.project_preferences[
+                z = self.data_2d_whole[reach_number][unit_number]["node"][self.data_2d.hvum.z.name] * self.project_properties[
                     "vertical_exaggeration"]
                 tin = self.data_2d_whole[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name]
                 xyz = np.column_stack([xy, z])
@@ -1692,7 +1685,7 @@ class Hdf5Management:
                             self.data_2d_whole.unit_list[reach_number][
                                 unit_number] + "_wholeprofile_mesh.stl")
 
-                if self.project_preferences['erase_id']:  # erase file if exist ?
+                if self.project_properties['erase_id']:  # erase file if exist ?
                     if os.path.isfile(os.path.join(self.path_3d, name_file)):
                         try:
                             os.remove(os.path.join(self.path_3d, name_file))
@@ -1717,7 +1710,7 @@ class Hdf5Management:
 
         file_names_all = []
         part_timestep_indice = []
-        pvd_variable_z = self.data_2d.hvum.all_sys_variable_list.get_from_name_gui(self.project_preferences["pvd_variable_z"])
+        pvd_variable_z = self.data_2d.hvum.all_sys_variable_list.get_from_name_gui(self.project_properties["pvd_variable_z"])
 
         # for all reach
         for reach_number in range(self.data_2d.reach_number):
@@ -1729,7 +1722,7 @@ class Hdf5Management:
                 y = np.ascontiguousarray(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][:, 1])
                 z = np.ascontiguousarray(
                     self.data_2d[reach_number][unit_number]["node"]["data"][pvd_variable_z.name].to_numpy() *
-                    self.project_preferences["vertical_exaggeration"])
+                    self.project_properties["vertical_exaggeration"])
                 connectivity = np.reshape(self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name],
                                           (len(self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name]) * 3,))
                 offsets = np.arange(3, len(self.data_2d[reach_number][unit_number]["mesh"][self.data_2d.hvum.tin.name]) * 3 + 3,
@@ -1750,8 +1743,8 @@ class Hdf5Management:
                 # create the grid and the vtu files
                 name_file = os.path.join(self.path_3d,
                                          self.basename_output_reach_unit[reach_number][unit_number] + "_" +
-                                         self.project_preferences['pvd_variable_z'])
-                if self.project_preferences['erase_id']:  # erase file if exist ?
+                                         self.project_properties['pvd_variable_z'])
+                if self.project_properties['erase_id']:  # erase file if exist ?
                     if os.path.isfile(os.path.join(self.path_3d, name_file)):
                         try:
                             os.remove(os.path.join(self.path_3d, name_file))
@@ -1763,17 +1756,17 @@ class Hdf5Management:
                     if os.path.isfile(os.path.join(self.path_3d, name_file)):
                         name_file = os.path.join(self.path_3d,
                                                  self.basename_output_reach_unit[reach_number][unit_number] + "_" +
-                                                 self.project_preferences['pvd_variable_z']) + "_" + time.strftime(
+                                                 self.project_properties['pvd_variable_z']) + "_" + time.strftime(
                             "%d_%m_%Y_at_%H_%M_%S")
                 file_names_all.append(name_file + ".vtu")
                 unstructuredGridToVTK(name_file, x, y, z, connectivity, offsets, cell_types,
                                              cellData)
 
         # create the "grouping" file to read all time step together
-        name_here = self.basename + "_" + strip_accents(self.data_2d.reach_list[reach_number]) + "_" + self.project_preferences[
+        name_here = self.basename + "_" + strip_accents(self.data_2d.reach_list[reach_number]) + "_" + self.project_properties[
             'pvd_variable_z'] + ".pvd"
         file_names_all = list(map(os.path.basename, file_names_all))
-        if self.project_preferences['erase_id']:  # erase file if exist ?
+        if self.project_properties['erase_id']:  # erase file if exist ?
             if os.path.isfile(os.path.join(self.path_3d, name_here)):
                 try:
                     os.remove(os.path.join(self.path_3d, name_here))
@@ -1783,7 +1776,7 @@ class Hdf5Management:
                     return
         else:
             if os.path.isfile(os.path.join(self.path_3d, name_here)):
-                name_here = self.basename + "_" + self.reach_name[reach_number] + "_" + self.project_preferences[
+                name_here = self.basename + "_" + self.reach_name[reach_number] + "_" + self.project_properties[
                     'pvd_variable_z'] + "_" + time.strftime(
                     "%d_%m_%Y_at_%H_%M_%S") + '.pvd'
         writePVD(os.path.join(self.path_3d, name_here), file_names_all,
@@ -1818,7 +1811,7 @@ class Hdf5Management:
                 name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate("hdf5_mod",
                                                                                                     "detailled_mesh") + ".txt"
                 if os.path.isfile(os.path.join(self.path_txt, name)):
-                    if not self.project_preferences['erase_id']:
+                    if not self.project_properties['erase_id']:
                         name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate(
                             "hdf5_mod", "detailled_mesh") + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
                     else:
@@ -1880,7 +1873,7 @@ class Hdf5Management:
                 name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate("hdf5_mod",
                                                                                                     "detailled_point") + ".txt"
                 if os.path.isfile(os.path.join(self.path_txt, name)):
-                    if not self.project_preferences['erase_id']:
+                    if not self.project_properties['erase_id']:
                         name = self.basename_output_reach_unit[reach_number][unit_number] + "_" + qt_tr.translate(
                             "hdf5_mod", "detailled_point") + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
                     else:
@@ -1914,7 +1907,7 @@ class Hdf5Management:
 
     def export_report(self, state=None):
         """
-        # xmlfiles, stages_chosen, path_bio, path_im_bio, path_out, self.project_preferences
+        # xmlfiles, stages_chosen, path_bio, path_im_bio, path_out, self.project_properties
         This functionc create a pdf with information about the fish.
         It tries to follow the chosen language, but
         the stage name are not translated and the decription are usually
@@ -1943,10 +1936,10 @@ class Hdf5Management:
         xmlfiles.sort()
 
         for xmlfile in xmlfiles:
-            export_report(xmlfile, self.project_preferences, qt_tr2, state, delta_animal=100 / len(xmlfiles))
+            export_report(xmlfile, self.project_properties, qt_tr2, state, delta_animal=100 / len(xmlfiles))
 
         # input_data = zip(xmlfiles,
-        #     [self.project_preferences] * len(xmlfiles),
+        #     [self.project_properties] * len(xmlfiles),
         #                  [100 / len(xmlfiles)] * len(xmlfiles))
         #
         # lock = Lock()  # to share progress_value
@@ -1977,13 +1970,13 @@ class Hdf5Management:
                 sim_name = self.data_2d.unit_list
                 unit_type = self.data_2d.unit_type[self.data_2d.unit_type.find('[') + 1:self.data_2d.unit_type.find(']')]
 
-                if self.project_preferences['language'] == 0:
+                if self.project_properties['language'] == 0:
                     name = self.basename + '_wua.txt'
                 else:
                     name = self.basename + '_spu.txt'
                 if os.path.isfile(os.path.join(self.path_txt, name)):
-                    if not self.project_preferences['erase_id']:
-                        if self.project_preferences['language'] == 0:
+                    if not self.project_properties['erase_id']:
+                        if self.project_properties['language'] == 0:
                             name = self.basename + '_wua_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
                         else:
                             name = self.basename + '_spu_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
@@ -2001,11 +1994,11 @@ class Hdf5Management:
                 with open(name, 'wt', encoding='utf-8') as f:
 
                     # header 1
-                    if self.project_preferences['language'] == 0:
+                    if self.project_properties['language'] == 0:
                         header = 'reach\tunit\treach_area'
                     else:
                         header = 'troncon\tunit\taire_troncon'
-                    if self.project_preferences['language'] == 0:
+                    if self.project_properties['language'] == 0:
                         header += "".join(['\tHSI' for _ in range(len(animal_list))])
                         header += "".join(['\tWUA' for _ in range(len(animal_list))])
                         header += "".join(['\t%unknown' for _ in range(len(animal_list))])
@@ -2125,119 +2118,6 @@ def open_hdf5_(hdf5_name, path_hdf5, mode):
     return file_, False
 
 
-def get_all_filename(dirname, ext):
-    """
-    This function gets the name of all file with a particular extension in a folder. Useful to get all the output
-    from one hydraulic model.
-
-    :param dirname: the path to the directory (string)
-    :param ext: the extension (.txt for example). It is a string, the point needs to be the first character.
-    :return: a list with the filename (filename no dir) for each extension
-    """
-    filenames = []
-    for file in os.listdir(dirname):
-        if file.endswith(ext):
-            filenames.append(file)
-    return filenames
-
-
-def get_filename_by_type_stat(type, path):
-    """
-    This function gets the name of all file with a particular extension in a folder. Useful to get all the output
-    from one hydraulic model.
-
-    :param dirname: the path to the directory (string)
-    :param ext: the extension (.txt for example). It is a string, the point needs to be the first character.
-    :return: a list with the filename (filename no dir) for each extension
-    """
-    filenames = []
-    for file in os.listdir(path):
-        if file.endswith(".hab"):
-            # check if not statistic
-            if type in file:  # physic
-                filenames.append(file)
-    filenames.sort()
-    return filenames
-
-
-def get_filename_by_type_physic(type, path):
-    """
-    This function gets the name of all file with a particular extension in a folder. Useful to get all the output
-    from one hydraulic model.
-
-    :param dirname: the path to the directory (string)
-    :param ext: the extension (.txt for example). It is a string, the point needs to be the first character.
-    :return: a list with the filename (filename no dir) for each extension
-    """
-    type_and_extension = dict(hydraulic=".hyd",
-                              substrate=".sub",
-                              habitat=".hab")
-    filenames = []
-    if os.path.exists(path):
-        for file in os.listdir(path):
-            if file.endswith(type_and_extension[type]):
-                try:
-                    # test the file
-                    if r'\hdf5':  # if path with hdf5 project folder
-                        path_prj = os.path.dirname(path)
-                    else:
-                        path_prj = path
-                    hdf5_file = Hdf5Management(path_prj, file, new=False, edit=False)
-                    hdf5_file.get_hdf5_attributes(close_file=False)
-                    if hdf5_file.file_object:
-                        filenames.append(file)
-                    hdf5_file.close_file()
-                except:
-                    print_exc()
-                    print("Error1: HABBY " + file + " seems to be corrupted. Delete it manually.")
-
-    filenames.sort()
-    return filenames
-
-
-def get_filename_hs(path):
-    filenames = []
-
-    if os.path.exists(path):
-        for file in os.listdir(path):
-            if file.endswith(".hyd") or file.endswith(".hab"):
-                path_prj = os.path.dirname(path)
-                try:
-                    hdf5 = Hdf5Management(path_prj, file, new=False, edit=False)
-                    if hdf5.file_object and hdf5.hs_calculated:
-                        filenames.append(file)
-                    hdf5.close_file()
-                except Exception as e:
-                    print_exc()
-                    print(e)
-                    print("Error2: HABBY hydrosignature " + file + " seems to be corrupted. Delete it manually.")
-
-    filenames.sort()
-    return filenames
-
-
-def get_hdf5_name(model_name, name_prj, path_prj):
-    """
-    This function get the name of the hdf5 file containg the hydrological data for an hydrological model of type
-    model_name. If there is more than one hdf5 file, it choose the last one. The path is the path from the
-    project folder. Hence, it is not the absolute path.
-
-    :param model_name: the name of the hydrological model as written in the attribute of the xml project file
-    :param name_prj: the name of the project
-    :param path_prj: the path to the project
-    :return: the name of the hdf5 file
-    """
-    # open the xml project file
-    filename_path_pro = os.path.join(path_prj, name_prj + '.habby')
-    if os.path.isfile(filename_path_pro):
-        project_preferences = load_project_properties(path_prj)
-        name_hdf5_list = project_preferences[model_name]["hdf5"]
-        return name_hdf5_list
-    else:
-        print('Error: ' + qt_tr.translate("hdf5_mod", 'No project found by load_hdf5'))
-        return ''
-
-
 def get_initial_files(path_hdf5, hdf5_name):
     """
     This function looks into a merge file to find the hydraulic and subtrate file which
@@ -2309,7 +2189,7 @@ def simple_export(data,format):
     if data.extension==".hyd":
         data.load_hdf5(whole_profil=True)
         for name in data.available_export_list:
-            data.project_preferences[name]=[True,True]
+            data.project_properties[name]=[True, True]
         data.get_variables_from_dict_and_compute()
         if format in ["gpkg","all"]:
             data.export_gpkg()
@@ -2334,6 +2214,61 @@ def simple_export(data,format):
 
     else:
         raise ValueError
+
+
+def get_filename_by_type_physic(type, path):
+    """
+    This function gets the name of all file with a particular extension in a folder. Useful to get all the output
+    from one hydraulic model.
+
+    :param dirname: the path to the directory (string)
+    :param ext: the extension (.txt for example). It is a string, the point needs to be the first character.
+    :return: a list with the filename (filename no dir) for each extension
+    """
+    type_and_extension = dict(hydraulic=".hyd",
+                              substrate=".sub",
+                              habitat=".hab")
+    filenames = []
+    if os.path.exists(path):
+        for file in os.listdir(path):
+            if file.endswith(type_and_extension[type]):
+                # test the file
+                if r'\hdf5':  # if path with hdf5 project folder
+                    path_prj = os.path.dirname(path)
+                else:
+                    path_prj = path
+                try:
+                    hdf5_file = Hdf5Management(path_prj, file, new=False, edit=False)
+                    hdf5_file.get_hdf5_attributes(close_file=False)
+                    if hdf5_file.file_object:
+                        filenames.append(file)
+                    hdf5_file.close_file()
+                except OSError:
+                    print(e)
+                    print("Error: HABBY " + file + " seems to be corrupted. Delete it manually.")
+
+    filenames.sort()
+    return filenames
+
+
+def get_filename_hs(path):
+    filenames = []
+
+    if os.path.exists(path):
+        for file in os.listdir(path):
+            if file.endswith(".hyd") or file.endswith(".hab"):
+                path_prj = os.path.dirname(path)
+                try:
+                    hdf5 = Hdf5Management(path_prj, file, new=False, edit=False)
+                    if hdf5.file_object and hdf5.hs_calculated:
+                        filenames.append(file)
+                    hdf5.close_file()
+                except Exception as e:
+                    print(e)
+                    print("Error: HABBY hydrosignature " + file + " seems to be corrupted. Delete it manually.")
+
+    filenames.sort()
+    return filenames
 
 
 def main():

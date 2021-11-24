@@ -157,7 +157,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
 
 def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, name_prj, path_prj, path_hdf5,
-                               new_dir='', project_preferences=[], savefig1d=False, transect_name='Transect.txt',
+                               new_dir='', project_properties=[], savefig1d=False, transect_name='Transect.txt',
                                facies_name='Facies.txt', print_cmd=False, q=[], dominant_case=1, model_type='LAMMI'):
     """
     This function loads the data from the LAMMI model using the load_lammi() function., create the grid and save the
@@ -167,7 +167,7 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
     :param transect_path: the path to the transect.txt path
     :param facies_path: the path the facies.txt file
     :param path_im: the path where to save the image
-    :param project_preferences: the figure option
+    :param project_properties: the figure option
     :param savefig1d: create and save the figure related to the loading of the data (profile and so on)
     :param name_hdf5: the name of the hdf5 to be created
     :param name_prj: the name of the project (string)
@@ -209,7 +209,7 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
 
     # open the data ( and save the 1d figure if needed)
     [coord_pro, vh_pro, nb_pro_reach, sub_pro, div, q_step] = load_lammi(facies_path, transect_path, path_im,
-                                                                         new_dir, project_preferences, savefig1d,
+                                                                         new_dir, project_properties, savefig1d,
                                                                          transect_name,
                                                                          facies_name)
 
@@ -276,7 +276,7 @@ def open_lammi_and_create_grid(facies_path, transect_path, path_im, name_hdf5, n
         return
 
 
-def load_lammi(facies_path, transect_path, path_im, new_dir, project_preferences, savefig1d, transect_name,
+def load_lammi(facies_path, transect_path, path_im, new_dir, project_properties, savefig1d, transect_name,
                facies_name):
     """
     This function loads the data from the LAMMI model. A description of the LAMMI model is available in the
@@ -285,7 +285,7 @@ def load_lammi(facies_path, transect_path, path_im, new_dir, project_preferences
     :param transect_path: the path to the transect.txt path
     :param facies_path: the path the facies.txt file
     :param path_im: the path where to save the image
-    :param project_preferences: the figure option
+    :param project_properties: the figure option
     :param savefig1d: create and save the figure related to the loading of the data (profile and so on)
     :param new_dir: if necessary, the path to the resultat file (.prn file). Be default, use the one in transect.txt
     :param transect_name: the name of the transect file, usually 'Transect.txt'
@@ -323,8 +323,8 @@ def load_lammi(facies_path, transect_path, path_im, new_dir, project_preferences
     """
     failload = [-99], [-99], [-99], [-99], [-99], [-99]
 
-    if not project_preferences:
-        project_preferences = create_default_project_properties_dict()
+    if not project_properties:
+        project_properties = create_default_project_properties_dict()
 
     # get the filename of the transect by facies
     [length_all, fac_filename_all] = get_transect_filename(facies_path, facies_name, transect_path, transect_name,
@@ -355,7 +355,7 @@ def load_lammi(facies_path, transect_path, path_im, new_dir, project_preferences
 
     # create the figure
     if savefig1d:
-        fig_lammi(vh_pro, coord_pro, nb_pro_reach, [0, 1, 2], 0, project_preferences, path_im)
+        fig_lammi(vh_pro, coord_pro, nb_pro_reach, [0, 1, 2], 0, project_properties, path_im)
         # plt.show()
         plt.close()  # avoid problem with matplotlib
 
@@ -898,7 +898,7 @@ def coord_lammi(dist_all, vel_all, height_all, sub_all, length_all):
     return coord_pro, vh_pro, nb_pro_reach, sub_pro, div
 
 
-def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, project_preferences, path_im):
+def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, project_properties, path_im):
     """
     This function create a figure with the loaded lammi data.
     It work only for one time steps gven by the number sim_num.
@@ -908,15 +908,15 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, project_prefere
     :param nb_pro_reach: the number of profile by reach
     :param pro_num: the profile to plot
     :param sim_num: the time step (or simuation) to plot
-    :param project_preferences: the option for the figure
+    :param project_properties: the option for the figure
     :param path_im: path path where to save the figure
     """
 
-    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
-    plt.rcParams['font.size'] = project_preferences['font_size']
-    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    formate = int(project_preferences['format'])
-    plt.rcParams['axes.grid'] = project_preferences['grid']
+    plt.rcParams['figure.figsize'] = project_properties['width'], project_properties['height']
+    plt.rcParams['font.size'] = project_properties['font_size']
+    plt.rcParams['lines.linewidth'] = project_properties['line_width']
+    formate = int(project_properties['format'])
+    plt.rcParams['axes.grid'] = project_properties['grid']
     mpl.rcParams['ps.fonttype'] = 42
     mpl.rcParams['pdf.fonttype'] = 42
 
@@ -937,22 +937,22 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, project_prefere
         # print velocity
         plt.step(dist, vel, where='mid', color='r')
         plt.xlim([dist[0] - 1 * 0.95, np.max(dist) * 1.05])
-        if project_preferences['language'] == 0:
+        if project_properties['language'] == 0:
             plt.xlabel("Distance along the profile [m]")
             plt.ylabel(" Velocity [m/sec]")
-        elif project_preferences['language'] == 1:
+        elif project_properties['language'] == 1:
             plt.xlabel("Distance le long du profil [m]")
             plt.ylabel(" Vitesse [m/sec]")
         # print water height
         ax1 = plt.subplot(211)
         plt.plot(dist, -h, 'k')  # profile
         plt.fill_between(dist, -h, [0] * len(h), where=h >= [0] * len(h), facecolor='blue', alpha=0.5, interpolate=True)
-        if project_preferences['language'] == 0:
+        if project_properties['language'] == 0:
             plt.xlabel("Distance along the profile [m]")
             plt.ylabel("Altitude of the profile [m]")
             plt.title("Profile " + str(i))
             plt.legend(("Profile", "Water surface"))
-        elif project_preferences['language'] == 1:
+        elif project_properties['language'] == 1:
             plt.xlabel("Distance le long du profil[m]")
             plt.ylabel("Elevation du profil [m]")
             plt.title("Profil " + str(i))
@@ -963,17 +963,17 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, project_prefere
         if formate == 0:
             plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' +
                                      time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'),
-                        dpi=project_preferences['resolution'],
+                        dpi=project_properties['resolution'],
                         transparent=True)
         if formate == 1:
             plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' +
                                      time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'),
-                        dpi=project_preferences['resolution'],
+                        dpi=project_properties['resolution'],
                         transparent=True)
         if formate == 2:
             plt.savefig(os.path.join(path_im, "LAMMI_profile_" + str(i) + '_day' +
                                      time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg'),
-                        dpi=project_preferences['resolution'],
+                        dpi=project_properties['resolution'],
                         transparent=True)
 
     # get an (x,y) view of the progile position
@@ -994,9 +994,9 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, project_prefere
     plt.xlabel("x coord []")
     plt.ylabel("y coord []")
     plt.xlim(coord_pro[0][0][0] - 20, coord_pro[-1][0][0] + 20)
-    if project_preferences['language'] == 0:
+    if project_properties['language'] == 0:
         plt.title("Position of the profiles (conceptual only)")
-    if project_preferences['language'] == 1:
+    if project_properties['language'] == 1:
         plt.title("Position des profils (conceptuel)")
     # plt.axis('equal')  # if right angle are needed
     handles, labels = plt.gca().get_legend_handles_labels()
@@ -1004,13 +1004,13 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, project_prefere
     plt.legend(by_label.values(), by_label.keys(), bbox_to_anchor=(1.1, 1), prop={'size': 10})
     if formate == 0 or formate == 1:
         plt.savefig(os.path.join(path_im, "LAMMI_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".png"),
-                    dpi=project_preferences['resolution'], transparent=True)
+                    dpi=project_properties['resolution'], transparent=True)
     if formate == 0 or formate == 3:
         plt.savefig(os.path.join(path_im, "LAMMI_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".pdf"),
-                    dpi=project_preferences['resolution'], transparent=True)
+                    dpi=project_properties['resolution'], transparent=True)
     if formate == 2:
         plt.savefig(os.path.join(path_im, "LAMMI_all_pro_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + ".jpg"),
-                    dpi=project_preferences['resolution'], transparent=True)
+                    dpi=project_properties['resolution'], transparent=True)
 
     # plt.show()
 

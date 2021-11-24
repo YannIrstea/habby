@@ -27,7 +27,7 @@ from src import rubar1d2d_mod
 
 
 def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_geo, path_res, path_im, name_prj,
-                              path_prj, model_type, nb_dim, path_hdf5, q=[], print_cmd=False, project_preferences={},
+                              path_prj, model_type, nb_dim, path_hdf5, q=[], print_cmd=False, project_properties={},
                               progress_value=None):
     """
     This function loads the sw2d file, using the function below. Then, it changes the mesh which has triangle and
@@ -48,14 +48,14 @@ def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_
     :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
     :param q: used by the second thread to get the error back to the GUI at the end of the thread
     :param print_cmd: If True will print the error and warning to the cmd. If False, send it to the GUI.
-    :param project_preferences: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
+    :param project_properties: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
     :return: none
     """
 
     # get minimum water height
-    if not project_preferences:
-        project_preferences = create_default_project_properties_dict()
-    minwh = project_preferences['min_height_hyd']
+    if not project_properties:
+        project_properties = create_default_project_properties_dict()
+    minwh = project_properties['min_height_hyd']
 
     # find where we should send the error (cmd or GUI)
     if not print_cmd:
@@ -156,7 +156,7 @@ def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_
                                                                                 vel_node[0],
                                                                                 progress_value,
                                                                                 delta,
-                                                                                project_preferences[
+                                                                                project_properties[
                                                                                     "cut_mesh_partialy_dry"],
                                                                                 minwh)
 
@@ -178,7 +178,7 @@ def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_
     hdf5.create_hdf5_hyd(data_2d,
                          data_2d_whole_profile,
                          hyd_description,
-                         project_preferences)
+                         project_properties)
 
     # hdf5_mod.save_hdf5_hyd_and_merge(name_hdf5, name_prj, path_prj, model_type, nb_dim, path_hdf5, ikle_all_t,
     #                                  point_all_t,

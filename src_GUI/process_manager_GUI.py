@@ -181,7 +181,7 @@ class ProcessProgShow(QObject):
                     self.process_manager.process_type = "export"
                     self.process_manager.set_export_hdf5_mode(self.process_manager.path_prj,
                                                               names_hdf5,
-                                                              self.process_manager.project_preferences)
+                                                              self.process_manager.project_properties)
                     # re start_show_prog
                     self.start_show_prog(self.process_manager)
 

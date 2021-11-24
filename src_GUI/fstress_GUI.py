@@ -814,8 +814,8 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         # figures
         self.path_im = self.find_path_im_est()
-        project_preferences = load_project_properties(self.path_prj)
-        fstress_mod.figure_fstress(qmod, vh, inv_select_latin, self.path_im, self.riv_name, project_preferences)
+        project_properties = load_project_properties(self.path_prj)
+        fstress_mod.figure_fstress(qmod, vh, inv_select_latin, self.path_im, self.riv_name, project_properties)
         plt.show()
         #self.show_fig.emit()
         path_txt = self.find_path_text_est()

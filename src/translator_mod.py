@@ -27,9 +27,9 @@ def get_translator(path_prj):
     :param path_prj: path_prj
     :return: application with translate method.
     """
-    # get language from project_preferences['language']
-    project_preferences = load_project_properties(path_prj)
-    language = project_preferences['language']
+    # get language from project_properties['language']
+    project_properties = load_project_properties(path_prj)
+    language = project_properties['language']
 
     # translator
     app = QApplication(sys.argv)

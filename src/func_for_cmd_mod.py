@@ -23,6 +23,7 @@ import h5py
 import matplotlib
 import numpy as np
 
+import src.dev_tools_mod
 import src.hydraulic_results_manager_mod
 
 matplotlib.use("qt5agg")
@@ -90,12 +91,12 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
             if not all_arg[0] == 'CREATE_PROJECT':
                 # print("Warning: Specified project_path does not exist, the latter is created.")
                 # cli_create_project(path_prj, name_prj, False, HABBY_VERSION_STR)
-                # project_preferences = load_project_properties(path_prj)
+                # project_properties = load_project_properties(path_prj)
                 print("Error: Specified project_path does not exist. Project creation with CREATE_PROJECT argument.")
                 return
         # load project preferences
         else:
-            project_preferences = load_project_properties(path_prj)
+            project_properties = load_project_properties(path_prj)
 
     # ----------------------------------------------------------------------------------
     if all_arg[0] == 'LIST_COMMAND':
@@ -199,14 +200,14 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         # remove the first arg CREATE_HYD
         all_arg = all_arg[1:]
 
-        cli_load_hyd(all_arg, project_preferences)
+        cli_load_hyd(all_arg, project_properties)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'CREATE_SUB':
         # remove the first arg LOAD_SUB
         all_arg = all_arg[1:]
 
-        cli_load_sub(all_arg, project_preferences)
+        cli_load_sub(all_arg, project_properties)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'LOAD_LAMMI':
@@ -285,7 +286,7 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
 
         progress_value = Value("d", 0)
         p = Process(target=estimhab_mod.estimhab_process,
-                    args=(estimhab_dict, project_preferences, path_prj,
+                    args=(estimhab_dict, project_properties, path_prj,
                           progress_value),
                     name="ESTIMHAB")
         cli_start_process_and_print_progress(p, progress_value)
@@ -366,14 +367,14 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         if riv_int == 0:
             [mystathab.fish_chosen, coeff_all] = stathab_mod.load_pref('Pref_latin.txt', path_bio2)
             mystathab.stathab_calc(path_bio2)
-            project_preferences = create_default_project_properties_dict()
-            project_preferences['erase_id'] = True
-            mystathab.project_preferences = project_preferences
+            project_properties = create_default_project_properties_dict()
+            project_properties['erase_id'] = True
+            mystathab.project_properties = project_properties
             mystathab.savetxt_stathab()
             mystathab.savefig_stahab()
         elif riv_int == 1:
             name_fish = []
-            filenames = hdf5_mod.get_all_filename(path_bio2, '.csv')
+            filenames = src.dev_tools_mod.get_all_filename(path_bio2, '.csv')
             for f in filenames:
                 if 'uni' in f and f[-7:-4] not in name_fish:
                     name_fish.append(f[-7:-4])
@@ -384,7 +385,7 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
             mystathab.savefig_stahab()
         elif riv_int == 2:
             name_fish = []
-            filenames = hdf5_mod.get_all_filename(path_bio2, '.csv')
+            filenames = src.dev_tools_mod.get_all_filename(path_bio2, '.csv')
             for f in filenames:
                 if 'biv' in f:
                     name_fish.append(f[-7:-4])
@@ -440,21 +441,21 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
         # remove the first arg MERGE_GRID_SUB
         all_arg = all_arg[1:]
 
-        cli_merge(all_arg, project_preferences)
+        cli_merge(all_arg, project_properties)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'RUN_HABITAT':
         # remove the first arg MERGE_GRID_SUB
         all_arg = all_arg[1:]
 
-        cli_calc_hab(all_arg, project_preferences)
+        cli_calc_hab(all_arg, project_properties)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'RUN_HS':
         # remove the first arg MERGE_GRID_SUB
         all_arg = all_arg[1:]
 
-        cli_compute_hs(all_arg, project_preferences)
+        cli_compute_hs(all_arg, project_properties)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'ADD_HYDRO_HDF5':
@@ -557,7 +558,7 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
             return
 
         # get the names of the files in the folder with the expected files
-        filenames_exp = hdf5_mod.get_all_filename(folder1, '.txt')
+        filenames_exp = src.dev_tools_mod.get_all_filename(folder1, '.txt')
 
         # check that the expected files exists and have the same content in the folder with the results files
         num_wrong = 0
@@ -668,8 +669,9 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
                   'name_prj and path_bio')
             return
 
-        ref_filenames = (hdf5_mod.get_all_filename(ref_path, ".hyd") + hdf5_mod.get_all_filename(ref_path, ".sub") +
-                         hdf5_mod.get_all_filename(ref_path, ".hab") + hdf5_mod.get_all_filename(ref_path, ".h5"))
+        ref_filenames = (
+                    src.dev_tools_mod.get_all_filename(ref_path, ".hyd") + src.dev_tools_mod.get_all_filename(ref_path, ".sub") +
+                    src.dev_tools_mod.get_all_filename(ref_path, ".hab") + src.dev_tools_mod.get_all_filename(ref_path, ".h5"))
         # files with the above extensions are assumed to be hdf5 files
 
         n_total = len(ref_filenames)
@@ -724,7 +726,7 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
 
         try:
             data = hdf5_mod.Hdf5Management(path_prj, file_name, new=False, edit=False)
-            data.project_preferences = project_preferences
+            data.project_properties = project_properties
             hdf5_mod.simple_export(data, format)
             print("Success!")
         except ValueError:
@@ -1106,7 +1108,7 @@ def load_fstress_text(path_fstress):
 """ HYD """
 
 
-def cli_load_hyd(arguments, project_preferences):
+def cli_load_hyd(arguments, project_properties):
     # optionnal args
     model_name = None
     outputfilename = None
@@ -1147,12 +1149,12 @@ def cli_load_hyd(arguments, project_preferences):
 
     # get_hydrau_description_from_source
     hsra_value = src.hydraulic_results_manager_mod.HydraulicSimulationResultsAnalyzer(filename_path,
-                                                                                      project_preferences["path_prj"],
+                                                                                      project_properties["path_prj"],
                                                                                       model_name)
 
     # cut
     if cut:
-        project_preferences['cut_mesh_partialy_dry'] = cut
+        project_properties['cut_mesh_partialy_dry'] = cut
 
     # unit_list
     if unit_list:
@@ -1178,7 +1180,7 @@ def cli_load_hyd(arguments, project_preferences):
         hsra_value.hydrau_description_list[0]["hdf5_name"] = outputfilename
     else:
         # change suffix
-        if not project_preferences["cut_mesh_partialy_dry"]:
+        if not project_properties["cut_mesh_partialy_dry"]:
             namehdf5_old, exthdf5_old = os.path.splitext(hsra_value.hydrau_description_list[0]["hdf5_name"])
             hsra_value.hydrau_description_list[0]["hdf5_name"] = namehdf5_old + "_no_cut" + exthdf5_old
 
@@ -1200,7 +1202,7 @@ def cli_load_hyd(arguments, project_preferences):
                       progress_value,
                       q,
                       True,
-                      project_preferences),
+                      project_properties),
                 name=hsra_value.hydrau_description_list[0]["hdf5_name"] + " creation")
     cli_start_process_and_print_progress(p, progress_value)
 
@@ -1208,7 +1210,7 @@ def cli_load_hyd(arguments, project_preferences):
 """ SUB """
 
 
-def cli_load_sub(arguments, project_preferences):
+def cli_load_sub(arguments, project_properties):
     # check
     # if not 1 < len(all_arg) < 5:
     #     print('LOAD_SUB_SHP needs between two and three inputs. See LIST_COMMAND for more information.')
@@ -1238,7 +1240,7 @@ def cli_load_sub(arguments, project_preferences):
     # get_sub_description_from_source
     sub_description, warning_list = src.substrate_mod.get_sub_description_from_source(abs_path_file,
                                                                                       substrate_mapping_method,
-                                                                                      project_preferences["path_prj"])
+                                                                                      project_properties["path_prj"])
 
     # error
     if not sub_description:
@@ -1263,12 +1265,12 @@ def cli_load_sub(arguments, project_preferences):
                           progress_value,
                           q,
                           True,
-                          project_preferences),
+                          project_properties),
                     name="LOAD_SUB")
         cli_start_process_and_print_progress(p, progress_value)
 
 
-def cli_merge(arguments, project_preferences):
+def cli_merge(arguments, project_properties):
     if not 1 < len(arguments) < 6:
         print('MERGE_GRID_SUB needs between three and four inputs. See LIST_COMMAND for more information.')
         return
@@ -1298,11 +1300,11 @@ def cli_merge(arguments, project_preferences):
                 args=(hdf5_name_hyd,
                       hdf5_name_sub,
                       outputfilename,
-                      project_preferences["path_prj"],
+                      project_properties["path_prj"],
                       progress_value,
                       q,
                       True,
-                      project_preferences),
+                      project_properties),
                 name="MERGE_GRID_SUB")
     cli_start_process_and_print_progress(p, progress_value)
 
@@ -1310,7 +1312,7 @@ def cli_merge(arguments, project_preferences):
 """ CALC_HAB """
 
 
-def cli_calc_hab(arguments, project_preferences):
+def cli_calc_hab(arguments, project_properties):
     # if len(all_arg) != 4:
     #     print('RUN_HABITAT needs between four and five inputs. See LIST_COMMAND for more information.')
     #     return
@@ -1347,7 +1349,7 @@ def cli_calc_hab(arguments, project_preferences):
                              run_choice["hyd_opt"][i] + "_" + \
                              run_choice["sub_opt"][i]
             # hab informations
-            hdf5 = hdf5_mod.Hdf5Management(project_preferences["path_prj"], hab_filename, new=False, edit=False)
+            hdf5 = hdf5_mod.Hdf5Management(project_properties["path_prj"], hab_filename, new=False, edit=False)
             hdf5.get_hdf5_attributes(close_file=True)
             hdf5.check_if_file_is_valid_for_calc_hab()
             if fish_name_full not in hdf5.required_dict_calc_hab["fish_list"]:
@@ -1374,7 +1376,7 @@ def cli_calc_hab(arguments, project_preferences):
                           progress_value,
                           q,
                           True,
-                          project_preferences),
+                          project_properties),
                     name="RUN_HABITAT")
         cli_start_process_and_print_progress(p, progress_value)
 
@@ -1382,7 +1384,7 @@ def cli_calc_hab(arguments, project_preferences):
 """ HS """
 
 
-def cli_compute_hs(arguments, project_preferences):
+def cli_compute_hs(arguments, project_properties):
     # if len(all_arg) != 4:
     #     print('RUN_HABITAT needs between four and five inputs. See LIST_COMMAND for more information.')
     #     return
@@ -1419,7 +1421,7 @@ def cli_compute_hs(arguments, project_preferences):
                           progress_value,
                           q,
                           False,
-                          project_preferences),
+                          project_properties),
                     name="hydrosignature computing")
         cli_start_process_and_print_progress(p, progress_value)
 

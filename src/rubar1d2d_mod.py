@@ -310,10 +310,10 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
 
-    project_preferences = load_project_properties(path_prj)
+    project_properties = load_project_properties(path_prj)
     [xhzv_data, coord_pro, lim_riv, timestep] = load_rubar1d(namefile[0], namefile[1], pathfile[0], pathfile[1],
                                                              path_im,
-                                                             show_fig_1D, project_preferences)
+                                                             show_fig_1D, project_properties)
     if show_fig_1D:
         plt.close()  # just save the figure do not show them
 
@@ -351,7 +351,7 @@ def load_rubar1d_and_create_grid(name_hdf5, path_hdf5, name_prj, path_prj, model
         return
 
 
-def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig, project_preferences=[]):
+def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig, project_properties=[]):
     """
     the function to load the RUBAR BE data (in 1D).
 
@@ -361,7 +361,7 @@ def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig, project_
     :param pathdata: the path to the data_vh file
     :param path_im: the file where to save the image
     :param savefig: a boolean. If True create and save the figure.
-    :param project_preferences: A dictionarry with the figure option
+    :param project_properties: A dictionarry with the figure option
     :return: coordinates of the profile (x,y,z dist along the profile) coordinates (x,y) of the river and the bed,
             data xhzv by time step where x is the distance along the river, h the water height, z the elevation of the bed
             and v the velocity
@@ -392,13 +392,13 @@ def load_rubar1d(geofile, data_vh, pathgeo, pathdata, path_im, savefig, project_
             print('Error: No data to produce the figure. \n')
             return failload
         else:
-            if project_preferences['time_step'][0] == -99:
+            if project_properties['time_step'][0] == -99:
                 tfig = range(0, len(coord_pro))
             else:
-                tfig = project_preferences['time_step']
+                tfig = project_properties['time_step']
                 tfig = list(map(int, tfig))
             figure_rubar1d(coord_pro, lim_riv, data_xhzv, name_profile, path_im, [0, 2], tfig, nb_pro_reach,
-                           project_preferences)
+                           project_properties)
 
     return data_xhzv, coord_pro, lim_riv, timestep
 
@@ -866,7 +866,7 @@ def correct_duplicate_xy(seq3D, send_warn, idfun=None):
 
 
 def figure_rubar1d(coord_pro, lim_riv, data_xhzv, name_profile, path_im, pro, plot_timestep, nb_pro_reach=[0, 10 ** 10]
-                   , project_preferences={}):
+                   , project_properties={}):
     """
     The function to plot the loaded RUBAR 1D data (Rubar BE).
 
@@ -879,20 +879,20 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv, name_profile, path_im, pro, pl
     :param pro: the profile number which should be plotted
     :param plot_timestep: which timestep should be plotted
     :param nb_pro_reach: the number of profile by reach
-    :param project_preferences: the dictionnary with the figure option
+    :param project_properties: the dictionnary with the figure option
     :return: none
     """
 
-    if not project_preferences:
-        project_preferences = create_default_project_properties_dict()
-    plt.rcParams['figure.figsize'] = project_preferences['width'], project_preferences['height']
-    plt.rcParams['font.size'] = project_preferences['font_size']
-    plt.rcParams['lines.linewidth'] = project_preferences['line_width']
-    format = int(project_preferences['format'])
-    plt.rcParams['axes.grid'] = project_preferences['grid']
+    if not project_properties:
+        project_properties = create_default_project_properties_dict()
+    plt.rcParams['figure.figsize'] = project_properties['width'], project_properties['height']
+    plt.rcParams['font.size'] = project_properties['font_size']
+    plt.rcParams['lines.linewidth'] = project_properties['line_width']
+    format = int(project_properties['format'])
+    plt.rcParams['axes.grid'] = project_properties['grid']
     mpl.rcParams['pdf.fonttype'] = 42
-    if project_preferences['font_size'] > 7:
-        plt.rcParams['legend.fontsize'] = project_preferences['font_size'] - 2
+    if project_properties['font_size'] > 7:
+        plt.rcParams['legend.fontsize'] = project_properties['font_size'] - 2
     plt.rcParams['legend.loc'] = 'best'
 
     # profiles in xy view
@@ -910,24 +910,24 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv, name_profile, path_im, pro, pl
     # riv_mid[p, :] = riv_sect[1]
     # plt.plot(riv_mid[:, 0], riv_mid[:, 1], '-r')
 
-    if project_preferences['language'] == 0:
+    if project_properties['language'] == 0:
         plt.xlabel("x coordinate []")
         plt.ylabel("y coordinate []")
         plt.title("Position of the profiles")
-    elif project_preferences['language'] == 1:
+    elif project_properties['language'] == 1:
         plt.xlabel("x coordonnées []")
         plt.ylabel("y coordonnées []")
         plt.title("Position des profils")
     # plt.axis('equal') # if right angle are needed
     if format == 0:
         plt.savefig(os.path.join(path_im, "rubar1D_profile_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.pdf'), dpi=project_preferences['resolution'], transparent=True)
+                                 '.pdf'), dpi=project_properties['resolution'], transparent=True)
     if format == 1:
         plt.savefig(os.path.join(path_im, "rubar1D_profile_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.png'), dpi=project_preferences['resolution'], transparent=True)
+                                 '.png'), dpi=project_properties['resolution'], transparent=True)
     if format == 2:
         plt.savefig(os.path.join(path_im, "rubar1D_profile_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") +
-                                 '.jpg'), dpi=project_preferences['resolution'], transparent=True)
+                                 '.jpg'), dpi=project_properties['resolution'], transparent=True)
 
     # plot speeed and height
     warn_reach = True
@@ -940,47 +940,47 @@ def figure_rubar1d(coord_pro, lim_riv, data_xhzv, name_profile, path_im, pro, pl
                 h_t = data_xhzv[t][nb_pro_reach[r]:nb_pro_reach[r + 1], 1]
                 v_t = data_xhzv[t][nb_pro_reach[r]:nb_pro_reach[r + 1], 3]
                 if t == -1:
-                    if project_preferences['language'] == 0:
+                    if project_properties['language'] == 0:
                         plt.suptitle("RUBAR1D - Last timestep ")
-                    elif project_preferences['language'] == 1:
+                    elif project_properties['language'] == 1:
                         plt.suptitle("RUBAR1D - Dernier Pas de temps")
                 else:
-                    if project_preferences['language'] == 0:
+                    if project_properties['language'] == 0:
                         plt.suptitle("RUBAR1D - Timestep " + str(t))
-                    if project_preferences['language'] == 1:
+                    if project_properties['language'] == 1:
                         plt.suptitle("RUBAR1D - Pas de Temps " + str(t))
                 ax1 = plt.subplot(211)
                 plt.plot(x, h_t + cote, '-b')
                 plt.plot(x, cote, '-k')
-                if project_preferences['language'] == 0:
+                if project_properties['language'] == 0:
                     plt.xlabel('Distance along the river [m]')
                     plt.ylabel('Elevation [m]')
                     plt.legend(('water surface', 'river bottom'), fancybox=True, framealpha=0.5)
-                elif project_preferences['language'] == 1:
+                elif project_properties['language'] == 1:
                     plt.xlabel('Distance le long de la rivière [m]')
                     plt.ylabel('Elevation [m]')
                     plt.legend(("surface de l'eau", 'fond de la rivière'), fancybox=True, framealpha=0.5)
                 ax1 = plt.subplot(212)
                 plt.plot(x, v_t, '-r')
-                if project_preferences['language'] == 0:
+                if project_properties['language'] == 0:
                     plt.xlabel('Distance along the river [m]')
                     plt.ylabel('Velocity [m/sec]')
-                elif project_preferences['language'] == 1:
+                elif project_properties['language'] == 1:
                     plt.xlabel('Distance le long de la rivière [m]')
                     plt.ylabel('Vitesse [m/sec]')
                 if format == 0 or format == 1:
                     plt.savefig(os.path.join(path_im, "rubar1D_vh_t" + str(t) + '_' + str(r) + '_' +
                                              time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png'),
-                                dpi=project_preferences['resolution'],
+                                dpi=project_properties['resolution'],
                                 transparent=True)
                 if format == 0 or format == 3:
                     plt.savefig(os.path.join(path_im, "rubar1D_vh_t" + str(t) + '_' + str(r) + '_' +
                                              time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf'),
-                                dpi=project_preferences['resolution'],
+                                dpi=project_properties['resolution'],
                                 transparent=True)
                 if format == 2:
                     plt.savefig(os.path.join(path_im, "rubar1D_vh_t" + str(t) + '_' + str(r) + '_' + time.strftime(
-                        "%d_%m_%Y_at_%H_%M_%S") + '.jpg'), dpi=project_preferences['resolution'], transparent=True)
+                        "%d_%m_%Y_at_%H_%M_%S") + '.jpg'), dpi=project_properties['resolution'], transparent=True)
         elif warn_reach:
             print('Warning: ' + qt_tr.translate("rubar1d2d_mod",
                                                 'Too many reaches to plot them all. Only the ten first reaches plotted. \n'))

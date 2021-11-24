@@ -25,6 +25,8 @@ import h5py
 from multiprocessing import Value
 
 from lxml import etree as ET
+
+import src.dev_tools_mod
 from src_GUI import estimhab_GUI
 from src import hdf5_mod
 from src.project_properties_mod import load_project_properties, save_project_properties
@@ -73,7 +75,7 @@ class Stathab:
         self.path_prj = path_prj
         self.name_prj = name_prj
         # get the option for the figure in a dict
-        self.project_preferences = []
+        self.project_properties = []
         self.path_txt = path_prj  # path where to save the text
 
     def load_stathab_from_txt(self, end_file_reach, name_file_allreach, path):
@@ -454,10 +456,10 @@ class Stathab:
             return
         else:
             # change path_last_file_loaded, model_type (path)
-            project_preferences = load_project_properties(self.path_prj)  # load_project_properties
-            project_preferences["path_last_file_loaded"] = self.dir_name  # change value
-            project_preferences["STATHAB"]["path"] = fname_no_path  # change value
-            save_project_properties(self.path_prj, project_preferences)  # save_project_properties
+            project_properties = load_project_properties(self.path_prj)  # load_project_properties
+            project_properties["path_last_file_loaded"] = self.dir_name  # change value
+            project_properties["STATHAB"]["path"] = fname_no_path  # change value
+            save_project_properties(self.path_prj, project_properties)  # save_project_properties
 
     def stathab_calc(self):
         """
@@ -872,7 +874,7 @@ class Stathab:
         # each animal model
         dict_pref_stahab = {'code_bio_model': [], 'stage': [], 'bmono': [], 'h_data': [], 'v_data': [],
                             'h_pref_data': [], 'v_pref_data': [], 'hv_pref_data': []}
-        project_preferences = load_project_properties(self.path_prj)  # load_project_properties
+        project_properties = load_project_properties(self.path_prj)  # load_project_properties
         for hab_string_var in self.fish_chosen:
             # get gui informations
             stage = hab_string_var.split(" - ")[-2]
@@ -885,7 +887,7 @@ class Stathab:
             dict_pref_stahab['code_bio_model'].append(code_bio_model)
             dict_pref_stahab['stage'].append(stage)
             # copy_or_not_user_pref_curve_to_input_folder
-            copy_or_not_user_pref_curve_to_input_folder(hab_var, project_preferences)
+            copy_or_not_user_pref_curve_to_input_folder(hab_var, project_properties)
             # get data
             if hab_var.model_type == "univariate suitability index curves":
                 dict_pref_stahab['bmono'].append(True)
@@ -1184,7 +1186,7 @@ class Stathab:
 
         """
         # figure option
-        self.project_preferences = load_project_properties(self.path_prj)
+        self.project_properties = load_project_properties(self.path_prj)
         if len(self.q_all) < len(self.name_reach):
             print('Error: Could not find discharge data. Figure not plotted. \n')
             return
@@ -1195,7 +1197,7 @@ class Stathab:
             progress_value = Value("d", 0)
             plot_stat_data(progress_value, self.data_list[r],
                            "Stathab_steep" if self.riverint == 1 else "Stathab",
-                           self.project_preferences)
+                           self.project_properties)
 
     def savetxt_stathab(self):
         """
@@ -1571,7 +1573,7 @@ def load_pref_trop_uni(code_fish, path):
     datav_all = []
 
     # get all possible file
-    all_files = hdf5_mod.get_all_filename(path, '.csv')
+    all_files = src.dev_tools_mod.get_all_filename(path, '.csv')
 
     # get the name of univariate height files
     filenamesh = []
@@ -1614,7 +1616,7 @@ def load_pref_trop_biv(code_fish, path):
     data_all = []
 
     # get all possible files
-    all_files = hdf5_mod.get_all_filename(path, '.csv')
+    all_files = src.dev_tools_mod.get_all_filename(path, '.csv')
 
     # get the name of univariate height files
     filenames = []

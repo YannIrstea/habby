@@ -425,12 +425,12 @@ class ModelInfoGroup(QGroupBox):
         if not os.path.isfile(filename_path_pro):
             self.end_log.emit('Error: The project is not saved. '
                               'Save the project in the General tab before saving hydrological data. \n')
-        else:
+        else: 
             # change path_last_file_loaded, model_type (path)
-            project_preferences = load_project_properties(self.path_prj)  # load_project_properties
-            project_preferences["path_last_file_loaded"] = filename_path_file  # change value
-            project_preferences[self.model_type]["path"] = filename_path_file  # change value
-            save_project_properties(self.path_prj, project_preferences)  # save_project_properties
+            project_properties = load_project_properties(self.path_prj)  # load_project_properties
+            project_properties["path_last_file_loaded"] = filename_path_file  # change value
+            project_properties[self.model_type]["path"] = filename_path_file  # change value
+            save_project_properties(self.path_prj, project_properties)  # save_project_properties
 
     def name_last_hdf5(self, type):
         """
@@ -445,9 +445,9 @@ class ModelInfoGroup(QGroupBox):
             self.send_log.emit('Error: ' + QCoreApplication.translate("SubHydroW", 'The project is not saved. '
                                'Save the project in the General tab before saving hydraulic data. \n'))
         else:
-            project_preferences = load_project_properties(self.path_prj)
-            if project_preferences[type]["hdf5"]:
-                name = project_preferences[type]["hdf5"][-1]
+            project_properties = load_project_properties(self.path_prj)
+            if project_properties[type]["hdf5"]:
+                name = project_properties[type]["hdf5"][-1] 
 
             self.last_hydraulic_file_name_label.setText(name)
 
@@ -471,7 +471,7 @@ class ModelInfoGroup(QGroupBox):
         :param i: an int for the case where there is more than one file to load
         """
         # get minimum water height as we might neglect very low water height
-        self.project_preferences = load_project_properties(self.path_prj)
+        self.project_properties = load_project_properties(self.path_prj)
 
         # prepare the filter to show only useful files
         if len(self.extension.split(", ")) <= 4:
@@ -553,7 +553,7 @@ class ModelInfoGroup(QGroupBox):
             # display first hydrau_description_list
             self.hydrau_case = self.hydrau_description_list[0]["hydrau_case"]
             # change suffix
-            if not self.project_preferences["cut_mesh_partialy_dry"] and self.hydrau_description_list[0]["model_dimension"] == "2":
+            if not self.project_properties["cut_mesh_partialy_dry"] and self.hydrau_description_list[0]["model_dimension"] == "2":
                 for telemac_description_num in range(len(self.hydrau_description_list)):
                     namehdf5_old = os.path.splitext(self.hydrau_description_list[telemac_description_num]["hdf5_name"])[0]
                     exthdf5_old = os.path.splitext(self.hydrau_description_list[telemac_description_num]["hdf5_name"])[1]
@@ -686,7 +686,7 @@ class ModelInfoGroup(QGroupBox):
         """
         if self.progress_layout.run_stop_button.isEnabled():
             # get minimum water height as we might neglect very low water height
-            self.project_preferences = load_project_properties(self.path_prj)
+            self.project_properties = load_project_properties(self.path_prj)
 
             # get timestep and epsg selected
             for i in range(len(self.hydrau_description_list)):
@@ -718,7 +718,7 @@ class ModelInfoGroup(QGroupBox):
                     hydrau_description_multiple[hdf5_num]["filename_source"] = ", ".join(new_filename_source_list)
 
             # process_manager
-            self.progress_layout.process_manager.set_hyd_mode(self.path_prj, hydrau_description_multiple, self.project_preferences)
+            self.progress_layout.process_manager.set_hyd_mode(self.path_prj, hydrau_description_multiple, self.project_properties)
 
             # process_prog_show
             self.progress_layout.start_process()
@@ -740,7 +740,7 @@ class ModelInfoGroup(QGroupBox):
                   ' model="' + self.model_type + '"' + \
                   ' inputfile="' + os.path.join(self.path_prj, "input", self.name_hdf5.split(".")[0], "indexHYDRAU.txt") + '"' + \
                   ' unit_list=' + str(self.hydrau_description_list[self.input_file_combobox.currentIndex()]['unit_list'][0]).replace("\'", "'").replace(' ', '') + \
-                  ' cut=' + str(self.project_preferences['cut_mesh_partialy_dry']) + \
+                  ' cut=' + str(self.project_properties['cut_mesh_partialy_dry']) + \
                   ' outputfilename="' + self.name_hdf5 + '"' + \
                   ' path_prj="' + path_prj_script + '"'
         self.send_log.emit("script" + cmd_str)
@@ -759,5 +759,5 @@ class ModelInfoGroup(QGroupBox):
                             F"\tprogress_value=progress_value, " \
                             F"\tq=q, " \
                             F"\tprint_cmd=True, " \
-                            F"\tproject_preferences=load_project_properties({repr(path_prj_script)}))" + "\n"
+                            F"\tproject_properties=load_project_properties({repr(path_prj_script)}))" + "\n"
         self.send_log.emit("py" + cmd_str)

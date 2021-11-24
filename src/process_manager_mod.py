@@ -72,7 +72,7 @@ class MyProcessManager(QThread):
         self.progress_value = 0.0
 
     # hyd
-    def set_hyd_mode(self, path_prj, hydrau_description_multiple, project_preferences):
+    def set_hyd_mode(self, path_prj, hydrau_description_multiple, project_properties):
         # check_all_process_closed
         if self.check_all_process_closed():
             self.__init__("hyd")
@@ -81,7 +81,7 @@ class MyProcessManager(QThread):
         self.path_prj = path_prj
         self.hydrau_description_multiple = hydrau_description_multiple
         self.names_hdf5 = [hydrau_description["hdf5_name"] for hydrau_description in self.hydrau_description_multiple]
-        self.project_preferences = project_preferences
+        self.project_properties = project_properties
 
     def hyd_process(self):
         # for each .hyd (or .hab) to create
@@ -90,18 +90,18 @@ class MyProcessManager(QThread):
             progress_value = Value("d", 0.0)
             q = Queue()
             my_process = MyProcess(p=Process(target=load_hydraulic_cut_to_hdf5,
-                                         args=(self.hydrau_description_multiple[hdf5_file_index],
+                                             args=(self.hydrau_description_multiple[hdf5_file_index],
                                                progress_value,
                                                q,
                                                False,
-                                               self.project_preferences),
-                                         name=self.hydrau_description_multiple[hdf5_file_index]["hdf5_name"] + self.tr(" creation")),
+                                               self.project_properties),
+                                             name=self.hydrau_description_multiple[hdf5_file_index]["hdf5_name"] + self.tr(" creation")),
                                progress_value=progress_value,
                                q=q)
             self.process_list.append(my_process)
 
     # sub
-    def set_sub_mode(self, path_prj, sub_description, project_preferences):
+    def set_sub_mode(self, path_prj, sub_description, project_properties):
         # check_all_process_closed
         if self.check_all_process_closed():
             self.__init__("sub")
@@ -109,25 +109,25 @@ class MyProcessManager(QThread):
             self.add_plots(1)
         self.path_prj = path_prj
         self.sub_description = sub_description
-        self.project_preferences = project_preferences
+        self.project_properties = project_properties
 
     def sub_process(self):
         # class MyProcess
         progress_value = Value("d", 0.0)
         q = Queue()
         my_process = MyProcess(p=Process(target=load_sub,
-                                     args=(self.sub_description,
+                                         args=(self.sub_description,
                                            progress_value,
                                            q,
                                            False,
-                                           self.project_preferences),
-                                     name=self.sub_description["name_hdf5"] + self.tr(" creation")),
+                                           self.project_properties),
+                                         name=self.sub_description["name_hdf5"] + self.tr(" creation")),
                            progress_value=progress_value,
                            q=q)
         self.process_list.append(my_process)
 
     # merge
-    def set_merge_mode(self, path_prj, hdf5_name_hyd, hdf5_name_sub, name_hdf5, project_preferences):
+    def set_merge_mode(self, path_prj, hdf5_name_hyd, hdf5_name_sub, name_hdf5, project_properties):
         # check_all_process_closed
         if self.check_all_process_closed():
             self.__init__("merge")
@@ -137,7 +137,7 @@ class MyProcessManager(QThread):
         self.hdf5_name_hyd = hdf5_name_hyd
         self.hdf5_name_sub = hdf5_name_sub
         self.name_hdf5 = name_hdf5
-        self.project_preferences = project_preferences
+        self.project_properties = project_properties
 
     def merge_process(self):
         # class MyProcess
@@ -151,14 +151,14 @@ class MyProcessManager(QThread):
                                                progress_value,
                                                q,
                                                False,
-                                               self.project_preferences),
+                                               self.project_properties),
                                          name=self.name_hdf5 + self.tr(" creation")),
                                progress_value=progress_value,
                                q=q)
         self.process_list.append(my_process)
 
     # hab
-    def set_hab_mode(self, path_prj, user_target_list, name_hdf5, project_preferences):
+    def set_hab_mode(self, path_prj, user_target_list, name_hdf5, project_properties):
         # check_all_process_closed
         if self.check_all_process_closed():
             self.__init__("hab")
@@ -167,7 +167,7 @@ class MyProcessManager(QThread):
         self.path_prj = path_prj
         self.user_target_list = user_target_list
         self.name_hdf5 = name_hdf5
-        self.project_preferences = project_preferences
+        self.project_properties = project_properties
 
     def hab_process(self):
         # class MyProcess
@@ -179,14 +179,14 @@ class MyProcessManager(QThread):
                                                progress_value,
                                                q,
                                                False,
-                                               self.project_preferences),
+                                               self.project_properties),
                                          name=self.name_hdf5 + self.tr(" habitat calculation")),
                                progress_value=progress_value,
                                q=q)
         self.process_list.append(my_process)
 
     # plot
-    def set_plot_hdf5_mode(self, path_prj, names_hdf5, plot_attr, project_preferences):
+    def set_plot_hdf5_mode(self, path_prj, names_hdf5, plot_attr, project_properties):
         # check_all_process_closed
         if self.check_all_process_closed():
             self.__init__(self.process_type)
@@ -195,7 +195,7 @@ class MyProcessManager(QThread):
         self.path_prj = path_prj
         self.names_hdf5 = names_hdf5
         self.plot_attr = plot_attr
-        self.project_preferences = project_preferences
+        self.project_properties = project_properties
 
     def load_data_and_append_plot_process(self):
         for name_hdf5 in self.names_hdf5:
@@ -233,12 +233,12 @@ class MyProcessManager(QThread):
                     progress_value = Value("d", 0.0)
                     q = Queue()
                     my_process = MyProcess(p=Process(target=plot_mod.plot_fish_hv_wua,
-                                                       args=(progress_value,
+                                                     args=(progress_value,
                                                              self.hdf5.data_2d,
                                                              reach_number,
                                                              habitat_variable_list,
-                                                             self.project_preferences),
-                                                       name="plot_fish_hv_wua"),
+                                                             self.project_properties),
+                                                     name="plot_fish_hv_wua"),
                                            progress_value=progress_value,
                                            q=q)
                     self.process_list.append(my_process)
@@ -271,7 +271,7 @@ class MyProcessManager(QThread):
                                                                        self.hdf5.data_2d[reach_number][unit_number][variable.position]["data"][variable.name].to_numpy(),
                                                                        plot_string_dict,
                                                                        light_data_2d,
-                                                                       self.project_preferences
+                                                                       self.project_properties
                                                                    ),
                                                                    name=plot_string_dict["title"]),
                                                                progress_value=progress_value,
@@ -285,7 +285,7 @@ class MyProcessManager(QThread):
                                                                        self.hdf5.data_2d[reach_number][unit_number][variable.position]["data"][variable.name].to_numpy(),
                                                                        plot_string_dict,
                                                                        light_data_2d,
-                                                                       self.project_preferences
+                                                                       self.project_properties
                                                                    ),
                                                                    name=plot_string_dict["title"]),
                                                                progress_value=progress_value,
@@ -314,7 +314,7 @@ class MyProcessManager(QThread):
                                                                       self.hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][animal.name],
                                                                       plot_string_dict,
                                                                       light_data_2d,
-                                                                      self.project_preferences
+                                                                      self.project_properties
                                                                   ),
                                                                   name=plot_string_dict["title"]),
                                                            progress_value=progress_value,
@@ -330,14 +330,14 @@ class MyProcessManager(QThread):
                 #                                reach_name,
                 #                                units,
                 #                                light_data_2d.filename,
-                #                                self.project_preferences),
+                #                                self.project_properties),
                 #                                  name=animal.name),
                 #                        progress_value=progress_value,
                 #                        q=q)
                 # self.process_list.append(my_process)
 
     # export
-    def set_export_hdf5_mode(self, path_prj, names_hdf5, project_preferences):
+    def set_export_hdf5_mode(self, path_prj, names_hdf5, project_properties):
         self.export_available = [""]
         # check_all_process_closed
         if self.check_all_process_closed():
@@ -346,7 +346,7 @@ class MyProcessManager(QThread):
             self.__init__("export")
         self.path_prj = path_prj
         self.names_hdf5 = names_hdf5
-        self.project_preferences = project_preferences
+        self.project_properties = project_properties
         self.export_hdf5_mode = True
 
     def check_if_one_default_export_is_enabled(self):
@@ -357,7 +357,7 @@ class MyProcessManager(QThread):
 
         one_default_export_is_enabled = False
         for key in available_export_list:
-            if self.project_preferences[key][index_export]:
+            if self.project_properties[key][index_export]:
                 one_default_export_is_enabled = True
                 break
 
@@ -377,7 +377,7 @@ class MyProcessManager(QThread):
                 index_export = 1
 
             """ APPEND PROCESS """
-            if self.project_preferences["mesh_whole_profile"][index_export]:
+            if self.project_properties["mesh_whole_profile"][index_export]:
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
@@ -387,7 +387,7 @@ class MyProcessManager(QThread):
                                        progress_value=progress_value,
                                        q=q)
                 self.process_list.append(my_process)
-            if self.project_preferences["point_whole_profile"][index_export]:
+            if self.project_properties["point_whole_profile"][index_export]:
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
@@ -397,7 +397,7 @@ class MyProcessManager(QThread):
                                        progress_value=progress_value,
                                        q=q)
                 self.process_list.append(my_process)
-            if self.project_preferences["mesh_units"][index_export]:
+            if self.project_properties["mesh_units"][index_export]:
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
@@ -407,7 +407,7 @@ class MyProcessManager(QThread):
                                        progress_value=progress_value,
                                        q=q)
                 self.process_list.append(my_process)
-            if self.project_preferences["point_units"][index_export]:
+            if self.project_properties["point_units"][index_export]:
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
@@ -419,7 +419,7 @@ class MyProcessManager(QThread):
                 self.process_list.append(my_process)
 
             # export_stl
-            if self.project_preferences["elevation_whole_profile"][index_export]:
+            if self.project_properties["elevation_whole_profile"][index_export]:
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
@@ -431,7 +431,7 @@ class MyProcessManager(QThread):
                 self.process_list.append(my_process)
 
             # export_paraview
-            if self.project_preferences["variables_units"][index_export]:
+            if self.project_properties["variables_units"][index_export]:
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
@@ -443,7 +443,7 @@ class MyProcessManager(QThread):
                 self.process_list.append(my_process)
 
             # mesh_detailled_text
-            if self.project_preferences["mesh_detailled_text"][index_export]:
+            if self.project_properties["mesh_detailled_text"][index_export]:
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
@@ -455,7 +455,7 @@ class MyProcessManager(QThread):
                 self.process_list.append(my_process)
 
             # point_detailled_text
-            if self.project_preferences["point_detailled_text"][index_export]:
+            if self.project_properties["point_detailled_text"][index_export]:
                 # class MyProcess
                 progress_value = Value("d", 0.0)
                 q = Queue()
@@ -469,7 +469,7 @@ class MyProcessManager(QThread):
             # habitat
             if hdf5.hdf5_type == "habitat":  # load habitat data
                 # fish_information_hab
-                if self.project_preferences["fish_information"][index_export]:
+                if self.project_properties["fish_information"][index_export]:
                     # class MyProcess
                     progress_value = Value("d", 0.0)
                     q = Queue()
@@ -481,7 +481,7 @@ class MyProcessManager(QThread):
                     self.process_list.append(my_process)
 
     # hs
-    def set_hs_hdf5_mode(self, path_prj, hs_description_dict, project_preferences):
+    def set_hs_hdf5_mode(self, path_prj, hs_description_dict, project_properties):
         # check_all_process_closed
         if self.check_all_process_closed():
             self.__init__("hs")
@@ -490,7 +490,7 @@ class MyProcessManager(QThread):
 
         self.path_prj = path_prj
         self.hs_description_dict = hs_description_dict
-        self.project_preferences = project_preferences
+        self.project_properties = project_properties
 
     def load_data_and_append_hs_process(self):
         self.process_list = MyProcessList()
@@ -505,7 +505,7 @@ class MyProcessManager(QThread):
                                                    progress_value,
                                                    q,
                                                    False,
-                                                   self.project_preferences),
+                                                   self.project_properties),
                                              name=hdf5_name),
                                    progress_value=progress_value,
                                    q=q)
@@ -540,7 +540,7 @@ class MyProcessManager(QThread):
                                                                                                   '['):hdf5.data_2d.unit_type.find(
                                                                                                   ']')],
                                                                self.tr(self.plot_attr.hs_plot_type),
-                                                               self.project_preferences,
+                                                               self.project_properties,
                                                                self.plot_attr.axe_mod_choosen),
                                                          name=self.plot_attr.hs_plot_type + " hydrosignature " + name_hdf5),
                                                progress_value=progress_value,
@@ -554,7 +554,7 @@ class MyProcessManager(QThread):
                                              hdf5.hs_input_class[0],
                                              "input classes of " + name_hdf5,
                                              None,
-                                             self.project_preferences,
+                                             self.project_properties,
                                              self.plot_attr.axe_mod_choosen),
                                                  name="input class"),
                                        progress_value=progress_value,
@@ -562,7 +562,7 @@ class MyProcessManager(QThread):
                 self.process_list.append(my_process)
 
     # sc_plot
-    def set_sc_plot_mode(self, path_prj, plot_attr, project_preferences):
+    def set_sc_plot_mode(self, path_prj, plot_attr, project_properties):
         # check_all_process_closed
         if self.check_all_process_closed():
             self.__init__(self.process_type)
@@ -570,7 +570,7 @@ class MyProcessManager(QThread):
             self.add_plots(plot_attr.nb_plot)
         self.path_prj = path_prj
         self.plot_attr = plot_attr
-        self.project_preferences = project_preferences
+        self.project_properties = project_properties
 
     def load_data_and_append_sc_plot_process(self):
         # class MyProcess
@@ -594,7 +594,7 @@ class MyProcessManager(QThread):
                                                  args=(progress_value,
                                               information_model_dict,
                                               self.plot_attr.selected_fish_stage,
-                                              self.project_preferences,
+                                              self.project_properties,
                                               False),
                                                  name="plot_suitability_curve_invertebrate"),
                                        progress_value=progress_value,
@@ -605,7 +605,7 @@ class MyProcessManager(QThread):
                                                  args=(progress_value,
                                               information_model_dict,
                                             self.plot_attr.selected_fish_stage,
-                                              self.project_preferences,
+                                              self.project_properties,
                                               False),
                                                  name="plot_suitability_curve"),
                                        progress_value=progress_value,
@@ -617,7 +617,7 @@ class MyProcessManager(QThread):
                                     args=(progress_value,
                                           information_model_dict,
                                           None,
-                                          self.project_preferences,
+                                          self.project_properties,
                                           False),
                                     name="plot_suitability_curve_bivariate"),
                                        progress_value=progress_value,
@@ -625,7 +625,7 @@ class MyProcessManager(QThread):
         self.process_list.append(my_process)
 
     # sc_hs_plot
-    def set_sc_hs_plot_mode(self, path_prj, plot_attr, project_preferences):
+    def set_sc_hs_plot_mode(self, path_prj, plot_attr, project_properties):
         # check_all_process_closed
         if self.check_all_process_closed():
             self.__init__(self.process_type)
@@ -633,7 +633,7 @@ class MyProcessManager(QThread):
             self.add_plots(plot_attr.nb_plot)
         self.path_prj = path_prj
         self.plot_attr = plot_attr
-        self.project_preferences = project_preferences
+        self.project_properties = project_properties
 
     def load_data_and_append_sc_hs_plot_process(self):
         # class MyProcess
@@ -644,22 +644,22 @@ class MyProcessManager(QThread):
         data, vclass, hclass = get_hydrosignature(self.plot_attr.xmlfile)
         if isinstance(data, np.ndarray):
             my_process = MyProcess(Process(target=plot_mod.plot_hydrosignature,
-                                             args=(progress_value,
+                                           args=(progress_value,
                                                    data,
                                                    vclass,
                                                    hclass,
                                                    self.plot_attr.fishname,
                                                    "from suitability curve",
-                                                   self.project_preferences,
-                                                   self.project_preferences["hs_axe_mod"]),
-                                         name="plot_suitability_curve"),
+                                                   self.project_properties,
+                                                   self.project_properties["hs_axe_mod"]),
+                                           name="plot_suitability_curve"),
                                progress_value=progress_value,
                                q=q)
 
             self.process_list.append(my_process)
 
     # estimhab_plot
-    def set_estimhab_plot_mode(self, path_prj, plot_attr, project_preferences):
+    def set_estimhab_plot_mode(self, path_prj, plot_attr, project_properties):
         # check_all_process_closed
         if self.check_all_process_closed():
             self.__init__(self.process_type)
@@ -667,7 +667,7 @@ class MyProcessManager(QThread):
             self.add_plots(plot_attr.nb_plot)
         self.path_prj = path_prj
         self.plot_attr = plot_attr
-        self.project_preferences = project_preferences
+        self.project_properties = project_properties
 
     def load_data_and_append_estimhab_plot_process(self):
         # class MyProcess
@@ -683,7 +683,7 @@ class MyProcessManager(QThread):
                                        args=(progress_value,
                                                hdf5.estimhab_dict,
                                              "Estimhab",
-                                               self.project_preferences),
+                                               self.project_properties),
                                        name="plot_suitability_curve"),
                            progress_value=progress_value,
                            q=q)
@@ -691,7 +691,7 @@ class MyProcessManager(QThread):
         self.process_list.append(my_process)
 
     # interpolation
-    def set_interpolation_hdf5_mode(self, path_prj, names_hdf5, interp_attr, project_preferences):
+    def set_interpolation_hdf5_mode(self, path_prj, names_hdf5, interp_attr, project_properties):
         # check_all_process_closed
         if self.check_all_process_closed():
             self.__init__("interpolation")
@@ -700,7 +700,7 @@ class MyProcessManager(QThread):
         self.path_prj = path_prj
         self.name_hdf5 = names_hdf5
         self.interp_attr = interp_attr
-        self.project_preferences = project_preferences
+        self.project_properties = project_properties
 
     def load_data_and_append_interpolation_plot_process(self):
         self.hdf5 = Hdf5Management(self.path_prj, self.name_hdf5, new=False, edit=False)
@@ -720,7 +720,7 @@ class MyProcessManager(QThread):
         progress_value = Value("d", 0.0)
         q = Queue()
         my_process = MyProcess(p=Process(target=plot_mod.plot_interpolate_chronicle,
-                                                     args=(progress_value,
+                                         args=(progress_value,
                                                            data_to_table,
                                                            horiz_headers,
                                                            vertical_headers,
@@ -728,8 +728,8 @@ class MyProcessManager(QThread):
                                                            self.interp_attr.hvum.user_target_list,
                                                            self.hdf5.data_2d.reach_list.index(self.interp_attr.reach),
                                                            self.interp_attr.unit_type,
-                                                           self.project_preferences),
-                                                     name=self.tr("interpolated figure")),
+                                                           self.project_properties),
+                                         name=self.tr("interpolated figure")),
                                progress_value=progress_value,
                                q=q)
 
@@ -760,7 +760,7 @@ class MyProcessManager(QThread):
                                                vertical_headers,
                                                self.hdf5.data_2d,
                                                self.interp_attr.unit_type,
-                                               self.project_preferences),
+                                               self.project_properties),
                                          name=self.tr("interpolated export")),
                                progress_value=progress_value,
                                q=q)

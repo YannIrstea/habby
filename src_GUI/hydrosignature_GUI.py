@@ -26,8 +26,7 @@ from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView,
 
 from src.hydraulic_process_mod import load_hs_and_compare
 from src.process_manager_mod import MyProcessManager
-from src import hdf5_mod
-from src import plot_mod
+from src.hdf5_mod import get_filename_by_type_physic, get_filename_hs
 from src.project_properties_mod import load_project_properties, save_project_properties, change_specific_properties,\
     load_specific_properties
 from src import hydrosignature_mod
@@ -114,7 +113,7 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.send_log = send_log
         self.path_last_file_loaded = self.path_prj
         self.classhv = None
-        self.project_preferences = load_project_properties(self.path_prj)
+        self.project_properties = load_project_properties(self.path_prj)
         self.setTitle(title)
         self.init_ui()
         self.input_class_file_info = self.read_attribute_xml("HS_input_class")
@@ -190,8 +189,8 @@ class ComputingGroup(QGroupBoxCollapsible):
     def update_gui(self):
         selected_file_names = [selection_el.text() for selection_el in self.file_selection_listwidget.selectedItems()]
         # computing_group
-        hyd_names = hdf5_mod.get_filename_by_type_physic("hydraulic", os.path.join(self.path_prj, "hdf5"))
-        hab_names = hdf5_mod.get_filename_by_type_physic("habitat", os.path.join(self.path_prj, "hdf5"))
+        hyd_names = get_filename_by_type_physic("hydraulic", os.path.join(self.path_prj, "hdf5"))
+        hab_names = get_filename_by_type_physic("habitat", os.path.join(self.path_prj, "hdf5"))
         names = hyd_names + hab_names
         self.file_selection_listwidget.blockSignals(True)
         self.file_selection_listwidget.clear()
@@ -327,11 +326,11 @@ class ComputingGroup(QGroupBoxCollapsible):
                               'Save the project in the General tab before saving hydrological data. \n')
         else:
             # change path_last_file_loaded, model_type (path)
-            self.project_preferences = load_project_properties(self.path_prj)  # load_project_properties
-            self.project_preferences["path_last_file_loaded"] = self.pathfile  # change value
-            self.project_preferences[attr]["file"] = self.namefile  # change value
-            self.project_preferences[attr]["path"] = self.pathfile  # change value
-            save_project_properties(self.path_prj, self.project_preferences)  # save_project_properties
+            self.project_properties = load_project_properties(self.path_prj)  # load_project_properties
+            self.project_properties["path_last_file_loaded"] = self.pathfile  # change value
+            self.project_properties[attr]["file"] = self.namefile  # change value
+            self.project_properties[attr]["path"] = self.pathfile  # change value
+            save_project_properties(self.path_prj, self.project_properties)  # save_project_properties
 
     def compute(self):
         if len(self.file_selection_listwidget.selectedItems()) > 0:
@@ -344,7 +343,7 @@ class ComputingGroup(QGroupBoxCollapsible):
 
             self.progress_layout.process_manager.set_hs_hdf5_mode(self.path_prj,
                                                                   hydrosignature_description,
-                                                                  self.project_preferences)
+                                                                  self.project_properties)
 
             # start thread
             self.progress_layout.start_process()
@@ -498,7 +497,7 @@ class VisualGroup(QGroupBoxCollapsible):
         self.setLayout(general_layout)
 
     def update_gui(self):
-        hs_names = hdf5_mod.get_filename_hs(os.path.join(self.path_prj, "hdf5"))
+        hs_names = get_filename_hs(os.path.join(self.path_prj, "hdf5"))
         self.file_selection_listwidget.blockSignals(True)
         self.file_selection_listwidget.clear()
         if hs_names:
@@ -772,7 +771,7 @@ class CompareGroup(QGroupBoxCollapsible):
         self.setLayout(general_layout)
 
     def update_gui(self):
-        hs_names = hdf5_mod.get_filename_hs(os.path.join(self.path_prj, "hdf5"))
+        hs_names = get_filename_hs(os.path.join(self.path_prj, "hdf5"))
 
         # 1
         # self.file_selection_listwidget_1.blockSignals(True)
