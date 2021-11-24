@@ -202,18 +202,20 @@ class Data2d(list):
                 self[reach_number][unit_number]["mesh"][
                     "data"].columns = self.hvum.hdf5_and_computable_list.hdf5s().subs().names()
 
-    def set_sub_cst_value(self, hdf5_sub):
+    def set_sub_cst_value(self, data_2d_sub):
         # mixing variables
-        self.hvum.hdf5_and_computable_list.extend(hdf5_sub.data_2d.hvum.hdf5_and_computable_list)
+        self.hvum.hdf5_and_computable_list.extend(data_2d_sub.hvum.hdf5_and_computable_list)
         self.sub_mapping_method = "constant"
-        self.sub_classification_code = hdf5_sub.data_2d.sub_classification_code
-        self.sub_classification_method = hdf5_sub.data_2d.sub_classification_method
+        self.sub_filename_source = data_2d_sub.filename
+        self.sub_path_filename_source = data_2d_sub.path_filename_source
+        self.sub_classification_code = data_2d_sub.sub_classification_code
+        self.sub_classification_method = data_2d_sub.sub_classification_method
         # for each reach
         for reach_number in range(self.reach_number):
             # for each unit
             for unit_number in range(len(self[reach_number])):
                 try:
-                    default_data = np.array(hdf5_sub.data_2d.sub_default_values,
+                    default_data = np.array(data_2d_sub.sub_default_values,
                                             dtype=self.hvum.sub_dom.dtype)
                     sub_array = np.repeat([default_data],
                                           self[reach_number][unit_number]["mesh"]["tin"].shape[0],
@@ -224,7 +226,7 @@ class Data2d(list):
                     return
                 try:
                     # add sub data to dict
-                    for sub_class_num, sub_class_name in enumerate(hdf5_sub.data_2d.hvum.hdf5_and_computable_list.hdf5s().names()):
+                    for sub_class_num, sub_class_name in enumerate(data_2d_sub.hvum.hdf5_and_computable_list.hdf5s().names()):
                         self[reach_number][unit_number]["mesh"]["data"][sub_class_name] = sub_array[:, sub_class_num]
                 except IndexError:
                     print("Error: Default substrate data is not coherent with the substrate classification code. "
@@ -293,8 +295,6 @@ class Data2d(list):
                                                                      self.hvum.z.name].to_numpy())),
                                                             unit_number=unit_number,
                                                             case="at reading."):
-                    print("Error: The mesh of unit n°" + str(unit_number) + " of reach n°" + str(
-                        reach_number) + " is not loaded.")
                     unit_to_remove_list.append(unit_number)
                     continue
 

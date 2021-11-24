@@ -1059,7 +1059,8 @@ class HydraulicSimulationResultsAnalyzer:
 
 def create_or_copy_index_hydrau_text_file(description_from_indexHYDRAU_file):
     # one case (one hdf5 produced)
-    filename_path = os.path.join(description_from_indexHYDRAU_file["path_prj"], "input", os.path.splitext(description_from_indexHYDRAU_file["hdf5_name"])[0], "indexHYDRAU.txt")
+    folder_path = os.path.join(description_from_indexHYDRAU_file["path_prj"], "input", os.path.splitext(description_from_indexHYDRAU_file["hdf5_name"])[0])
+    filename_path = os.path.join(folder_path, "indexHYDRAU.txt")
     filename_column = description_from_indexHYDRAU_file["filename_source"].split(", ")
     hydrau_case = description_from_indexHYDRAU_file["hydrau_case"]
     """ CASE .a or .b ? user can select specific timesteps or discharges """

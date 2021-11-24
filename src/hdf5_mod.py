@@ -460,10 +460,7 @@ class Hdf5Management:
                     group_name = 'unit_all'
                 # hyd_varying_mesh==True
                 else:
-                    if unit_index == len(unit_list) - 1:  # last
-                        group_name = 'unit_' + str(unit_list[unit_index]) + "-" + str(self.data_2d[reach_number].unit_number - 1)
-                    else:  # all case
-                        group_name = 'unit_' + str(unit_list[unit_index]) + "-" + str(unit_list[unit_index + 1] - 1)
+                    group_name = 'unit_' + str(unit_list[unit_index])
 
                 unit_group = reach_group.create_group(group_name)
                 self.whole_profile_unit_corresp[reach_number].extend(
@@ -595,7 +592,8 @@ class Hdf5Management:
             reach_group = data_2d_whole_profile_group + "/" + reach_group_name
             # for each desired_units
             available_unit_list = list(self.file_object[reach_group].keys())
-            available_unit_list.sort(key=lambda x: float(x.split('_')[1]))
+            if not available_unit_list == ["unit_all"]:
+                available_unit_list.sort(key=lambda x: float(x.split('_')[1]))
             for unit_number, unit_group_name in enumerate(available_unit_list):
                 self.data_2d_whole.unit_list[reach_number].append(unit_group_name)
                 unit_group = reach_group + "/" + unit_group_name
@@ -959,13 +957,13 @@ class Hdf5Management:
 
         # copy input files to input project folder (only not merged, .hab directly from a input file as ASCII, LAMMI)
         if not project_properties["restarted"] and self.data_2d.hvum.hydraulic_class.name not in self.data_2d.hvum.hdf5_and_computable_list.names():
-            if self.data_2d.hyd_model_type in ("ascii", "lammi") and not hasattr(self.data_2d, "sub_filename_source"):
+            if self.data_2d.hyd_model_type in ("ascii", "lammi"):
                 if self.data_2d.hyd_model_type == "lammi":
                     # if lammi Transect.txt
-                    prj_list_file = [s for s in os.listdir(self.data_2d.path_filename_source) if s.endswith('.prn')]
+                    prj_list_file = [s for s in os.listdir(self.data_2d.hyd_path_filename_source) if s.endswith('.prn')]
                     self.data_2d.hyd_filename_source = self.data_2d.hyd_filename_source + ", " + ", ".join(prj_list_file)
                 # copy_hydrau_input_files
-                copy_hydrau_input_files(self.data_2d.path_filename_source,
+                copy_hydrau_input_files(self.data_2d.hyd_path_filename_source,
                                         self.data_2d.hyd_filename_source,
                                         self.filename,
                                         os.path.join(project_properties["path_prj"], "input"))
@@ -2234,20 +2232,15 @@ def get_filename_by_type_physic(type, path):
     if os.path.exists(path):
         for file in os.listdir(path):
             if file.endswith(type_and_extension[type]):
-                # test the file
-                if r'\hdf5':  # if path with hdf5 project folder
-                    path_prj = os.path.dirname(path)
-                else:
-                    path_prj = path
+                path_prj = os.path.dirname(path)
                 try:
                     hdf5_file = Hdf5Management(path_prj, file, new=False, edit=False)
                     hdf5_file.get_hdf5_attributes(close_file=False)
                     if hdf5_file.file_object:
                         filenames.append(file)
                     hdf5_file.close_file()
-                except OSError:
-                    print(e)
-                    print("Error: HABBY " + file + " seems to be corrupted. Delete it manually.")
+                except Exception as e:
+                    print(e, file + " seems to be corrupted. Delete it manually.")
 
     filenames.sort()
     return filenames

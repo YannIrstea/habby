@@ -17,16 +17,16 @@ https://github.com/YannIrstea/habby
 import os
 from multiprocessing import Process, Value, Queue, Event
 
-from PyQt5.QtCore import pyqtSignal, Qt, QSize, QTimer
+from PyQt5.QtCore import pyqtSignal, Qt, QSize
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QPushButton, QLabel, QListWidget, QAbstractItemView, \
     QMessageBox, QFrame, QLineEdit, QGridLayout, QFileDialog, \
     QVBoxLayout, QHBoxLayout, QGroupBox, QSizePolicy, QScrollArea, QTableView, \
-    QCheckBox, QListWidgetItem, QRadioButton, QListView, QProgressBar
+    QCheckBox, QListWidgetItem, QRadioButton, QListView
 
 from src.hydraulic_process_mod import load_hs_and_compare
 from src.process_manager_mod import MyProcessManager
-from src.hdf5_mod import get_filename_by_type_physic, get_filename_hs
+from src.hdf5_mod import get_filename_by_type_physic, get_filename_hs, Hdf5Management
 from src.project_properties_mod import load_project_properties, save_project_properties, change_specific_properties,\
     load_specific_properties
 from src import hydrosignature_mod
@@ -209,7 +209,7 @@ class ComputingGroup(QGroupBoxCollapsible):
                 item.setText("")
                 item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
                 try:
-                    hdf5 = hdf5_mod.Hdf5Management(self.path_prj, name, new=False, edit=False)
+                    hdf5 = Hdf5Management(self.path_prj, name, new=False, edit=False)
                     hdf5.get_hdf5_attributes(close_file=True)
                     if hdf5.hs_calculated:
                         item.setCheckState(Qt.Checked)

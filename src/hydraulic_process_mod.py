@@ -357,7 +357,9 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
     if hdf5_sub.data_2d.sub_mapping_method == "constant":  # set default value to all mesh
         data_2d_merge = hdf5_hydro.data_2d
         data_2d_whole_merge = hdf5_hydro.data_2d_whole
-        data_2d_merge.set_sub_cst_value(hdf5_sub)
+        data_2d_merge.set_sub_cst_value(hdf5_sub.data_2d)
+        data_2d_merge.hyd_filename_source = hdf5_hydro.data_2d.filename_source
+        data_2d_merge.hyd_path_filename_source = hdf5_hydro.data_2d.path_filename_source
 
     # POLYGON AND POINTS CASES
     elif hdf5_sub.data_2d.sub_mapping_method != "constant":
@@ -412,7 +414,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
         if not extent_intersect:  # set default value to all mesh
             data_2d_merge = hdf5_hydro.data_2d
             data_2d_whole_merge = hdf5_hydro.data_2d_whole
-            data_2d_merge.set_sub_cst_value(hdf5_sub)
+            data_2d_merge.set_sub_cst_value(hdf5_sub.data_2d)
             data_2d_merge.hyd_filename_source = hdf5_hydro.data_2d.filename_source
             data_2d_merge.hyd_path_filename_source = hdf5_hydro.data_2d.path_filename_source
         # intersect

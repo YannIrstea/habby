@@ -1018,7 +1018,7 @@ def is_duplicates_mesh_and_point_on_one_unit(tin_array, xyz_array, unit_number, 
         tin_duplicate_tf = True
         print("Warning: The mesh of unit n° " + str(unit_number) + " has " + str(len(dup)) +
               " duplicate(s) mesh(s) " + case + " : " +
-              ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ".")
+              ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ". This unit is not loaded.")
     if checkpoint:
         # check if points duplicates presence
         u, c = np.unique(xyz_array, return_counts=True, axis=0)
@@ -1027,7 +1027,7 @@ def is_duplicates_mesh_and_point_on_one_unit(tin_array, xyz_array, unit_number, 
             xyz_duplicate_tf = True
             print("Warning: The mesh of unit n°" + str(unit_number) + " has " + str(len(dup)) +
                   " duplicate(s) point(s) " + case + " : " +
-                  ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ".")
+                  ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ". This unit is not loaded.")
 
     # return
     if tin_duplicate_tf or xyz_duplicate_tf:
