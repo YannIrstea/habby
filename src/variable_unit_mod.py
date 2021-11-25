@@ -903,6 +903,7 @@ class HydraulicVariableUnitManagement:
                         if self.shear_stress.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
                             self.shear_stress.position = "mesh"
                             self.shear_stress.hdf5 = True
+                            self.all_final_variable_list.append(self.shear_stress)
                         else:
                             if self.v_frict.name in self.hdf5_and_computable_list.hdf5s().nodes().names():
                                 if self.v_frict.name not in self.all_final_variable_list.hdf5s().nodes().names():

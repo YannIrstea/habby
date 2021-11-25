@@ -90,7 +90,7 @@ class HydraulicSimulationResultsBase:
         self.epsg_code = "unknown"
 
         # reach_number
-        self.reach_number = int(self.hmi.reach_number[self.hmi.attribute_models_list.index(self.model_type)])
+        self.reach_number = self.hmi.reach_number[self.hmi.attribute_models_list.index(self.model_type)]
         if self.reach_number == "n":
             self.reach_number = 1  # init
             self.multi_reach = True
