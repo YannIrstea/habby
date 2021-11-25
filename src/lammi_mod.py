@@ -1171,7 +1171,6 @@ def construct_from_lammi(transectsfiledefintion):
     node_hvz the heigth of water, the velocity and the altitude of each node
     '''
     # print('construct_from_lammi')
-    quadrangle_to_triangles=4 # chosen by programmer wether he wants 2 or 4 triangles by quadrangle 4, even if 4 is recommanded (for mapping reasons)  the 2 methods produce quite the same results in terms of hydrosignature
     sourcedirectory = os.path.dirname(transectsfiledefintion)
     if not os.path.isfile(transectsfiledefintion):
         return None, None, 'Transect.txt this file is required in the LAMMI input directory ' + sourcedirectory
@@ -1351,161 +1350,98 @@ def construct_from_lammi(transectsfiledefintion):
                                 # PHASE A : building one tin for a cross-section at a fixed discharge #################################################
                                 ldr = transectprn[iprn][1]
 
-                                if quadrangle_to_triangles==2:
-                                    tin = np.zeros((4 * nbvertices, 3), dtype=np.int64)
-                                    mesh_substrate = np.zeros((4 * nbvertices, 8), dtype=np.int64)
-                                    node_xy = np.zeros((4 * nbvertices + 2, 2), dtype=np.float64)
-                                    node_hvz = np.zeros((4 * nbvertices + 2, 3), dtype=np.float64)
-                                    for k in range(0, 4 * nbvertices - 1, 2):
-                                        tin[k, :] = [k, k + 1, k + 2]
-                                        tin[k + 1, :] = [k + 1, k + 3, k + 2]
-                                    imesh = 0
-                                    for k in range(nbvertices):
-                                        for kk in range(4):
-                                            mesh_substrate[imesh + kk, :] = subpercentagecemagref[k, :]
-                                        imesh += 4
-                                    ytop = (y0 + np.sum(la)) / 2
-                                    # Defining/calclulating z0 the upstream altitude of the water surface for each discharge
-                                    if iprn == 0:
-                                        for k in range(nbvertices):
-                                            if k == 0:
-                                                area = la[k] * (hv[k][0] + (
-                                                        hv[k][0] + (hv[k][0] * la[k + 1] + hv[k + 1][0] * la[k]) / (
-                                                        la[k] + la[k + 1])) / 2) / 2
-                                            elif k == nbvertices - 1:
-                                                area += la[k] * (hv[k][0] + (
-                                                        hv[k][0] + (hv[k][0] * la[k - 1] + hv[k - 1][0] * la[k]) / (
-                                                        la[k] + la[k - 1])) / 2) / 2
-                                            else:
-                                                area += la[k] * ((hv[k][0] + (
-                                                        hv[k][0] * la[k + 1] + hv[k + 1][0] * la[k]) / (
-                                                                          la[k] + la[k + 1])) + (
-                                                                         hv[k][0] + (
-                                                                         hv[k][0] * la[k - 1] + hv[k - 1][0] * la[
-                                                                     k]) / (
-                                                                                 la[k] + la[k - 1]))) / 4
-                                        hmoyupstreamq.append(area / np.sum(la))
-                                    iqq = iq - 1
-                                    if iqq == 0:
-                                        z0 = z00
-                                    else:
-                                        z0 = z00 + hmoyupstreamq[iqq] - hmoyupstreamq[0]
-                                    # left river edge
-                                    node_xy[0, :] = [xdep, ytop]
-                                    node_xy[1, :] = [xdep + ldr, ytop]
-                                    node_hvz[0, :] = [0, 0, z0 - xdep * slope]
-                                    node_hvz[1, :] = [0, 0, z0 - (xdep + ldr) * slope]
-                                    for k in range(nbvertices):  # inside river
-                                        # each vertical build 2 points
-                                        ytop -= la[k] / 2
-                                        node_xy[4 * k + 2, :] = [xdep, ytop]
-                                        node_xy[4 * k + 3, :] = [xdep + ldr, ytop]
-                                        node_hvz[4 * k + 2, :] = [hv[k][0], hv[k][1], z0 - xdep * slope - hv[k][0]]
-                                        node_hvz[4 * k + 3, :] = [hv[k][0], hv[k][1], z0 - (xdep + ldr) * slope - hv[k][0]]
-                                        # interpolated verticals/points
-                                        ytop -= la[k] / 2
-                                        node_xy[4 * k + 4, :] = [xdep, ytop]
-                                        node_xy[4 * k + 5, :] = [xdep + ldr, ytop]
-                                        if k != nbvertices - 1:
-                                            hi = (hv[k][0] * la[k + 1] + hv[k + 1][0] * la[k]) / (la[k] + la[k + 1])
-                                            vi = (hv[k][1] * la[k + 1] + hv[k + 1][1] * la[k]) / (la[k] + la[k + 1])
-                                        else:  # right river edge
-                                            hi, vi = 0, 0
-                                        node_hvz[4 * k + 4, :] = [hi, vi, z0 - xdep * slope - hi]
-                                        node_hvz[4 * k + 5, :] = [hi, vi, z0 - (xdep + ldr) * slope - hi]
 
-                                elif quadrangle_to_triangles==4:
-                                    tin = np.zeros((8 * nbvertices, 3), dtype=np.int64)
-                                    mesh_substrate = np.zeros((8 * nbvertices, 8), dtype=np.int64)
-                                    node_xy = np.zeros((6 * nbvertices + 2, 2), dtype=np.float64)
-                                    node_hvz = np.zeros((6 * nbvertices + 2, 3), dtype=np.float64)
-                                    nbmeshk=0
-                                    for k in range(4, 6 * nbvertices +2, 3):
-                                        if k==4:
-                                            tin[0, :] = [4, 0, 1]
-                                            tin[1, :] = [4, 1, 3]
-                                            tin[2, :] = [4, 3, 2]
-                                            tin[3, :] = [4, 2, 0]
-                                        else:
-                                            tin[nbmeshk, :] = [k, k -5, k -4]
-                                            tin[nbmeshk+1, :] = [k, k -4, k -1]
-                                            tin[nbmeshk+2, :] = [k, k -1, k -2]
-                                            tin[nbmeshk+3, :] = [k, k -2, k -5]
-                                        nbmeshk+=4
-                                    imesh = 0
-                                    for k in range(nbvertices):
-                                        for kk in range(8):
-                                            mesh_substrate[imesh + kk, :] = subpercentagecemagref[k, :]
-                                        imesh += 8
-                                    ytop = (y0 + np.sum(la)) / 2
-                                    # Defining/calclulating z0 the upstream altitude of the water surface for each discharge
-                                    if iprn == 0:
-                                        for k in range(nbvertices):
-                                            if k == 0:
-                                                area = la[k] * (hv[k][0] + (
-                                                        hv[k][0] + (hv[k][0] * la[k + 1] + hv[k + 1][0] * la[k]) / (
-                                                        la[k] + la[k + 1])) / 2) / 2
-                                            elif k == nbvertices - 1:
-                                                area += la[k] * (hv[k][0] + (
-                                                        hv[k][0] + (hv[k][0] * la[k - 1] + hv[k - 1][0] * la[k]) / (
-                                                        la[k] + la[k - 1])) / 2) / 2
-                                            else:
-                                                area += la[k] * ((hv[k][0] + (
-                                                        hv[k][0] * la[k + 1] + hv[k + 1][0] * la[k]) / (
-                                                                          la[k] + la[k + 1])) + (
-                                                                         hv[k][0] + (
-                                                                         hv[k][0] * la[k - 1] + hv[k - 1][0] * la[
-                                                                     k]) / (
-                                                                                 la[k] + la[k - 1]))) / 4
-                                        hmoyupstreamq.append(area / np.sum(la))
-                                    iqq = iq - 1
-                                    if iqq == 0:
-                                        z0 = z00
+                                tin = np.zeros((8 * nbvertices, 3), dtype=np.int64)
+                                mesh_substrate = np.zeros((8 * nbvertices, 8), dtype=np.int64)
+                                node_xy = np.zeros((6 * nbvertices + 2, 2), dtype=np.float64)
+                                node_hvz = np.zeros((6 * nbvertices + 2, 3), dtype=np.float64)
+                                nbmeshk=0
+                                for k in range(4, 6 * nbvertices +2, 3):
+                                    if k==4:
+                                        tin[0, :] = [4, 0, 1]
+                                        tin[1, :] = [4, 1, 3]
+                                        tin[2, :] = [4, 3, 2]
+                                        tin[3, :] = [4, 2, 0]
                                     else:
-                                        z0 = z00 + hmoyupstreamq[iqq] - hmoyupstreamq[0]
-                                    # left river edge
-                                    node_xy[0, :] = [xdep, ytop]
-                                    node_xy[1, :] = [xdep + ldr, ytop]
-                                    node_hvz[0, :] = [0, 0, z0 - xdep * slope]
-                                    node_hvz[1, :] = [0, 0, z0 - (xdep + ldr) * slope]
-                                    for k in range(nbvertices):  # inside river
-                                        # each vertical build 2 points
-                                        ytop -= la[k] / 2
-                                        node_xy[6 * k + 2, :] = [xdep, ytop]
-                                        node_xy[6 * k + 3, :] = [xdep + ldr, ytop]
-                                        node_hvz[6 * k + 2, :] = [hv[k][0], hv[k][1], z0 - xdep * slope - hv[k][0]]
-                                        node_hvz[6 * k + 3, :] = [hv[k][0], hv[k][1], z0 - (xdep + ldr) * slope - hv[k][0]]
-                                        # interpolated verticals/points
-                                        ytop -= la[k] / 2
-                                        node_xy[6 * k + 5, :] = [xdep, ytop]
-                                        node_xy[6 * k + 6, :] = [xdep + ldr, ytop]
-                                        if k != nbvertices - 1:
-                                            hi = (hv[k][0] * la[k + 1] + hv[k + 1][0] * la[k]) / (la[k] + la[k + 1])
-                                            vi = (hv[k][1] * la[k + 1] + hv[k + 1][1] * la[k]) / (la[k] + la[k + 1])
-                                        else:  # right river edge
-                                            hi, vi = 0, 0
-                                        node_hvz[6 * k + 5, :] = [hi, vi, z0 - xdep * slope - hi]
-                                        node_hvz[6 * k + 6, :] = [hi, vi, z0 - (xdep + ldr) * slope - hi]
-                                        if k==0:
-                                            node_xy[ 4, :]=(node_xy[0, :]+node_xy[1 , :]+
-                                                                   node_xy[2, :]+node_xy[3, :])/4
-                                            node_hvz[4, :] = (node_hvz[0, :] + node_hvz[1, :] +
-                                                             node_hvz[2, :] + node_hvz[3, :]) / 4
+                                        tin[nbmeshk, :] = [k, k -5, k -4]
+                                        tin[nbmeshk+1, :] = [k, k -4, k -1]
+                                        tin[nbmeshk+2, :] = [k, k -1, k -2]
+                                        tin[nbmeshk+3, :] = [k, k -2, k -5]
+                                    nbmeshk+=4
+                                imesh = 0
+                                for k in range(nbvertices):
+                                    for kk in range(8):
+                                        mesh_substrate[imesh + kk, :] = subpercentagecemagref[k, :]
+                                    imesh += 8
+                                ytop = (y0 + np.sum(la)) / 2
+                                # Defining/calclulating z0 the upstream altitude of the water surface for each discharge
+                                if iprn == 0:
+                                    for k in range(nbvertices):
+                                        if k == 0:
+                                            area = la[k] * (hv[k][0] + (
+                                                    hv[k][0] + (hv[k][0] * la[k + 1] + hv[k + 1][0] * la[k]) / (
+                                                    la[k] + la[k + 1])) / 2) / 2
+                                        elif k == nbvertices - 1:
+                                            area += la[k] * (hv[k][0] + (
+                                                    hv[k][0] + (hv[k][0] * la[k - 1] + hv[k - 1][0] * la[k]) / (
+                                                    la[k] + la[k - 1])) / 2) / 2
                                         else:
-                                            node_xy[6 * k + 4, :] = (node_xy[6 * k - 1, :] + node_xy[6 * k, :] +
-                                                                     node_xy[6 * k + 2, :] + node_xy[6 * k + 3, :]) / 4
-                                            node_hvz[6 * k + 4, :] = (node_hvz[6 * k - 1, :] + node_hvz[6 * k, :] +
-                                                                    node_hvz[6 * k + 2, :] + node_hvz[6 * k + 3, :]) / 4
-                                        node_xy[6 * k + 7, :] = (node_xy[6 * k + 2, :]+node_xy[6 * k + 3, :] +
-                                                                 node_xy[6 * k + 5, :]+node_xy[6 * k + 6, :])/4
-                                        node_hvz[6 * k + 7, :] = (node_hvz[6 * k + 2, :]+node_hvz[6 * k + 3, :] +
-                                                                 node_hvz[6 * k + 5, :]+node_hvz[6 * k + 6, :])/4
+                                            area += la[k] * ((hv[k][0] + (
+                                                    hv[k][0] * la[k + 1] + hv[k + 1][0] * la[k]) / (
+                                                                      la[k] + la[k + 1])) + (
+                                                                     hv[k][0] + (
+                                                                     hv[k][0] * la[k - 1] + hv[k - 1][0] * la[
+                                                                 k]) / (
+                                                                             la[k] + la[k - 1]))) / 4
+                                    hmoyupstreamq.append(area / np.sum(la))
+                                iqq = iq - 1
+                                if iqq == 0:
+                                    z0 = z00
+                                else:
+                                    z0 = z00 + hmoyupstreamq[iqq] - hmoyupstreamq[0]
+                                # left river edge
+                                node_xy[0, :] = [xdep, ytop]
+                                node_xy[1, :] = [xdep + ldr, ytop]
+                                node_hvz[0, :] = [0, 0, z0 - xdep * slope]
+                                node_hvz[1, :] = [0, 0, z0 - (xdep + ldr) * slope]
+                                for k in range(nbvertices):  # inside river
+                                    # each vertical build 2 points
+                                    ytop -= la[k] / 2
+                                    node_xy[6 * k + 2, :] = [xdep, ytop]
+                                    node_xy[6 * k + 3, :] = [xdep + ldr, ytop]
+                                    node_hvz[6 * k + 2, :] = [hv[k][0], hv[k][1], z0 - xdep * slope - hv[k][0]]
+                                    node_hvz[6 * k + 3, :] = [hv[k][0], hv[k][1], z0 - (xdep + ldr) * slope - hv[k][0]]
+                                    # interpolated verticals/points
+                                    ytop -= la[k] / 2
+                                    node_xy[6 * k + 5, :] = [xdep, ytop]
+                                    node_xy[6 * k + 6, :] = [xdep + ldr, ytop]
+                                    if k != nbvertices - 1:
+                                        hi = (hv[k][0] * la[k + 1] + hv[k + 1][0] * la[k]) / (la[k] + la[k + 1])
+                                        vi = (hv[k][1] * la[k + 1] + hv[k + 1][1] * la[k]) / (la[k] + la[k + 1])
+                                    else:  # right river edge
+                                        hi, vi = 0, 0
+                                    node_hvz[6 * k + 5, :] = [hi, vi, z0 - xdep * slope - hi]
+                                    node_hvz[6 * k + 6, :] = [hi, vi, z0 - (xdep + ldr) * slope - hi]
+                                    if k==0:
+                                        node_xy[ 4, :]=(node_xy[0, :]+node_xy[1 , :]+
+                                                               node_xy[2, :]+node_xy[3, :])/4
+                                        node_hvz[4, :] = (node_hvz[0, :] + node_hvz[1, :] +
+                                                         node_hvz[2, :] + node_hvz[3, :]) / 4
+                                    else:
+                                        node_xy[6 * k + 4, :] = (node_xy[6 * k - 1, :] + node_xy[6 * k, :] +
+                                                                 node_xy[6 * k + 2, :] + node_xy[6 * k + 3, :]) / 4
+                                        node_hvz[6 * k + 4, :] = (node_hvz[6 * k - 1, :] + node_hvz[6 * k, :] +
+                                                                node_hvz[6 * k + 2, :] + node_hvz[6 * k + 3, :]) / 4
+                                    node_xy[6 * k + 7, :] = (node_xy[6 * k + 2, :]+node_xy[6 * k + 3, :] +
+                                                             node_xy[6 * k + 5, :]+node_xy[6 * k + 6, :])/4
+                                    node_hvz[6 * k + 7, :] = (node_hvz[6 * k + 2, :]+node_hvz[6 * k + 3, :] +
+                                                             node_hvz[6 * k + 5, :]+node_hvz[6 * k + 6, :])/4
 
                                 # PHASE B : building a complete set of tin/nodes for each discharge by adding tin/nodes builds for each cross section #################################################
                                 if iprn == 0:
                                     lqdico.append({'tin': tin, 'mesh_substrate': mesh_substrate, 'node_xy': node_xy,
                                                    'node_hvz': node_hvz})
-                                    newnodeindex.append((quadrangle_to_triangles+2) * nbvertices + 2)
+                                    newnodeindex.append(6 * nbvertices + 2)
                                 else:
                                     lqdico[iq - 1]['tin'] = np.vstack(
                                         (lqdico[iq - 1]['tin'], tin + newnodeindex[iq - 1]))
@@ -1513,7 +1449,7 @@ def construct_from_lammi(transectsfiledefintion):
                                         (lqdico[iq - 1]['mesh_substrate'], mesh_substrate))
                                     lqdico[iq - 1]['node_xy'] = np.vstack((lqdico[iq - 1]['node_xy'], node_xy))
                                     lqdico[iq - 1]['node_hvz'] = np.vstack((lqdico[iq - 1]['node_hvz'], node_hvz))
-                                    newnodeindex[iq - 1] += (quadrangle_to_triangles+2) * nbvertices + 2
+                                    newnodeindex[iq - 1] += 6 * nbvertices + 2
 
     if nbiq != iq and iprn!=0:
         return None, None, transectprn[iprn][0] + ' the number of discharges provided is less ' \
