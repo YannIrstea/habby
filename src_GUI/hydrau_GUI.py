@@ -169,7 +169,7 @@ class HydrauTab(QScrollArea):
         self.model_group.extension = self.hydraulic_model_information.extensions[self.model_group.model_index]
         self.model_group.model_type = self.hydraulic_model_information.attribute_models_list[self.model_group.model_index]
         self.model_group.nb_dim = self.hydraulic_model_information.dimensions[self.model_group.model_index]
-
+        self.info_model_label.setText("")
         if i > 0:
             self.give_info_model_label()
 
