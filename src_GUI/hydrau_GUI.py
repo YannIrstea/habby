@@ -589,10 +589,19 @@ class ModelInfoGroup(QGroupBox):
         self.reach_name_combobox.blockSignals(True)
         self.reach_name_combobox.clear()
         self.reach_name_combobox.addItems(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["reach_list"])
+        width_char = 120
         mesh_list = ", ".join(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["variable_name_unit_dict"].meshs().names_gui())
+        if len(mesh_list) > width_char:
+            self.usefull_mesh_variable_label.setText(mesh_list[:width_char] + "...")
+            self.usefull_mesh_variable_label.setToolTip(mesh_list)
+        else:
+            self.usefull_mesh_variable_label.setText(mesh_list)
         node_list = ", ".join(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["variable_name_unit_dict"].nodes().names_gui())
-        self.usefull_mesh_variable_label.setText(mesh_list)
-        self.usefull_node_variable_label.setText(node_list)
+        if len(node_list) > width_char:
+            self.usefull_node_variable_label.setText(node_list[:width_char] + "...")
+            self.usefull_node_variable_label.setToolTip(node_list)
+        else:
+            self.usefull_node_variable_label.setText(node_list)
         self.units_name_label.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["unit_type"])  # kind of unit
         self.update_unit_from_reach()
         self.epsg_label.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["epsg_code"])
