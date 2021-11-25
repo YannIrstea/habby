@@ -353,7 +353,9 @@ class HydraulicSimulationResultsAnalyzer:
                     pass
                 else:
                     for index, column_name in enumerate(headers):
-                        data_index_file[column_name].append(line.split()[index])
+                        # "\t" is the column separator
+                        # (if split without arg, date with time is also splitted for hec ras 2D)
+                        data_index_file[column_name].append(line.split("\t")[index])
 
             if self.model_type == 'rubar2d':
                 self.more_than_one_file_selected_by_user = False
