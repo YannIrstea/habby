@@ -1006,36 +1006,6 @@ def get_new_point_and_cell_1_profil(coord_pro_p, vh_pro_t_p, point_mid_x, point_
     return point_all, ikle, point_c, p_not_found
 
 
-def is_duplicates_mesh_and_point_on_one_unit(tin_array, xyz_array, unit_number, case, checkpoint=True):
-    # init
-    tin_duplicate_tf = False
-    xyz_duplicate_tf = False
-
-    # check if mesh duplicates presence TODO: remove duplicates if it happens ?? (if resolved : remove the return)
-    u, c = np.unique(tin_array, return_counts=True, axis=0)
-    dup = u[c > 1]
-    if len(dup) != 0:
-        tin_duplicate_tf = True
-        print("Warning: The mesh of unit n° " + str(unit_number) + " has " + str(len(dup)) +
-              " duplicate(s) mesh(s) " + case + " : " +
-              ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ". This unit is not loaded.")
-    if checkpoint:
-        # check if points duplicates presence
-        u, c = np.unique(xyz_array, return_counts=True, axis=0)
-        dup = u[c > 1]
-        if len(dup) != 0:
-            xyz_duplicate_tf = True
-            print("Warning: The mesh of unit n°" + str(unit_number) + " has " + str(len(dup)) +
-                  " duplicate(s) point(s) " + case + " : " +
-                  ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ". This unit is not loaded.")
-
-    # return
-    if tin_duplicate_tf or xyz_duplicate_tf:
-        return True
-    else:
-        return False
-
-
 def linear_z_cross(p1, p2, h1, h2):
     """
     This function is called by cut_2D_grid. It find the intersection point along a side of the triangle if part of a

@@ -20,7 +20,7 @@ from scipy.interpolate import griddata
 import sys
 import time
 
-from src.manage_grid_mod import is_duplicates_mesh_and_point_on_one_unit, linear_z_cross
+from src.manage_grid_mod import linear_z_cross
 from src.variable_unit_mod import HydraulicVariableUnitManagement, HydraulicVariableUnitList
 
 
@@ -287,14 +287,10 @@ class Data2d(list):
             unit_to_remove_list = []
             # for each unit
             for unit_number in range(len(self[reach_number])):
-                # is_duplicates_mesh_and_point_on_one_unit?
-                if is_duplicates_mesh_and_point_on_one_unit(tin_array=self[reach_number][unit_number]["mesh"]["tin"],
-                                                            xyz_array=np.column_stack(
-                                                                (self[reach_number][unit_number]["node"][self.hvum.xy.name],
-                                                                 self[reach_number][unit_number]["node"]["data"][
-                                                                     self.hvum.z.name].to_numpy())),
-                                                            unit_number=unit_number,
-                                                            case="at reading."):
+                # is_duplicates_mesh_or_point
+                if self[reach_number][unit_number].is_duplicates_mesh_or_point(case="at reading",
+                                                                               mesh=True,
+                                                                               node=True):
                     unit_to_remove_list.append(unit_number)
                     continue
 
@@ -344,10 +340,13 @@ class Data2d(list):
 
                 # all meshes are entirely dry
                 if not True in mikle_keep:
-                    print("Warning: The mesh of unit n°" + str(unit_number) + " of reach n°" + str(
-                        reach_number) + " is entirely dry. The latter is removed.")
                     unit_to_remove_list.append(unit_number)
                     continue
+
+                # mesh_removed_nb
+                mesh_removed_nb = np.size(mikle_keep) - np.count_nonzero(mikle_keep)
+                if mesh_removed_nb:
+                    print("Warning: " + str(mesh_removed_nb) + " dry mesh(s) have been removed in unit " + str(self[reach_number][unit_number].unit_name) + ".")
 
                 # only the wet meshes (and the partially ones)
                 iklekeep = ikle[mikle_keep, ...]
@@ -549,21 +548,22 @@ class Data2d(list):
                         nbdouble = len(point_all_ok) - len(point_all_ok2)
                         iklekeep = indices2[iklekeep]
                         point_all_ok = point_all_ok2
-                        print("Warning: While the cutting of mesh partially wet of the unit n°" + str(
-                            unit_number) + " of reach n°" + str(
+                        print("Warning: While the cutting of mesh partially wet of the unit " + self[reach_number][unit_number].unit_name + " of reach n°" + str(
                             reach_number) + " we have been forced to eliminate " + str(nbdouble) +
                               " duplicate(s) point(s) ")
-                    if is_duplicates_mesh_and_point_on_one_unit(tin_array=iklekeep,
-                                                                xyz_array=point_all_ok,
-                                                                unit_number=unit_number,
-                                                                case="after the cutting of mesh partially wet",
-                                                                checkpoint=False):
-                        print("Warning: The mesh of unit n°" + str(unit_number) + " of reach n°" + str(
-                            reach_number) + " is not loaded.")
-                        unit_to_remove_list.append(unit_number)
-                        continue
 
-                    # all the new points added have water_height,velocity=0,0   # TODO: v=0 is applicable to torrential flows ?
+                    # # check if mesh duplicates presence
+                    # u, c = np.unique(self[reach_number][unit_number]["mesh"]["tin"], return_counts=True, axis=0)
+                    # dup = u[c > 1]
+                    # if len(dup) != 0:
+                    #     print("Warning: The mesh of unit " + self[reach_number][unit_number].unit_name + " is not loaded (" + str(len(dup)) +
+                    #           " duplicate(s) mesh(s) during the cutting of mesh partially wet : " +
+                    #           ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ").")
+                    #     unit_to_remove_list.append(unit_number)
+                    #     continue
+
+                    # TODO: v=0 is applicable to torrential flows ?
+                    # all the new points added have water_height,velocity=0,0
                     water_height_ok = np.append(water_height_ok, np.zeros(lpns - nbdouble, dtype=water_height.dtype),
                                                 axis=0)
                     velocity_ok = np.append(velocity_ok, np.zeros(lpns - nbdouble, dtype=velocity.dtype), axis=0)
@@ -613,6 +613,13 @@ class Data2d(list):
                 self[reach_number][unit_number]["node"][self.hvum.xy.name] = point_all_ok[:, :2]
                 self[reach_number][unit_number]["node"]["data"] = self[reach_number][unit_number]["node"]["data"].fillna(
                     0)  # fillna with 0
+
+                # is_duplicates_mesh_or_point
+                if self[reach_number][unit_number].is_duplicates_mesh_or_point(case="after the cutting of mesh partially wet",
+                                                                               mesh=True,
+                                                                               node=True):
+                    unit_to_remove_list.append(unit_number)
+                    continue
 
                 # progress
                 progress_value.value = progress_value.value + delta_unit
@@ -1017,6 +1024,8 @@ class Unit(dict):
         # hydrosignature
         self.hydrosignature = dict()
 
+    """ manage grid """
+
     def get_variables_with_data(self):
         data_variable_list = []
 
@@ -1030,6 +1039,57 @@ class Unit(dict):
                         data_variable_list.append(key)
 
         return data_variable_list
+
+    def remove_null_area(self):
+        index_to_remove = self["mesh"]["data"][self.hvum.area.name].to_numpy() == 0.0
+
+        if True in index_to_remove:
+            # update tin
+            self["mesh"][self.hvum.tin.name] = self["mesh"][self.hvum.tin.name][~index_to_remove]
+
+            # update i_whole_profile
+            self["mesh"][self.hvum.i_whole_profile.name] = self["mesh"][self.hvum.i_whole_profile.name][
+                ~index_to_remove]
+
+            # update mesh data
+            self["mesh"]["data"] = self["mesh"]["data"][~index_to_remove]
+
+            print("Warning: " + str(np.sum(index_to_remove)) +
+                  " mesh(s) with a null surface have been removed in unit " + str(self.unit_name) + ".")
+
+    def is_duplicates_mesh_or_point(self, case, mesh, node):
+        # init
+        mesh_duplicate_tf = False
+        node_duplicate_tf = False
+
+        if mesh:
+            # check if mesh duplicates presence
+            u, c = np.unique(self["mesh"]["tin"], return_counts=True, axis=0)
+            dup = u[c > 1]
+            if len(dup) != 0:
+                mesh_duplicate_tf = True
+                print("Warning: The mesh of unit " + self.unit_name + " is not loaded (" + str(len(dup)) +
+                      " duplicate(s) mesh(s) " + case + " : " +
+                      ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ").")
+
+        if node:
+            # check if points duplicates presence
+            u, c = np.unique(np.column_stack(
+                (self["node"][self.hvum.xy.name],
+                 self["node"]["data"][
+                     self.hvum.z.name].to_numpy())), return_counts=True, axis=0)
+            dup = u[c > 1]
+            if len(dup) != 0:
+                node_duplicate_tf = True
+                print("Warning: The mesh of unit " + self.unit_name + " is not loaded (" + str(len(dup)) +
+                      " duplicate(s) node(s) " + case + " : " +
+                      ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ").")
+
+        # return
+        if mesh_duplicate_tf or node_duplicate_tf:
+            return True
+        else:
+            return False
 
     """ mesh """
 
@@ -1348,22 +1408,3 @@ class Unit(dict):
         self["node"]["data"][self.hvum.level.name] = self["node"]["data"][self.hvum.z.name] + self["node"]["data"][
             self.hvum.h.name]
 
-    """ other """
-
-    def remove_null_area(self):
-        index_to_remove = self["mesh"]["data"][self.hvum.area.name].to_numpy() == 0.0
-
-        if True in index_to_remove:
-            # update tin
-            self["mesh"][self.hvum.tin.name] = self["mesh"][self.hvum.tin.name][~index_to_remove]
-
-            # update i_whole_profile
-            self["mesh"][self.hvum.i_whole_profile.name] = self["mesh"][self.hvum.i_whole_profile.name][
-                ~index_to_remove]
-
-            # update mesh data
-            self["mesh"]["data"] = self["mesh"]["data"][~index_to_remove]
-
-            print("Warning: " + str(np.sum(index_to_remove)) + " hydraulic triangle(s) "
-                                                               "detected with a null surface in unit " + str(
-                self.unit_number) + ". This is removed.")
