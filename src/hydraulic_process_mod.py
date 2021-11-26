@@ -234,7 +234,6 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
     data_2d.hyd_varying_mesh = hyd_varying_mesh
     data_2d.hyd_unit_z_equal = hyd_unit_z_equal
     data_2d.hyd_unit_correspondence = hydrau_description["hyd_unit_correspondence"]
-    data_2d.hyd_cuted_mesh_partialy_dry = project_properties["cut_mesh_partialy_dry"]
     data_2d.hyd_hydrau_case = hydrau_description["hydrau_case"]
     if data_2d.hyd_hydrau_case in {"1.b", "2.b"}:
         data_2d.hyd_timestep_source_list = [hydrau_description["timestep_list"]]

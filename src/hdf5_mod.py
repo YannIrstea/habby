@@ -308,7 +308,10 @@ class Hdf5Management:
                 attribute_value = hdf5_attributes_dict[attribute_name]
                 # height, width,
                 if type(attribute_value) == np.float64:
-                    attribute_value = "{0:.2f}".format(attribute_value)
+                    if attribute_name == "hyd_min_height":
+                        attribute_value = str(attribute_value)
+                    else:
+                        attribute_value = "{0:.2f}".format(attribute_value)
                 # np array
                 elif type(attribute_value) in {np.array, np.ndarray}:
                     if attribute_value.dtype == 'O':

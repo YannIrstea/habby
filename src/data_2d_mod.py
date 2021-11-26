@@ -44,6 +44,8 @@ class Data2d(list):
         self.data_height = 0.0
         self.data_width = 0.0
         self.hyd_equation_type = "unknown"
+        self.hyd_min_height = 0.0
+        self.hyd_cuted_mesh_partialy_dry = False
         # hs
         self.hs_summary_data = []
         self.sub_mapping_method = ""
@@ -299,6 +301,7 @@ class Data2d(list):
                 self.remove_unit_from_unit_index_list(unit_to_remove_list, reach_number)
 
     def set_min_height_to_0(self, min_height):
+        self.hyd_min_height = min_height
         # for each reach
         for reach_number in range(self.reach_number):
             # for each unit
@@ -391,6 +394,7 @@ class Data2d(list):
         :return: the update connectivity table, the coordinates of the point, the height of the water and the
                  velocity on the updated grid and the indices of the old connectivity table in the new cell orders.
         """
+        self.hyd_cuted_mesh_partialy_dry = True
         self.get_informations()
 
         # progress
