@@ -1456,6 +1456,13 @@ def construct_from_lammi(transectsfiledefintion):
                                         (lqdico[iq - 1]['tin'], tin + newnodeindex[iq - 1]))
                                     lqdico[iq - 1]['mesh_substrate'] = np.vstack(
                                         (lqdico[iq - 1]['mesh_substrate'], mesh_substrate))
+
+                                    #to avoid nodes whith the same position at a previous transect we change slightly the position by moving it from a distant 0.000001mm
+                                    #note that instead we would have nodes at the same position with different depth and velocity
+                                    for posi in node_xy:
+                                        if posi in lqdico[iq - 1]['node_xy']:
+                                            posi += 0.0000001
+
                                     lqdico[iq - 1]['node_xy'] = np.vstack((lqdico[iq - 1]['node_xy'], node_xy))
                                     lqdico[iq - 1]['node_hvz'] = np.vstack((lqdico[iq - 1]['node_hvz'], node_hvz))
                                     newnodeindex[iq - 1] += 6 * nbvertices + 2
@@ -1463,6 +1470,7 @@ def construct_from_lammi(transectsfiledefintion):
     if nbiq != iq and iprn!=0:
         return None, None, transectprn[iprn][0] + ' the number of discharges provided is less ' \
                                                   'than what was expected in ' + referencefile
+
 
     return stationname, lq, lqdico
 
