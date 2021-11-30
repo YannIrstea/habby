@@ -987,7 +987,7 @@ class HydraulicSimulationResultsAnalyzer:
                                                              self.folder_path, self.model_type, self.path_prj)
                     self.warning_list.extend(hsr.warning_list)
                     if not hsr.valid_file:
-                        continue
+                        return
                     # get units name from indexHYDRAU.txt file
                     unit_name_from_index_file = data_index_file[headers[1]][lammi_ind]
 

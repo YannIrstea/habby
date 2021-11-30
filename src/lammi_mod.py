@@ -88,24 +88,39 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
         self.hyd_varying_mesh = True
 
-        # readable file ?
+        # is_valid_extension ?
+        self.is_valid_extension()
+        # is_readable_file ?
+        if self.valid_file:
+            self.is_readable_file()
+
+        if self.valid_file:
+            # get_time_step
+            self.get_time_step()
+            # get hydraulic variables list (mesh and node)
+            self.get_hydraulic_variable_list()
+
+    def is_valid_extension(self):
+        if self.ext not in self.extensions_list:
+            self.warning_list.append(
+                "Error: The extension file of " + self.filename + " is not a LAMMI extension type (" + ",".join(self.extensions_list) + ").")
+            self.valid_file = False
+
+    def is_readable_file(self):
         try:
             self.simulation_name, self.lq, self.lqdico = construct_from_lammi(self.filename_path)
             if not self.simulation_name:
                 self.warning_list.append("Error: " + self.lqdico)
                 self.valid_file = False
-        except OSError:
+        except (OSError, UnicodeDecodeError):
             self.warning_list.append("Error: The file can not be opened.")
             self.valid_file = False
 
-        # if valid get informations
-        if self.valid_file:
-            # get_time_step ?
-            self.get_time_step()
-            # get hydraulic variables list (mesh and node)
-            self.get_hydraulic_variable_list()
-        else:
-            self.warning_list.append("Error: File not valid.")
+    def get_time_step(self):
+        """Get time step information from file."""
+        self.timestep_name_list = list(map(str, self.lq))  # always one reach
+        self.timestep_nb = len(self.timestep_name_list)
+        self.timestep_unit = "discharge [m3/s]"
 
     def get_hydraulic_variable_list(self):
         """Get hydraulic variable list from file."""
@@ -114,12 +129,6 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
         # check witch variable is available
         self.hvum.detect_variable_from_software_attribute(varnames)
-
-    def get_time_step(self):
-        """Get time step information from file."""
-        self.timestep_name_list = list(map(str, self.lq))  # always one reach
-        self.timestep_nb = len(self.timestep_name_list)
-        self.timestep_unit = "discharge [m3/s]"
 
     def load_hydraulic(self, timestep_name_wish_list):
         """Retrun Data2d from file.
@@ -1173,7 +1182,7 @@ def construct_from_lammi(transectsfiledefintion):
     # print('construct_from_lammi')
     sourcedirectory = os.path.dirname(transectsfiledefintion)
     if not os.path.isfile(transectsfiledefintion):
-        return None, None, 'Transect.txt this file is required in the LAMMI input directory ' + sourcedirectory
+        return None, None, 'LAMMI Transect.txt file type is required in the LAMMI input directory ' + sourcedirectory
     transectprn = []  # a list of pair of lists containing the exact [filename of each prn transect, Length of representativeness]
     with open(transectsfiledefintion, 'rt', encoding='utf8') as transectf:
 
@@ -1197,13 +1206,13 @@ def construct_from_lammi(transectsfiledefintion):
                     else:
                         bok = False
                     if not bok:
-                        return None, None, 'Transect.txt line ' + str(iline) + ' the mention' + level[
+                        return None, None, transectsfiledefintion + ' file line ' + str(iline) + ' the mention' + level[
                             cheklevel] + ' is mandatory'
                     else:
                         cheklevel += 1
                 elif cheklevel == 1:
                     if len(splline) != 1 or not (is_number(splline[0])):
-                        return None, None, 'Transect.txt line ' + str(
+                        return None, None, transectsfiledefintion + ' file line ' + str(
                             iline) + ' a single number for the transect length is mandatory'
                     else:
                         ldr = float(line)
@@ -1212,11 +1221,11 @@ def construct_from_lammi(transectsfiledefintion):
                     try:
                         filenameprn = os.path.join(sourcedirectory, os.path.basename(line))
                     except ValueError:
-                        return None, None, 'Transect.txt line ' + str(
+                        return None, None, transectsfiledefintion + ' file line ' + str(
                             iline) + ' a path with a namefile.prn is mandatory'
                     if not os.path.isfile(filenameprn):
                         return None, None, filenameprn + ' This file is required in the LAMMI input directory ' \
-                                                         'according to the Transect.txt file definition ' + sourcedirectory
+                                                         'according to the ' + transectsfiledefintion + ' LAMMI Transect file type definition ' + sourcedirectory
                     transectprn.append([filenameprn, ldr])
                     cheklevel = 0
 

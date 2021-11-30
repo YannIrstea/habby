@@ -62,22 +62,18 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                                                     attribute_list=['FRICTION VEL', 'VITESSE DE FROT'],
                                                     position="node")
 
-        # readable file ?
-        try:
-            self.results_data_file = Selafin(self.filename_path)
-        except OSError:
-            self.warning_list.append("Error: The file can not be opened.")
-            self.valid_file = False
-
-        # # result_file ?
-        # if not "RESULTS" in self.results_data_file.keys():
-        #     self.warning_list.append('Error: The file is not BASEMENT results type.')
-        #     self.valid_file = False
-
         # is extension ok ?
         if os.path.splitext(self.filename)[1] not in self.extensions_list:
             self.warning_list.append("Error: The extension of file is not : " + ", ".join(self.extensions_list) + ".")
             self.valid_file = False
+
+        if self.valid_file:
+            # readable file ?
+            try:
+                self.results_data_file = Selafin(self.filename_path)
+            except OSError:
+                self.warning_list.append("Error: The file can not be opened.")
+                self.valid_file = False
 
         # if valid get informations
         if self.valid_file:
