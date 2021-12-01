@@ -153,7 +153,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                 height_t = hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][hdf5.data_2d.hvum.h.name].to_numpy()
                 vel_t = hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][hdf5.data_2d.hvum.v.name].to_numpy()
 
-                if animal.aquatic_animal_type in {"invertebrate", "crustacean"} and "HEM" in information_model_dict["hydraulic_type_available"][stage_index]:
+                if animal.aquatic_animal_type in {"invertebrate"} and "HEM" in information_model_dict["hydraulic_type_available"][stage_index]:
                     shear_stress_t = hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][hdf5.data_2d.hvum.shear_stress.name].to_numpy()
                 ikle_t = hdf5.data_2d[reach_number][unit_number]["mesh"]["tin"]
                 area = hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][hdf5.data_2d.hvum.area.name]
@@ -341,7 +341,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                                                                               " of reach : ") +
                       hdf5.data_2d.reach_list[reach_number])
             # WARNINGS HEM
-            if animal.aquatic_animal_type in {"invertebrate", "crustacean"}:
+            if animal.aquatic_animal_type in {"invertebrate"}:
                 if warning_shearstress_list:
                     warning_shearstress_list.sort()
                     # get unit name

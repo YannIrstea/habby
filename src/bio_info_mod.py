@@ -84,8 +84,6 @@ def get_biomodels_informations_for_database(path_xml):
         aquatic_animal_type = "fish"
     elif root.find(".//Invertebrate") is not None:
         aquatic_animal_type = "invertebrate"
-    elif root.find(".//Crustacean") is not None:
-        aquatic_animal_type = "crustacean"
     else:
         print("Error: aquatic_animal_type not recognised. Please verify this xml file :", path_xml)
         return "Error: aquatic_animal_type not recognised. Please verify this xml file :" + path_xml

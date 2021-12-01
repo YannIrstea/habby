@@ -909,7 +909,7 @@ class HydraulicVariableUnitManagement:
                 self.all_final_variable_list.append(self.area)
             # shear_stress
             for variable_wish in user_target_list.habs():
-                if variable_wish.aquatic_animal_type in {"invertebrate", "crustacean"}:
+                if variable_wish.aquatic_animal_type in {"invertebrate"}:
                     if self.shear_stress.name not in self.all_final_variable_list.hdf5s().meshs().names():
                         if self.shear_stress.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
                             self.shear_stress.position = "mesh"
