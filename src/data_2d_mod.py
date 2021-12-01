@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import griddata
 import sys
-import time
+from copy import deepcopy
 
 from src.manage_grid_mod import linear_z_cross
 from src.variable_unit_mod import HydraulicVariableUnitManagement, HydraulicVariableUnitList
@@ -264,7 +264,7 @@ class Data2d(list):
                 self[reach_number][unit_number].reach_name = reach_name
 
     def set_unit_list(self, unit_list):
-        self.unit_list = unit_list
+        self.unit_list = deepcopy(unit_list)
         for reach_number in range(self.reach_number):
             self[reach_number].unit_number = len(self[reach_number])
             for unit_number in range(len(self[reach_number])):
@@ -1072,20 +1072,17 @@ class Unit(dict):
             dup = u[c > 1]
             if len(dup) != 0:
                 mesh_duplicate_tf = True
-                print("Warning: The mesh of unit " + self.unit_name + " is not loaded (" + str(len(dup)) +
+                print("Warning: The mesh of the unit " + self.unit_name + " is not loaded (" + str(len(dup)) +
                       " duplicate(s) mesh(s) " + case + " : " +
                       ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ").")
 
         if node:
             # check if points duplicates presence
-            u, c = np.unique(np.column_stack(
-                (self["node"][self.hvum.xy.name],
-                 self["node"]["data"][
-                     self.hvum.z.name].to_numpy())), return_counts=True, axis=0)
+            u, c = np.unique(self["node"][self.hvum.xy.name], return_counts=True, axis=0)
             dup = u[c > 1]
             if len(dup) != 0:
                 node_duplicate_tf = True
-                print("Warning: The mesh of unit " + self.unit_name + " is not loaded (" + str(len(dup)) +
+                print("Warning: The mesh of the unit " + self.unit_name + " is not loaded (" + str(len(dup)) +
                       " duplicate(s) node(s) " + case + " : " +
                       ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ").")
 

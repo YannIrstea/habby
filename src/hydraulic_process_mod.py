@@ -124,6 +124,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
 
     """ get data_2d_whole_profile """
     data_2d_whole_profile = data_2d.get_only_mesh()
+    data_2d_whole_profile.set_unit_list(hydrau_description["unit_list"])
 
     """ set unit_names """
     data_2d.set_unit_list(hydrau_description["unit_list"])
@@ -133,11 +134,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
     hyd_unit_z_equal = True
     hyd_varying_xy_index, hyd_varying_z_index = data_2d_whole_profile.get_hyd_varying_xy_and_z_index()
     for reach_number in range(data_2d.reach_number):
-        # one file : one reach, varying_mesh==False
-        if len(filename_source) == 1:
-            hydrau_description["hyd_unit_correspondence"].append(hyd_varying_xy_index[reach_number])
-        else:
-            hydrau_description["hyd_unit_correspondence"].append(hyd_varying_xy_index[reach_number])
+        hydrau_description["hyd_unit_correspondence"].append(hyd_varying_xy_index[reach_number])
         # hyd_varying_mesh ?
         if len(set(hyd_varying_xy_index[reach_number])) == 1 and not hyd_varying_mesh:  # one tin for all unit
             data_2d_whole_profile.reduce_to_first_unit_by_reach()
@@ -211,6 +208,22 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
 
     """ remove null area """
     data_2d.remove_null_area()
+
+    """ update whole_profile unit and hyd_unit_correspondence if units has been removed """
+    if hyd_varying_mesh or not hyd_unit_z_equal:
+        # update_whole_profile_unit_from_data_2d
+        for reach_number in range(data_2d_whole_profile.reach_number):
+            unit_to_remove_list = []
+            data_2d_2_unit_name_list = [unit_2.unit_name for unit_2 in data_2d[reach_number]]
+            for unit_number in range(len(data_2d_whole_profile[reach_number])):
+                if data_2d_whole_profile[reach_number][unit_number].unit_name not in data_2d_2_unit_name_list:
+                    unit_to_remove_list.append(unit_number)
+            # remove_unit_from_unit_index_list
+            if unit_to_remove_list:
+                data_2d_whole_profile.remove_unit_from_unit_index_list(unit_to_remove_list, reach_number)
+            # update hydrau_description
+            hydrau_description["hyd_unit_correspondence"][reach_number] = list(range(len(data_2d.unit_list[reach_number])))
+            hydrau_description["unit_list"][reach_number] = data_2d.unit_list[reach_number]
 
     """ get_dimension """
     data_2d.get_dimension()
