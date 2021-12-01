@@ -1235,6 +1235,7 @@ def construct_from_lammi(transectsfiledefintion):
     newnodeindex = []
     nbiq = 0
     y0, z00, slope = 500, 500, 0.04
+    translationt=np.array([0.000001,0])
     hmoyupstreamq = []
     for iprn in range(len(transectprn)):
         if iprn == 0:  # for a given cross-section  for each discharge the mesh description of the river began at the same xdep
@@ -1457,13 +1458,10 @@ def construct_from_lammi(transectsfiledefintion):
                                     lqdico[iq - 1]['mesh_substrate'] = np.vstack(
                                         (lqdico[iq - 1]['mesh_substrate'], mesh_substrate))
 
-                                    #to avoid nodes whith the same position at a previous transect we change slightly the position by moving it from a distant 0.000001mm
-                                    #note that instead we would have nodes at the same position with different depth and velocity
-                                    for posi in node_xy:
-                                        if posi in lqdico[iq - 1]['node_xy']:
-                                            posi += 0.0000001
-
-                                    lqdico[iq - 1]['node_xy'] = np.vstack((lqdico[iq - 1]['node_xy'], node_xy))
+                                    #to avoid nodes whith the same position at a previous transect we move slightly the x position with a translation of 0.000001 m
+                                    # note that instead we could have nodes at the same positions with different depth and velocity by joinning upstream and downstream transects
+                                    lqdico[iq - 1]['node_xy'] = np.vstack(
+                                        (lqdico[iq - 1]['node_xy'], node_xy + iprn * translationt))
                                     lqdico[iq - 1]['node_hvz'] = np.vstack((lqdico[iq - 1]['node_hvz'], node_hvz))
                                     newnodeindex[iq - 1] += 6 * nbvertices + 2
 
