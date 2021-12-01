@@ -1072,7 +1072,7 @@ class Unit(dict):
             dup = u[c > 1]
             if len(dup) != 0:
                 mesh_duplicate_tf = True
-                print("Error: The mesh of unit " + self.unit_name + " is not loaded (" + str(len(dup)) +
+                print("Warning: The mesh of unit " + self.unit_name + " is not loaded (" + str(len(dup)) +
                       " duplicate(s) mesh(s) " + case + " : " +
                       ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ").")
 
@@ -1085,7 +1085,7 @@ class Unit(dict):
             dup = u[c > 1]
             if len(dup) != 0:
                 node_duplicate_tf = True
-                print("Error: The mesh of unit " + self.unit_name + " is not loaded (" + str(len(dup)) +
+                print("Warning: The mesh of unit " + self.unit_name + " is not loaded (" + str(len(dup)) +
                       " duplicate(s) node(s) " + case + " : " +
                       ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ").")
 
