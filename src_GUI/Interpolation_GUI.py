@@ -548,13 +548,13 @@ class InterpolationTab(QScrollArea):
 
         if self.mytablemodel:
             # fish names and units names from tableview
-            fish_names_hv_spu = self.mytablemodel.colnames
+            fish_names_osi_wua = self.mytablemodel.colnames
             fish_names = []
-            for fish in fish_names_hv_spu:
-                if "hv_" in fish:
-                    fish_names.append(fish.replace("hv_", ""))
-                if "spu_" in fish:
-                    fish_names.append(fish.replace("spu_", ""))
+            for fish in fish_names_osi_wua:
+                if "osi_" in fish:
+                    fish_names.append(fish.replace("osi_", ""))
+                if "wua_" in fish:
+                    fish_names.append(fish.replace("wua_", ""))
 
             # seq or txt
             source = self.mytablemodel.source

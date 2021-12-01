@@ -352,8 +352,6 @@ class EstimhabW(StatModUseful):
         self.name_prj = name_prj
         self.path_bio_estimhab = os.path.join(self.path_bio, 'estimhab')
         self.total_lineedit_number = 1
-        self.VH = []
-        self.SPU = []
         self.init_iu()
         self.process_manager = MyProcessManager("estimhab_plot")  # SC (Suitability Curve)
         self.read_estimhab_dict()
@@ -858,7 +856,7 @@ class EstimhabW(StatModUseful):
             fish_list_str += "'" + fish_list[i] + "',"
         fish_list_str = fish_list_str[:-1] + ']'
         self.send_log.emit(fish_list_str)
-        self.send_log.emit("py    [VH, SPU] = estimhab.estimhab(data[0], data[1], data[2], data[3] ,"
+        self.send_log.emit("py    [OSI, WUA] = estimhab.estimhab(data[0], data[1], data[2], data[3] ,"
                            " qrange, data[4], path1, fish_list, '.', True, {}, '.')\n")
         # self.send_log.emit("restart RUN_ESTIMHAB")
         # self.send_log.emit("restart    q0: " + str(q[0]))

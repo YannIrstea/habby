@@ -430,7 +430,7 @@ def read_pref(xmlfile):
 
         if information_model_dict["model_type"] == "bivariate suitability index models":
             # get pref
-            hab_var.hv = list(map(float, root.findall(".//PreferenceValues")[hab_index].text.split(" ")))
+            hab_var.hsi_model_data = list(map(float, root.findall(".//PreferenceValues")[hab_index].text.split(" ")))
 
     return information_model_dict
 

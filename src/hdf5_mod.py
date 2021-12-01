@@ -16,7 +16,7 @@ https://github.com/YannIrstea/habby
 """
 import os
 import time
-
+import traceback
 import h5py
 import numpy as np
 from PyQt5.QtCore import QCoreApplication as qt_tr
@@ -651,7 +651,7 @@ class Hdf5Management:
                             mesh_dataframe = DataFrame.from_records(self.file_object[mesh_group + "/data"][:])
                     self.data_2d[reach_number][unit_number]["mesh"]["data"] = mesh_dataframe
 
-                    # HV by celle for each fish
+                    # HSI by celle for each fish
                     if self.extension == ".hab":
                         mesh_hv_data_group = self.file_object[mesh_group + "/hv_data"]
                         for animal_num, animal in enumerate(self.data_2d.hvum.all_final_variable_list.habs().hdf5s().meshs()):
@@ -710,10 +710,10 @@ class Hdf5Management:
                         # get summary data
                         if len(animal.wua) < len(reach_list):
                             animal.wua.append([])
-                            animal.hv.append([])
+                            animal.osi.append([])
                             animal.percent_area_unknown.append([])
                         animal.wua[reach_number].append(float(fish_data_set.attrs['wua']))
-                        animal.hv[reach_number].append(float(fish_data_set.attrs['hv']))
+                        animal.osi[reach_number].append(float(fish_data_set.attrs['osi']))
                         animal.percent_area_unknown[reach_number].append(
                             float(fish_data_set.attrs['percent_area_unknown [%m2]']))
 
@@ -979,15 +979,7 @@ class Hdf5Management:
 
     def add_fish_hab(self, animal_variable_list):
         """
-        This function takes a merge file and add habitat data to it. The habitat data is given by cell. It also save the
-        velocity and the water height by cell (and not by node)
-
-        :param hdf5_name: the name of the merge file
-        :param path_hdf5: the path to this file
-        :param vh_cell: the habitat value by cell
-        :param area_all: total wet area by reach
-        :param spu_all: total SPU by reach
-        :param animal: the name of the fish (with the stage in it)
+        Add habitat computation in an existing .hab file.
         """
         self.create_or_open_file()
         # add variables
@@ -1005,7 +997,7 @@ class Hdf5Management:
                 mesh_group = unit_group["mesh"]
                 mesh_hv_data_group = mesh_group["hv_data"]
 
-                # HV by celle for each fish
+                # HSI by celle for each fish
                 for animal_num, animal in enumerate(
                         self.data_2d.hvum.hdf5_and_computable_list.meshs().to_compute().habs()):
                     # create
@@ -1022,7 +1014,7 @@ class Hdf5Management:
                     fish_data_set.attrs['short_name'] = animal.name
                     fish_data_set.attrs['aquatic_animal_type_list'] = animal.aquatic_animal_type
                     fish_data_set.attrs['wua'] = str(animal.wua[reach_number][unit_number])
-                    fish_data_set.attrs['hv'] = str(animal.hv[reach_number][unit_number])
+                    fish_data_set.attrs['osi'] = str(animal.osi[reach_number][unit_number])
                     fish_data_set.attrs['percent_area_unknown [%m2]'] = str(
                         animal.percent_area_unknown[reach_number][unit_number])
 
@@ -1171,7 +1163,6 @@ class Hdf5Management:
                 self.data_2d[reach_number][unit_index].hydrosignature["hsvolume"] = self.file_object[unitpath + "/hsvolume"][:]
 
     def export_hydrosignature_txt(self):
-        """ export_spu_txt exported each calc hab """
         if not os.path.exists(self.path_txt):
             print('Error: ' + qt_tr.translate("hdf5_mod",
                                               'The path to the text file is not found. Text files not created \n'))
@@ -1234,8 +1225,8 @@ class Hdf5Management:
         self.file_object.create_dataset("h_all", estimhab_dict["h_all"].shape, data=estimhab_dict["h_all"])
         self.file_object.create_dataset("w_all", estimhab_dict["w_all"].shape, data=estimhab_dict["w_all"])
         self.file_object.create_dataset("vel_all", estimhab_dict["vel_all"].shape, data=estimhab_dict["vel_all"])
-        self.file_object.create_dataset("VH", estimhab_dict["VH"].shape, data=estimhab_dict["VH"])
-        self.file_object.create_dataset("SPU", estimhab_dict["SPU"].shape, data=estimhab_dict["SPU"])
+        self.file_object.create_dataset("OSI", estimhab_dict["OSI"].shape, data=estimhab_dict["OSI"])
+        self.file_object.create_dataset("WHU", estimhab_dict["WUA"].shape, data=estimhab_dict["WUA"])
 
         # targ
         for k, v in estimhab_dict["qtarg_dict"].items():
@@ -1259,11 +1250,11 @@ class Hdf5Management:
                              h_all=self.file_object["h_all"][:],
                              w_all=self.file_object["w_all"][:],
                              vel_all=self.file_object["vel_all"][:],
-                             VH=self.file_object["VH"][:],
-                             SPU=self.file_object["SPU"][:])
+                             OSI=self.file_object["OSI"][:],
+                             WUA=self.file_object["WUA"][:])
 
         # targ
-        for k in ["q_all", "h_all", "w_all", "vel_all", "VH", "SPU"]:
+        for k in ["q_all", "h_all", "w_all", "vel_all", "OSI", "WUA"]:
             estimhab_dict["targ_" + k] = self.file_object["targ_" + k][:].tolist()
 
         # close file
@@ -1286,8 +1277,8 @@ class Hdf5Management:
         q50 = self.estimhab_dict["q50"]
         substrat = self.estimhab_dict["substrate"]
         qrange = self.estimhab_dict["qrange"]
-        VH = self.estimhab_dict["VH"]
-        SPU = self.estimhab_dict["SPU"]
+        OSI = self.estimhab_dict["OSI"]
+        WUA = self.estimhab_dict["WUA"]
         output_filename = "Estimhab"
         intput_filename = "Estimhab_input"
 
@@ -1300,17 +1291,17 @@ class Hdf5Management:
         # prep data
         all_data = np.vstack((q_all, h_all, w_all, vel_all))
         for f in range(0, len(fish_name)):
-            txt_header += '\tVH_' + fish_name[f] + '\tSPU_' + fish_name[f]
-            all_data = np.vstack((all_data, VH[f]))
-            all_data = np.vstack((all_data, SPU[f]))
+            txt_header += '\tOSI_' + fish_name[f] + '\tWUA_' + fish_name[f]
+            all_data = np.vstack((all_data, OSI[f]))
+            all_data = np.vstack((all_data, WUA[f]))
         if len(self.estimhab_dict["targ_q_all"]) != 0:
             all_data_targ = np.vstack((self.estimhab_dict["targ_q_all"],
                                        self.estimhab_dict["targ_h_all"],
                                        self.estimhab_dict["targ_w_all"],
                                        self.estimhab_dict["targ_vel_all"]))
             for f in range(0, len(fish_name)):
-                all_data_targ = np.vstack((all_data_targ, np.expand_dims(self.estimhab_dict["targ_VH"], axis=1)[f]))
-                all_data_targ = np.vstack((all_data_targ, np.expand_dims(self.estimhab_dict["targ_SPU"], axis=1)[f]))
+                all_data_targ = np.vstack((all_data_targ, np.expand_dims(self.estimhab_dict["targ_OSI"], axis=1)[f]))
+                all_data_targ = np.vstack((all_data_targ, np.expand_dims(self.estimhab_dict["targ_WUA"], axis=1)[f]))
 
         txt_header += '\n[m3/s]\t[m]\t[m]\t[m/s]'
         for f in range(0, len(fish_name)):
@@ -1962,8 +1953,7 @@ class Hdf5Management:
         if state is not None:
             state.value = 100.0  # process finished
 
-    def export_spu_txt(self, state=None):
-        """ export_spu_txt exported each calc hab """
+    def export_osi_wua_txt(self, state=None):
         if not os.path.exists(self.path_txt):
             print('Error: ' + qt_tr.translate("hdf5_mod",
                                               'The path to the text file is not found. Text files not created \n'))
@@ -1973,16 +1963,10 @@ class Hdf5Management:
                 sim_name = self.data_2d.unit_list
                 unit_type = self.data_2d.unit_type[self.data_2d.unit_type.find('[') + 1:self.data_2d.unit_type.find(']')]
 
-                if self.project_properties['language'] == 0:
-                    name = self.basename + '_wua.txt'
-                else:
-                    name = self.basename + '_spu.txt'
+                name = self.basename + '_wua.txt'
                 if os.path.isfile(os.path.join(self.path_txt, name)):
                     if not self.project_properties['erase_id']:
-                        if self.project_properties['language'] == 0:
-                            name = self.basename + '_wua_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
-                        else:
-                            name = self.basename + '_spu_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
+                        name = self.basename + '_wua_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.txt'
                     else:
                         try:
                             os.remove(os.path.join(self.path_txt, name))
@@ -2001,14 +1985,9 @@ class Hdf5Management:
                         header = 'reach\tunit\treach_area'
                     else:
                         header = 'troncon\tunit\taire_troncon'
-                    if self.project_properties['language'] == 0:
-                        header += "".join(['\tHSI' for _ in range(len(animal_list))])
-                        header += "".join(['\tWUA' for _ in range(len(animal_list))])
-                        header += "".join(['\t%unknown' for _ in range(len(animal_list))])
-                    else:
-                        header += "".join(['\tVH' for _ in range(len(animal_list))])
-                        header += "".join(['\tSPU' for _ in range(len(animal_list))])
-                        header += "".join(['\t%inconnu' for _ in range(len(animal_list))])
+                    header += "".join(['\tOSI' for _ in range(len(animal_list))])
+                    header += "".join(['\tWUA' for _ in range(len(animal_list))])
+                    header += "".join(['\tUA' for _ in range(len(animal_list))])
                     header += '\n'
                     f.write(header)
                     # header 2
@@ -2033,10 +2012,10 @@ class Hdf5Management:
                             else:
                                 data_here = str(reach_number) + '\t' + str(sim_name[reach_number][unit_number]) + '\t' + str(
                                     area_reach)
-                            # HV
+                            # OSI
                             for animal in animal_list:
                                 try:
-                                    data_here += '\t' + str(animal.hv[reach_number][unit_number])
+                                    data_here += '\t' + str(animal.osi[reach_number][unit_number])
                                 except:
                                     data_here += '\t' + 'NaN'
                             # WUA
@@ -2242,8 +2221,9 @@ def get_filename_by_type_physic(type, path):
                     if hdf5_file.file_object:
                         filenames.append(file)
                     hdf5_file.close_file()
-                except Exception as e:
-                    print(e, file + " seems to be corrupted. Delete it manually.")
+                except Exception:
+                    traceback.print_exc()
+                    print("Error: ", file + " seems to be corrupted. Delete it manually.")
 
     filenames.sort()
     return filenames
@@ -2261,8 +2241,8 @@ def get_filename_hs(path):
                     if hdf5.file_object and hdf5.hs_calculated:
                         filenames.append(file)
                     hdf5.close_file()
-                except Exception as e:
-                    print(e)
+                except Exception:
+                    traceback.print_exc()
                     print("Error: HABBY hydrosignature " + file + " seems to be corrupted. Delete it manually.")
 
     filenames.sort()

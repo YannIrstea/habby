@@ -135,18 +135,18 @@ def compute_interpolation(data_2d, animal_list, reach_number, chronicle, types, 
     wet_area = np.array(total_wet_area)
     # map by fish
     for animal_index, animal in enumerate(animal_list):
-        spu = np.array(animal.wua[reach_number])
-        inter_data_model["hv_" + animal.name] = spu / wet_area
-        inter_data_model["spu_" + animal.name] = spu
-        inter_data_model["si_" + animal.name] = animal.percent_area_unknown[reach_number]
+        wua = np.array(animal.wua[reach_number])
+        inter_data_model["osi_" + animal.name] = wua / wet_area
+        inter_data_model["wua_" + animal.name] = wua
+        inter_data_model["ua_" + animal.name] = animal.percent_area_unknown[reach_number]
 
     # copy chonicle to interpolated
     chronicle_interpolated = deepcopy(chronicle)
     # Add new column to chronicle_interpolated
     for animal in animal_list:
-        chronicle_interpolated["hv_" + animal.name] = []
-        chronicle_interpolated["spu_" + animal.name] = []
-        chronicle_interpolated["si_" + animal.name] = []
+        chronicle_interpolated["osi_" + animal.name] = []
+        chronicle_interpolated["wua_" + animal.name] = []
+        chronicle_interpolated["ua_" + animal.name] = []
     # copy for round for table gui
     chronicle_gui = deepcopy(chronicle_interpolated)
     # rename unit key and preserve the ordering
@@ -161,38 +161,38 @@ def compute_interpolation(data_2d, animal_list, reach_number, chronicle, types, 
         for index_to_est, q_value_to_est in enumerate(chronicle_interpolated["units"]):
             if q_value_to_est != None:
                 if q_value_to_est < q_min or q_value_to_est > q_max:
-                    chronicle_interpolated["hv_" + animal.name].append(None)
-                    chronicle_gui["hv_" + animal.name].append("")
-                    chronicle_interpolated["spu_" + animal.name].append(None)
-                    chronicle_gui["spu_" + animal.name].append("")
-                    chronicle_interpolated["si_" + animal.name].append(None)
-                    chronicle_gui["si_" + animal.name].append("")
+                    chronicle_interpolated["osi_" + animal.name].append(None)
+                    chronicle_gui["osi_" + animal.name].append("")
+                    chronicle_interpolated["wua_" + animal.name].append(None)
+                    chronicle_gui["wua_" + animal.name].append("")
+                    chronicle_interpolated["ua_" + animal.name].append(None)
+                    chronicle_gui["ua_" + animal.name].append("")
                 else:
-                    data_interp_hv = np.interp(q_value_to_est,
+                    data_interp_osi = np.interp(q_value_to_est,
                                                inter_data_model["unit"],
-                                               inter_data_model["hv_" + animal.name])
-                    chronicle_interpolated["hv_" + animal.name].append(data_interp_hv)
-                    chronicle_gui["hv_" + animal.name].append("{0:.2f}".format(data_interp_hv))
+                                               inter_data_model["osi_" + animal.name])
+                    chronicle_interpolated["osi_" + animal.name].append(data_interp_osi)
+                    chronicle_gui["osi_" + animal.name].append("{0:.2f}".format(data_interp_osi))
 
-                    data_interp_spu = np.interp(q_value_to_est,
+                    data_interp_wua = np.interp(q_value_to_est,
                                                 inter_data_model["unit"],
-                                                inter_data_model["spu_" + animal.name])
-                    chronicle_interpolated["spu_" + animal.name].append(data_interp_spu)
-                    chronicle_gui["spu_" + animal.name].append("{0:.0f}".format(data_interp_spu))
+                                                inter_data_model["wua_" + animal.name])
+                    chronicle_interpolated["wua_" + animal.name].append(data_interp_wua)
+                    chronicle_gui["wua_" + animal.name].append("{0:.0f}".format(data_interp_wua))
 
                     data_interp_si = np.interp(q_value_to_est,
                                                 inter_data_model["unit"],
-                                                inter_data_model["si_" + animal.name])
-                    chronicle_interpolated["si_" + animal.name].append(data_interp_si)
-                    chronicle_gui["si_" + animal.name].append("{0:.1f}".format(data_interp_si))
+                                                inter_data_model["ua_" + animal.name])
+                    chronicle_interpolated["ua_" + animal.name].append(data_interp_si)
+                    chronicle_gui["ua_" + animal.name].append("{0:.1f}".format(data_interp_si))
 
             if q_value_to_est is None:
-                chronicle_interpolated["hv_" + animal.name].append(None)
-                chronicle_gui["hv_" + animal.name].append("")
-                chronicle_interpolated["spu_" + animal.name].append(None)
-                chronicle_gui["spu_" + animal.name].append("")
-                chronicle_interpolated["si_" + animal.name].append(None)
-                chronicle_gui["si_" + animal.name].append("")
+                chronicle_interpolated["osi_" + animal.name].append(None)
+                chronicle_gui["osi_" + animal.name].append("")
+                chronicle_interpolated["wua_" + animal.name].append(None)
+                chronicle_gui["wua_" + animal.name].append("")
+                chronicle_interpolated["ua_" + animal.name].append(None)
+                chronicle_gui["ua_" + animal.name].append("")
 
     # alpha order
     # chronicle_gui = {key: value for key, value in sorted(chronicle_gui.items())}
@@ -236,12 +236,12 @@ def export_text_interpolatevalues(state, data_to_table, horiz_headers, vertical_
 
     # prep data
     for fish_num, fish_name in enumerate(fish_names):
-        if "hv_" in fish_name:
-            fish_names[fish_num] = fish_name.replace("hv_", "")
-        if "spu_" in fish_name:
-            fish_names[fish_num] = fish_name.replace("spu_", "")
-        if "si_" in fish_name:
-            fish_names[fish_num] = fish_name.replace("si_", "")
+        if "osi_" in fish_name:
+            fish_names[fish_num] = fish_name.replace("osi_", "")
+        if "wua_" in fish_name:
+            fish_names[fish_num] = fish_name.replace("wua_", "")
+        if "ua_" in fish_name:
+            fish_names[fish_num] = fish_name.replace("ua_", "")
 
     # header 1
     if project_properties['language'] == 0:
@@ -256,14 +256,9 @@ def export_text_interpolatevalues(state, data_to_table, horiz_headers, vertical_
             header = 'troncon\tdate\tunit'
         else:
             header = 'troncon\tunit'
-    if project_properties['language'] == 0:
-        header += "".join(['\tHV' + str(i) for i in range(int(len(fish_names) / 3))])
-        header += "".join(['\tWUA' + str(i) for i in range(int(len(fish_names) / 3))])
-        header += "".join(['\tUA' + str(i) for i in range(int(len(fish_names) / 3))])
-    else:
-        header += "".join(['\tVH' + str(i) for i in range(int(len(fish_names) / 3))])
-        header += "".join(['\tSPU' + str(i) for i in range(int(len(fish_names) / 3))])
-        header += "".join(['\tSI' + str(i) for i in range(int(len(fish_names) / 3))])
+    header += "".join(['\tOSI' + str(i) for i in range(int(len(fish_names) / 3))])
+    header += "".join(['\tWUA' + str(i) for i in range(int(len(fish_names) / 3))])
+    header += "".join(['\tUA' + str(i) for i in range(int(len(fish_names) / 3))])
     header += '\n'
     # header 2
     if len(types.keys()) > 1:  # date
@@ -295,15 +290,15 @@ def export_text_interpolatevalues(state, data_to_table, horiz_headers, vertical_
             linetext += "0" + "\t" + str(vertical_headers[row_index]) + "\t"
         # for each column
         for column_name in horiz_headers:
-            data_hv = data_to_table[column_name][row_index]
-            if not data_hv:
+            hab_data = data_to_table[column_name][row_index]
+            if not hab_data:
                 linetext += "None" + "\t"
-            if data_hv:
+            if hab_data:
                 # change decimal point
                 locale = QLocale()
                 if locale.decimalPoint() == ",":
-                    data_hv = str(data_hv).replace('.', ',')
-                linetext += str(data_hv) + "\t"
+                    hab_data = str(hab_data).replace('.', ',')
+                linetext += str(hab_data) + "\t"
         # new line
         linetext += "\n"
     text = header + "\n" + linetext
