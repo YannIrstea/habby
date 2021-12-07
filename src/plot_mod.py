@@ -158,7 +158,7 @@ def plot_suitability_curve(state, information_model_dict, selected_fish_stage, p
 
                 ax[index_model_var, stage_index].set_xlabel(model_var.name_gui + " [" + model_var.unit + "]")
 
-                ax[index_model_var, stage_index].set_ylabel('SI []' + "\n" + stage_var.stage)
+                ax[index_model_var, stage_index].set_ylabel('Suitability Index []' + "\n" + stage_var.stage)
                 ax[index_model_var, stage_index].set_ylim([-0.1, 1.1])
 
     # all cases
@@ -237,7 +237,7 @@ def plot_suitability_curve_hem(state, information_model_dict, selected_fish_stag
                rotation=45)
 
     axarr.set_xlabel(qt_tr.translate("plot_mod", 'HEM [HFST] / shear stress [N/m²]'))
-    axarr.set_ylabel('SI []')
+    axarr.set_ylabel('Suitability Index []')
     axarr.set_ylim([0.0, 1.0])
 
     plt.tight_layout(rect=[0, 0, 1, 0.95])
@@ -302,7 +302,7 @@ def plot_suitability_curve_bivariate(state, information_model_dict, selected_fis
 
         # pre plot
         fig, ax = plt.subplots(1, 1)
-        plt.get_current_fig_manager().set_window_title('SI' + " : " + model_var.name)
+        plt.get_current_fig_manager().set_window_title('Suitability Index' + " : " + model_var.name)
 
         # plot
         meshcolor = ax.imshow(pref_values_array,
