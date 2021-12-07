@@ -1026,11 +1026,11 @@ def fig_lammi(vh_pro, coord_pro, nb_pro_reach, pro_num, sim_num, project_propert
 
 def compare_lammi(filename_habby, filename_lammi, filename_lammi_sur):
     """
-    This function compares the SPU for the trut done by lammi and by HABBY (using hydrological lammi output). It is
+    This function compares the wua for the trut done by lammi and by HABBY (using hydrological lammi output). It is
     not directly used by HABBY, but it can be useful to check the differences.
 
-    :param filename_habby: the name and path of the text file giving the spu from HABBY (spu_xxx.txt)
-    :param filename_lammi:  the name and the file of the lammi spu (FaciesTRF.txt)
+    :param filename_habby: the name and path of the text file giving the wua from HABBY (wua_xxx.txt)
+    :param filename_lammi:  the name and the file of the lammi wua (FaciesTRF.txt)
     :param filename_lammi_sur: the name and the file of the lammi surface
     """
     mpl.rcParams['ps.fonttype'] = 42
@@ -1042,10 +1042,10 @@ def compare_lammi(filename_habby, filename_lammi, filename_lammi_sur):
     t_habby = data_habby[:, 0]
     reach_habby = data_habby[:, 1]
     area_habby = data_habby[:, 2]
-    spu_habby = data_habby[:, 3]
+    wua_habby = data_habby[:, 3]
 
-    # load data from lammi spu
-    # order of spu: adu, juv, ale, fray
+    # load data from lammi wua
+    # order of wua: adu, juv, ale, fray
     with open(filename_lammi, 'rt') as f:
         data_lammi = f.read()
     data_lammi = data_lammi.split('\n')
@@ -1053,7 +1053,7 @@ def compare_lammi(filename_habby, filename_lammi, filename_lammi_sur):
     qnow = -99
     q_lammi = []  # difficult to know the length in advance
     reach_lammi = []
-    spu_lammi = []
+    wua_lammi = []
     for d in data_lammi:
         d = d.split()
         if len(d) == 1:
@@ -1065,23 +1065,23 @@ def compare_lammi(filename_habby, filename_lammi, filename_lammi_sur):
         if len(d) == 9:
             try:
                 rnow = float(d[0])
-                spuadu = float(d[1])
+                wuaadu = float(d[1])
             except ValueError:
                 print('Error: Could not read lammi output files (2)')
                 return
             reach_lammi.append(rnow)
             q_lammi.append(qnow)
-            spu_lammi.append(spuadu)
+            wua_lammi.append(wuaadu)
     reach_lammi = np.array(reach_lammi)
     q_lammi = np.array(q_lammi)
-    spu_lammi = np.array(spu_lammi)
+    wua_lammi = np.array(wua_lammi)
 
     # load data surface
     with open(filename_lammi_sur, 'rt') as f:
         data_sur = f.read()
     data_sur = data_sur.split('\n')
     data_sur = data_sur[5:]
-    area_lammi = np.zeros((len(spu_lammi),))
+    area_lammi = np.zeros((len(wua_lammi),))
     ind = 0
     for d in data_sur:
         d = d.split()
@@ -1099,18 +1099,18 @@ def compare_lammi(filename_habby, filename_lammi, filename_lammi_sur):
                 print('Error: Could not read lammi output files (2)')
                 return
 
-    # plot habby_lammi spu
-    plot_spu = True
-    if plot_spu:
+    # plot habby_lammi wua
+    plot_wua = True
+    if plot_wua:
         for r in range(0, int(max(reach_habby))):  # int(max(reach_habby))
             plt.figure()
-            plt.plot(q_lammi[reach_lammi == r + 1], spu_habby[reach_habby == r], 'b')
-            plt.plot(q_lammi[reach_lammi == r + 1], spu_lammi[reach_lammi == r + 1], 'g')
-            # plt.plot(q_lammi[reach_lammi == r + 1], spu_habby[reach_habby == r]/area_habby[reach_habby == r], 'b')
-            # plt.plot(q_lammi[reach_lammi == r + 1], spu_lammi[reach_lammi == r + 1]/area_lammi[reach_lammi == r + 1], 'g')
+            plt.plot(q_lammi[reach_lammi == r + 1], wua_habby[reach_habby == r], 'b')
+            plt.plot(q_lammi[reach_lammi == r + 1], wua_lammi[reach_lammi == r + 1], 'g')
+            # plt.plot(q_lammi[reach_lammi == r + 1], wua_habby[reach_habby == r]/area_habby[reach_habby == r], 'b')
+            # plt.plot(q_lammi[reach_lammi == r + 1], wua_lammi[reach_lammi == r + 1]/area_lammi[reach_lammi == r + 1], 'g')
             plt.legend(('habby', 'lammi'), fancybox=True, framealpha=0.5)
             plt.xlabel('discharge [m^3/sec]')
-            plt.ylabel('SPU')
+            plt.ylabel('WUA [m^2]')
             plt.title('Comparaison lammi-habby for the facies ' + str(r + 1))
 
     # plot the surface of each facies

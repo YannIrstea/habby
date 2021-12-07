@@ -84,8 +84,6 @@ def get_biomodels_informations_for_database(path_xml):
         aquatic_animal_type = "fish"
     elif root.find(".//Invertebrate") is not None:
         aquatic_animal_type = "invertebrate"
-    elif root.find(".//Crustacean") is not None:
-        aquatic_animal_type = "crustacean"
     else:
         print("Error: aquatic_animal_type not recognised. Please verify this xml file :", path_xml)
         return "Error: aquatic_animal_type not recognised. Please verify this xml file :" + path_xml
@@ -430,7 +428,7 @@ def read_pref(xmlfile):
 
         if information_model_dict["model_type"] == "bivariate suitability index models":
             # get pref
-            hab_var.hv = list(map(float, root.findall(".//PreferenceValues")[hab_index].text.split(" ")))
+            hab_var.hsi_model_data = list(map(float, root.findall(".//PreferenceValues")[hab_index].text.split(" ")))
 
     return information_model_dict
 

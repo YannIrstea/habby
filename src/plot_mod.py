@@ -78,7 +78,7 @@ def plot_suitability_curve(state, information_model_dict, selected_fish_stage, p
 
     name_fish = information_model_dict["latin_name"]
     code_fish = information_model_dict["code_biological_model"]
-    title_plot = 'HSI' + " : "
+    title_plot = 'Suitability Index : '
 
     # one stage
     if selected_fish_stage is not None:
@@ -99,7 +99,7 @@ def plot_suitability_curve(state, information_model_dict, selected_fish_stage, p
                                color="blue",
                                marker=mar)
             ax[index_var].set_xlabel(hyd_var.name_gui + " [" + hyd_var.unit + "]")
-            ax[index_var].set_ylabel('HSI []')
+            ax[index_var].set_ylabel('Suitability Index []')
             ax[index_var].set_ylim([-0.1, 1.1])
 
         # sub
@@ -109,7 +109,7 @@ def plot_suitability_curve(state, information_model_dict, selected_fish_stage, p
                       facecolor='c',
                       align='center')
             ax[2].set_xlabel(sub_var_list[0].name_gui + ' [' + sub_var_list[0].unit + ']')
-            ax[2].set_ylabel('HSI []')
+            ax[2].set_ylabel('SI []')
             ax[2].set_ylim([-0.1, 1.1])
             ax[2].set_xlim([0.4, len(sub_var_list[0].data[0]) + 0.6])
 
@@ -158,7 +158,7 @@ def plot_suitability_curve(state, information_model_dict, selected_fish_stage, p
 
                 ax[index_model_var, stage_index].set_xlabel(model_var.name_gui + " [" + model_var.unit + "]")
 
-                ax[index_model_var, stage_index].set_ylabel('HSI []' + "\n" + stage_var.stage)
+                ax[index_model_var, stage_index].set_ylabel('SI []' + "\n" + stage_var.stage)
                 ax[index_model_var, stage_index].set_ylim([-0.1, 1.1])
 
     # all cases
@@ -219,7 +219,7 @@ def plot_suitability_curve_hem(state, information_model_dict, selected_fish_stag
     model_var = information_model_dict["hab_variable_list"][0]
 
     # title and filename
-    title_plot = 'HSI' + " : " + model_var.name
+    title_plot = 'Suitability Index : ' + model_var.name
 
     fig, axarr = plt.subplots(1, 1, sharey='row')
     plt.get_current_fig_manager().set_window_title(title_plot)
@@ -237,7 +237,7 @@ def plot_suitability_curve_hem(state, information_model_dict, selected_fish_stag
                rotation=45)
 
     axarr.set_xlabel(qt_tr.translate("plot_mod", 'HEM [HFST] / shear stress [N/m²]'))
-    axarr.set_ylabel(qt_tr.translate("plot_mod", 'HSI []'))
+    axarr.set_ylabel('SI []')
     axarr.set_ylim([0.0, 1.0])
 
     plt.tight_layout(rect=[0, 0, 1, 0.95])
@@ -297,8 +297,8 @@ def plot_suitability_curve_bivariate(state, information_model_dict, selected_fis
         model_var = information_model_dict["hab_variable_list"][0]
 
         # prep data
-        pref_values_array = np.array(model_var.hv).reshape((len(model_var.variable_list.get_from_name("h").data),
-                                                            len(model_var.variable_list.get_from_name("v").data)))
+        pref_values_array = np.array(model_var.hsi_model_data).reshape((len(model_var.variable_list.get_from_name("h").data),
+                                                             len(model_var.variable_list.get_from_name("v").data)))
 
         # pre plot
         fig, ax = plt.subplots(1, 1)
@@ -437,13 +437,13 @@ def plot_hydrosignature(state, data, vclass, hclass, title, type, project_proper
     plt.show()
 
 
-def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, project_properties):
+def plot_fish_osi_wua(state, data_2d, reach_number, habitat_variable_list, project_properties):
     """
-    This function creates the figure of the spu as a function of time for each reach. if there is only one
+    This function creates the figure of the wua as a function of time for each reach. if there is only one
     time step, it reverse to a bar plot. Otherwise it is a line plot.
 
     :param area_all: the area for all reach
-    :param spu_all: the "surface pondere utile" (SPU) for each reach
+    :param wua_all: the "surface pondere utile" (wua) for each reach
     :param name_fish: the list of fish latin name + stage
     :param path_im: the path where to save the image
     :param project_properties: the dictionnary with the figure options
@@ -501,7 +501,7 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
 
     # one time step - bar
     if len(unit_name) == 1:
-        # SPU
+        # WUA
         data_bar = []
         percent = []
         for habitat_variable in habitat_variable_list:
@@ -517,9 +517,9 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
         ax[0].set_title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name + " - " + str(
             unit_name[0]) + " " + unit_type_only_scientific)
 
-        # VH
-        vh = data_bar2 / area_all[reach_number]
-        ax[1].bar(y_pos, vh)
+        # osi
+        osi = data_bar2 / area_all[reach_number]
+        ax[1].bar(y_pos, osi)
         ax[1].set_xticks(y_pos)
         ax[1].set_ylim([-0.1, 1.1])
         # ax[1].set_xticklabels(name_fish, horizontalalignment="right")
@@ -565,13 +565,13 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
 
     # many time step - lines
     else:
-        # SPU
+        # WUA
         x_data = list(map(float, unit_name))
         for fish_index, habitat_variable in enumerate(habitat_variable_list):
-            y_data_spu = list(map(float, habitat_variable.wua[reach_number]))
+            y_data_wua = list(map(float, habitat_variable.wua[reach_number]))
             # plot line
             ax[0].plot(x_data,
-                       y_data_spu,
+                       y_data_wua,
                        label=habitat_variable.name_gui,
                        color=color_list[fish_index],
                        linestyle=style_list[fish_index],
@@ -586,20 +586,20 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
             ax[0].set_xticks(x_data[::10])
         ax[0].set_xticklabels([])
 
-        # VH
+        # OSI
         for fish_index, habitat_variable in enumerate(habitat_variable_list):
-            y_data_hv = list(map(float, habitat_variable.hv[reach_number]))
+            y_data_osi = list(map(float, habitat_variable.osi[reach_number]))
             # plot line
             ax[1].plot(x_data,
-                       y_data_hv,
+                       y_data_osi,
                        label=habitat_variable.name_gui,
                        color=color_list[fish_index],
                        linestyle=style_list[fish_index],
                        marker=mar)
 
         ax[1].set_ylim([-0.1, 1.1])
-        ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HSI (WUA/A) []'))
-        ax[1].set_title(qt_tr.translate("plot_mod", 'Habitat Value'))
+        ax[1].set_ylabel(qt_tr.translate("plot_mod", 'OSI (WUA/A) []'))
+        ax[1].set_title(qt_tr.translate("plot_mod", 'Overall Suitability Index'))
         if len(unit_name) < 25:
             ax[1].set_xticks(x_data)
         elif len(unit_name) < 100:
@@ -677,11 +677,11 @@ def plot_fish_hv_wua(state, data_2d, reach_number, habitat_variable_list, projec
 def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2d, animal_list, reach_number, types,
                                project_properties):
     """
-    This function creates the figure of the spu as a function of time for each reach. if there is only one
+    This function creates the figure of the wua as a function of time for each reach. if there is only one
     time step, it reverse to a bar plot. Otherwise it is a line plot.
 
     :param area_all: the area for all reach
-    :param spu_all: the "surface pondere utile" (SPU) for each reach
+    :param wua_all: WUA for each reach
     :param name_fish: the list of fish latin name + stage
     :param path_im: the path where to save the image
     :param project_properties: the dictionnary with the figure options
@@ -744,14 +744,14 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
         fig, ax = plt.subplots(3, 1, sharex=True)
     plt.get_current_fig_manager().set_window_title(plot_window_title)
 
-    # SPU
+    # WUA
     if len(types.keys()) > 1:  # date
         x_data = sim_name
     else:
         x_data = range(len(sim_name))
     for name_fish_num, animal in enumerate(animal_list):
-        y_data_spu = data_to_table["spu_" + animal.name]
-        ax[0].plot(x_data, y_data_spu,
+        y_data_wua = data_to_table["wua_" + animal.name]
+        ax[0].plot(x_data, y_data_wua,
                    color=color_list[name_fish_num],
                    linestyle=style_list[name_fish_num],
                    label=animal.name.replace('_', ' '),
@@ -769,16 +769,16 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
     # remove ticks labels
     ax[0].xaxis.set_ticklabels([])
 
-    # VH
+    # OSI
     for name_fish_num, animal in enumerate(animal_list):
-        y_data_hv = data_to_table["hv_" + animal.name]
-        ax[1].plot(x_data, y_data_hv,
+        y_data_osi = data_to_table["osi_" + animal.name]
+        ax[1].plot(x_data, y_data_osi,
                    color=color_list[name_fish_num],
                    linestyle=style_list[name_fish_num],
                    label=animal.name.replace('_', ' '),
                    marker=mar)
-    ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HSI []'))
-    ax[1].set_title(qt_tr.translate("plot_mod", 'Habitat Value interpolated'))
+    ax[1].set_ylabel(qt_tr.translate("plot_mod", 'OSI []'))
+    ax[1].set_title(qt_tr.translate("plot_mod", 'Overall Suitability Index interpolated'))
     ax[1].set_ylim([-0.1, 1.1])
     if len(sim_name) < 25:
         ax[1].set_xticks(x_data)  # , rotation=rot
@@ -802,8 +802,8 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
 
     # % inconnu
     for name_fish_num, animal in enumerate(animal_list):
-        y_data_hv = data_to_table["si_" + animal.name]
-        ax[2].plot(x_data, y_data_hv,
+        y_data_osi = data_to_table["ua_" + animal.name]
+        ax[2].plot(x_data, y_data_osi,
                    color=color_list[name_fish_num],
                    linestyle=style_list[name_fish_num],
                    label=animal.name.replace('_', ' '),
@@ -955,44 +955,44 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
                 dpi=project_properties['resolution'],
                 transparent=True)
 
-    """ plot hv """
-    fig, (ax_vh, ax_spu) = plt.subplots(ncols=1, nrows=2,
+    """ plot """
+    fig, (ax_osi, ax_wua) = plt.subplots(ncols=1, nrows=2,
                                         sharex="all",
                                         gridspec_kw={'height_ratios': [3, 3]})
     plt.get_current_fig_manager().set_window_title(stat_mod + " output " + reach_name + ' - HABBY')
 
-    # VH
-    ax_vh.set_title(stat_mod + " output " + reach_name + ' - HABBY')
+    # OSI
+    ax_osi.set_title(stat_mod + " output " + reach_name + ' - HABBY')
     if stat_data_dict["targ_q_all"]:
         for q_tar in stat_data_dict["targ_q_all"]:
-            ax_vh.axvline(x=q_tar,
+            ax_osi.axvline(x=q_tar,
                           linestyle=":",
                           color="black")
     for fish_index in range(len(stat_data_dict["fish_list"])):
-        ax_vh.plot(stat_data_dict["q_all"],
-                   stat_data_dict["VH"][fish_index],
+        ax_osi.plot(stat_data_dict["q_all"],
+                   stat_data_dict["OSI"][fish_index],
                    label=stat_data_dict["fish_list"][fish_index],
                    color=color_list[fish_index],
                    linestyle=style_list[fish_index])
-    ax_vh.set_ylim([-0.1, 1.1])
-    ax_vh.set_ylabel("Habitat Value\n[]")
-    ax_vh.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
+    ax_osi.set_ylim([-0.1, 1.1])
+    ax_osi.set_ylabel("Overall Suitability Index\n[]")
+    ax_osi.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
-    # SPU
+    # WUA
     if stat_data_dict["targ_q_all"]:
         for q_tar in stat_data_dict["targ_q_all"]:
-            ax_spu.axvline(x=q_tar,
+            ax_wua.axvline(x=q_tar,
                            linestyle=":",
                            color="black")
     for fish_index in range(len(stat_data_dict["fish_list"])):
-        ax_spu.plot(stat_data_dict["q_all"],
-                    stat_data_dict["SPU"][fish_index],
+        ax_wua.plot(stat_data_dict["q_all"],
+                    stat_data_dict["WUA"][fish_index],
                     label=stat_data_dict["fish_list"][fish_index],
                     color=color_list[fish_index],
                     linestyle=style_list[fish_index])
-    ax_spu.set_ylabel("WUA by 100 m\n[m²]")
-    ax_spu.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
-    ax_spu.set_xlabel("Discharge [m$^{3}$/sec]")
+    ax_wua.set_ylabel("WUA by 100 m\n[m²]")
+    ax_wua.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
+    ax_wua.set_xlabel("Discharge [m$^{3}$/sec]")
 
     # targ_q_all
     if stat_data_dict["targ_q_all"]:
@@ -1005,7 +1005,7 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
                    bbox_to_anchor=(0.73, 0.1))
 
     # LEGEND
-    handles, labels = ax_vh.get_legend_handles_labels()
+    handles, labels = ax_osi.get_legend_handles_labels()
     fig.legend(handles=handles,
                labels=labels,
                loc="center left",
@@ -1016,10 +1016,10 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
     plt.subplots_adjust(right=0.73)
 
     # save image
-    name_pict = stat_mod + "_hv_" + reach_name + project_properties['format']
+    name_pict = stat_mod + "_osi_" + reach_name + project_properties['format']
     if os.path.exists(os.path.join(path_im, name_pict)):
         if not erase1:
-            name_pict = stat_mod + "_hv_" + reach_name + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_properties['format']
+            name_pict = stat_mod + "_osi_" + reach_name + "_" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + project_properties['format']
     plt.savefig(os.path.join(path_im, name_pict),
                 dpi=project_properties['resolution'],
                 transparent=True)

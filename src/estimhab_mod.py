@@ -25,15 +25,15 @@ def estimhab_process(estimhab_dict, project_properties, path_prj, progress_value
     qt_tr = get_translator(project_properties['path_prj'])
 
     # compute
-    q_all, h_all, w_all, vel_all, VH, SPU, qtarg_dict = estimhab(estimhab_dict, qt_tr)
+    q_all, h_all, w_all, vel_all, OSI, WUA, qtarg_dict = estimhab(estimhab_dict, qt_tr)
 
     # save in dict
     estimhab_dict["q_all"] = q_all
     estimhab_dict["h_all"] = h_all
     estimhab_dict["w_all"] = w_all
     estimhab_dict["vel_all"] = vel_all
-    estimhab_dict["VH"] = VH
-    estimhab_dict["SPU"] = SPU
+    estimhab_dict["OSI"] = OSI
+    estimhab_dict["WUA"] = WUA
     estimhab_dict["qtarg_dict"] = qtarg_dict
 
     # name hdf5
@@ -72,11 +72,11 @@ def estimhab(estimhab_dict, qt_tr):
     :param project_properties: a dictionnary with the figure option
     :param path_txt: the path where to send the text data
     :param fish_name: the name fo the fish to be analysed (if not there, use the xml name)
-    :return: habitat value and useful surface (VH and SPU) as a function of discharge
+    :return: habitat value and useful surface (OSI and WUA) as a function of discharge
 
     **Technical comments and walk-through**
 
-    First, we get all the discharges on which we want to calculate the SPU (surface ponderée utile),
+    First, we get all the discharges on which we want to calculate the WUA (surface ponderée utile),
     using the inputs from the user.
 
     Next we use hydrological rating curves (info on google if needed) to get the height and the width of the river for
@@ -91,7 +91,7 @@ def estimhab(estimhab_dict, qt_tr):
     they described the preference curves. For the argumentation on the form of the relationship, report yourself to the
     documentation of Estimhab (one pdf file should in the folder “doc “ in HABBY).
 
-    Then, we calculate the habitat values (VH and SPU). Finally, we plot the results in a figure and we save it as
+    Then, we calculate the habitat values (OSI and WUA). Finally, we plot the results in a figure and we save it as
     a text file.
     """
     estimhab_dict["qtarg"].sort()
@@ -149,8 +149,8 @@ def estimhab(estimhab_dict, qt_tr):
     q50_data = [q50, h50, l50, v50, re50, fr50, dh50, np.exp(dh50)]
 
     # get fish data
-    VH = []
-    SPU = []
+    OSI = []
+    WUA = []
     for f in range(0, len(fish_xml)):
         # load xml file
         filename = os.path.join(path_bio, fish_xml[f])
@@ -175,7 +175,7 @@ def estimhab(estimhab_dict, qt_tr):
                   fish_name[f] + fish_xml[f])
             return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
 
-        # calculate VH
+        # calculate OSI
         if func_q[0] == 0.:
             part_q = re ** coeff_q[0] * np.exp(coeff_q[1] * re)
         elif func_q[0] == 1.:
@@ -188,22 +188,22 @@ def estimhab(estimhab_dict, qt_tr):
             const += coeff_const[i + 1] * np.log(q50_data[int(var_const[i])])
         if const < 0:
             const = 0
-        VH_f = const * part_q
-        SPU_f = VH_f * w_all * 100
+        OSI_f = const * part_q
+        WUA_f = OSI_f * w_all * 100
 
-        VH.append(VH_f)
-        SPU.append(SPU_f)
+        OSI.append(OSI_f)
+        WUA.append(WUA_f)
 
-    VH = np.array(VH)
-    SPU = np.array(SPU)
+    OSI = np.array(OSI)
+    WUA = np.array(WUA)
 
     # remove qtarget values to separate them
     qtarg_dict = dict(q_all=[],
                       h_all=[],
                       w_all=[],
                       vel_all=[],
-                      VH=np.empty((SPU.shape[0], len(qtarg))),
-                      SPU=np.empty((SPU.shape[0], len(qtarg))))
+                      OSI=np.empty((WUA.shape[0], len(qtarg))),
+                      WUA=np.empty((WUA.shape[0], len(qtarg))))
     if qtarg:
         for qtarg_indice, qtarg_value in enumerate(qtarg):
             indice = np.where(q_all == qtarg_value)[0][0]
@@ -211,10 +211,10 @@ def estimhab(estimhab_dict, qt_tr):
             qtarg_dict["h_all"].append(h_all[indice])
             qtarg_dict["w_all"].append(w_all[indice])
             qtarg_dict["vel_all"].append(vel[indice])
-            qtarg_dict["VH"][:, qtarg_indice] = VH[:, indice]
-            qtarg_dict["SPU"][:, qtarg_indice] = SPU[:, indice]
+            qtarg_dict["OSI"][:, qtarg_indice] = OSI[:, indice]
+            qtarg_dict["WUA"][:, qtarg_indice] = WUA[:, indice]
 
-    return q_all, h_all, w_all, vel, VH, SPU, qtarg_dict
+    return q_all, h_all, w_all, vel, OSI, WUA, qtarg_dict
 
 
 def pass_to_float_estimhab(var_name, root):
@@ -251,7 +251,7 @@ def main():
     fish = ['TRF_ADU', 'TRF_JUV', 'BAF', 'CHA', 'GOU']
     path = os.path.join('.', 'biology')
 
-    [VH, SPU] = estimhab(q, w, h, q50, qrange, substrat, path, fish, True, True)
+    [OSI, WUA] = estimhab(q, w, h, q50, qrange, substrat, path, fish, True, True)
 
 
 if __name__ == '__main__':

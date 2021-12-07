@@ -51,9 +51,18 @@ class HydraulicVariable:
         return self.name
 
 
-class HabitatVariable(HydraulicVariable):
+class SuitabilityIndexVariable(HydraulicVariable):
     """
-    Represent one Hydraulic, substrate and habitat variable or value.
+    Represent one SI variable (linked to hydraulic variable). Mesh scale.
+    """
+    def __init__(self, name="", name_gui="", descr="", dtype=None, unit="", position="", value=None, hdf5=False,
+                 sub=False, index_gui=-1, depend_on_h=True):
+        super().__init__(name, name_gui, descr, dtype, unit, position, value, hdf5, sub, index_gui, depend_on_h)
+
+
+class HabitatSuitabilityIndexVariable(HydraulicVariable):
+    """
+    Represent HSI variable. Mesh cale.
     """
     def __init__(self, name="", name_gui="", descr="", dtype=None, unit="", position="", value=None, hdf5=False,
                  sub=False, index_gui=-1, depend_on_h=True):
@@ -61,11 +70,13 @@ class HabitatVariable(HydraulicVariable):
         # hab data
         self.habitat = True  # False: hydraulic and substrate (default) True: Habitat
         self.wua = [[]]
-        self.hv = [[]]
+        self.osi = [[]]
         self.percent_area_unknown = [[]]
         self.pref_file = ""
         self.stage = ""
         self.aquatic_animal_type = ""
+        self.variable_list = []  # variable model list
+        self.hsi_biv = []  # only for bivariate
 
 
 class HydraulicVariableUnitList(list):
@@ -83,9 +94,9 @@ class HydraulicVariableUnitList(list):
         if hydraulic_variable:
             hydraulic_variable2 = deepcopy(hydraulic_variable)
             # set manually attr
-            if type(hydraulic_variable) == HabitatVariable:
+            if type(hydraulic_variable) == HabitatSuitabilityIndexVariable:
                 hydraulic_variable2.wua = hydraulic_variable.wua
-                hydraulic_variable2.hv = hydraulic_variable.hv
+                hydraulic_variable2.osi = hydraulic_variable.osi
                 hydraulic_variable2.percent_area_unknown = hydraulic_variable.percent_area_unknown
                 hydraulic_variable2.percent_area_unknown = hydraulic_variable.percent_area_unknown
                 hydraulic_variable2.pref_file = hydraulic_variable.pref_file
@@ -109,13 +120,13 @@ class HydraulicVariableUnitList(list):
         # animal name
         name = code_bio_model + "_" + stage + "_" + hyd_opt + "_" + sub_opt
         # create variable
-        hab_variable = HabitatVariable(value=None,
-                                         unit="HSI",
-                                         name=name,
-                                         name_gui=name,
-                                         position="mesh",
-                                         dtype=np.float64,
-                                         index_gui=1)
+        hab_variable = HabitatSuitabilityIndexVariable(value=None,
+                                                       unit="HSI",
+                                                       name=name,
+                                                       name_gui=name,
+                                                       position="mesh",
+                                                       dtype=np.float64,
+                                                       index_gui=1)
         # extra attributes
         hab_variable.variable_list = variable_list
         hab_variable.precomputable_tohdf5 = True
@@ -713,14 +724,14 @@ class HydraulicVariableUnitManagement:
         varnames.sort(key=str.lower)  # sort alphanumeric
         # detect_variable_from_software_attribute
         for varname_index, varname in enumerate(varnames):
-            variable = HabitatVariable(value=None,
-                                         unit="HSI",
-                                         name=varname,
-                                         name_gui=varname,
-                                         hdf5=True,
-                                         position="mesh",
-                                         dtype=np.float64,
-                                         index_gui=1)
+            variable = HabitatSuitabilityIndexVariable(value=None,
+                                                       unit="HSI",
+                                                       name=varname,
+                                                       name_gui=varname,
+                                                       hdf5=True,
+                                                       position="mesh",
+                                                       dtype=np.float64,
+                                                       index_gui=1)
             self.hdf5_and_computable_list.append(variable)
 
     def get_original_computable_mesh_and_node_from_hyd(self, mesh_variable_original_name_list,
@@ -898,7 +909,7 @@ class HydraulicVariableUnitManagement:
                 self.all_final_variable_list.append(self.area)
             # shear_stress
             for variable_wish in user_target_list.habs():
-                if variable_wish.aquatic_animal_type in {"invertebrate", "crustacean"}:
+                if variable_wish.aquatic_animal_type in {"invertebrate"}:
                     if self.shear_stress.name not in self.all_final_variable_list.hdf5s().meshs().names():
                         if self.shear_stress.name in self.hdf5_and_computable_list.hdf5s().meshs().names():
                             self.shear_stress.position = "mesh"

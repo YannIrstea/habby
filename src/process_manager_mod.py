@@ -227,18 +227,18 @@ class MyProcessManager(QThread):
             for reach_name in reach:
                 reach_number = light_data_2d.reach_list.index(reach_name)
 
-                # hab data (HV and WUA) not maps
+                # hab data (OSI and WUA) not maps
                 if habitat_variable_list and plot_type != ["map"] and not self.plot_production_stopped:
                     # class MyProcess
                     progress_value = Value("d", 0.0)
                     q = Queue()
-                    my_process = MyProcess(p=Process(target=plot_mod.plot_fish_hv_wua,
+                    my_process = MyProcess(p=Process(target=plot_mod.plot_fish_osi_wua,
                                                      args=(progress_value,
                                                              self.hdf5.data_2d,
                                                              reach_number,
                                                              habitat_variable_list,
                                                              self.project_properties),
-                                                     name="plot_fish_hv_wua"),
+                                                     name="plot_fish_osi_wua"),
                                            progress_value=progress_value,
                                            q=q)
                     self.process_list.append(my_process)
@@ -301,7 +301,7 @@ class MyProcessManager(QThread):
                                                                                    unit_type,
                                                                                    animal,
                                                                                    string_tr,
-                                                                                   self.tr('HSI = ') + '{0:3.2f}'.format(animal.hv[reach_number][unit_number]) + " / " + self.tr('unknown area') + " = " + '{0:3.2f}'.format(animal.percent_area_unknown[reach_number][unit_number]) + " %")
+                                                                                   'OSI = {0:3.2f}'.format(animal.osi[reach_number][unit_number]) + " / UA = " + '{0:3.2f}'.format(animal.percent_area_unknown[reach_number][unit_number]) + " %")
 
                                     # class MyProcess
                                     progress_value = Value("d", 0.0)

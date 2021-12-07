@@ -32,7 +32,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                         project_properties={}):
     """
     This function calculates the habitat and create the outputs for the habitat calculation. The outputs are: text
-    output (spu and cells by cells), shapefile, paraview files, one 2d figure by time step. The 1d figure
+    output (wua and cells by cells), shapefile, paraview files, one 2d figure by time step. The 1d figure
     is done on the main thread as we want to show it to the user on the GUI. This function is called by calc_hab_GUI.py
     on a second thread to minimize the freezing on the GUI.
 
@@ -153,7 +153,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                 height_t = hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][hdf5.data_2d.hvum.h.name].to_numpy()
                 vel_t = hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][hdf5.data_2d.hvum.v.name].to_numpy()
 
-                if animal.aquatic_animal_type in {"invertebrate", "crustacean"} and "HEM" in information_model_dict["hydraulic_type_available"][stage_index]:
+                if animal.aquatic_animal_type in {"invertebrate"} and "HEM" in information_model_dict["hydraulic_type_available"][stage_index]:
                     shear_stress_t = hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][hdf5.data_2d.hvum.shear_stress.name].to_numpy()
                 ikle_t = hdf5.data_2d[reach_number][unit_number]["mesh"]["tin"]
                 area = hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][hdf5.data_2d.hvum.area.name]
@@ -176,7 +176,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                         hem_interp_f = interp1d(pref_shearstress, pref_values,
                                                 kind='previous', bounds_error=False, fill_value=np.nan)
                         with np.errstate(divide='ignore', invalid='ignore'):
-                            hv = hem_interp_f(shear_stress_t.flatten())
+                            hsi = hem_interp_f(shear_stress_t.flatten())
                         if any(np.isnan(shear_stress_t)):
                             warning_shearstress_list.append(unit_number)
                     else:
@@ -257,27 +257,27 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                         try:
                             # HV
                             if "H" in animal.hyd_opt and "V" in animal.hyd_opt:
-                                hv = h_pref_c * v_pref_c * s_pref_c
-                                hv[h_pref_c == 0] = 0
-                                hv[v_pref_c == 0] = 0
-                                hv[s_pref_c == 0] = 0
+                                hsi = h_pref_c * v_pref_c * s_pref_c
+                                hsi[h_pref_c == 0] = 0
+                                hsi[v_pref_c == 0] = 0
+                                hsi[s_pref_c == 0] = 0
                             # H
                             elif "H" in animal.hyd_opt:
-                                hv = h_pref_c * s_pref_c
-                                hv[h_pref_c == 0] = 0
-                                hv[s_pref_c == 0] = 0
+                                hsi = h_pref_c * s_pref_c
+                                hsi[h_pref_c == 0] = 0
+                                hsi[s_pref_c == 0] = 0
                             # V
                             elif "V" in animal.hyd_opt:
-                                hv = v_pref_c * s_pref_c
-                                hv[v_pref_c == 0] = 0
-                                hv[s_pref_c == 0] = 0
+                                hsi = v_pref_c * s_pref_c
+                                hsi[v_pref_c == 0] = 0
+                                hsi[s_pref_c == 0] = 0
                             # Neglect
                             else:
-                                hv = s_pref_c
+                                hsi = s_pref_c
                         except ValueError:
                             print('Error: ' + qt_tr.translate("calcul_hab_mod",
                                                               'One time step misses substrate, velocity or water height value.'))
-                            hv = [-99]
+                            hsi = [-99]
 
                 # bivariate suitability index models
                 else:
@@ -300,26 +300,26 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                     xy_input = np.dstack((vel_t, height_t))
 
                     # calc from model points
-                    hv = griddata(pref_xy_repeated, model_var.hv, xy_input, method='linear')[0]
+                    hsi = griddata(pref_xy_repeated, model_var.hsi_model_data, xy_input, method='linear')[0]
 
                 # compute summary
-                wua = np.nansum(hv * area)
-                if any(np.isnan(hv)):
-                    area = np.sum(hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][hdf5.data_2d.hvum.area.name][~np.isnan(hv)])
-                    # global_hv = wua / area
+                wua = np.nansum(hsi * area)
+                if any(np.isnan(hsi)):
+                    area = np.sum(hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][hdf5.data_2d.hvum.area.name][~np.isnan(hsi)])
+                    # osi = wua / area
                     percent_area_unknown = (1 - (area / hdf5.data_2d[reach_number][unit_number].total_wet_area)) * 100  # next to 1 in top quality, next to 0 is bad or EVIL !
                 else:
                     percent_area_unknown = 0.0
-                global_hv = wua / hdf5.data_2d[reach_number][unit_number].total_wet_area
+                osi = wua / hdf5.data_2d[reach_number][unit_number].total_wet_area
 
                 # get data
-                hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][animal.name] = hv
+                hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][animal.name] = hsi
                 if len(animal.wua) < hdf5.data_2d.reach_number:
                     animal.wua.append([])
-                    animal.hv.append([])
+                    animal.osi.append([])
                     animal.percent_area_unknown.append([])
                 animal.wua[reach_number].append(wua)
-                animal.hv[reach_number].append(global_hv)
+                animal.osi[reach_number].append(osi)
                 animal.percent_area_unknown[reach_number].append(percent_area_unknown)
 
                 # progress
@@ -341,7 +341,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                                                                               " of reach : ") +
                       hdf5.data_2d.reach_list[reach_number])
             # WARNINGS HEM
-            if animal.aquatic_animal_type in {"invertebrate", "crustacean"}:
+            if animal.aquatic_animal_type in {"invertebrate"}:
                 if warning_shearstress_list:
                     warning_shearstress_list.sort()
                     # get unit name
@@ -373,8 +373,8 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
             nb_export += 1
         export_dict[key + "_" + hdf5.extension[1:]] = project_properties[key][1]
 
-    # export_spu_txt
-    hdf5.export_spu_txt()
+    # export_osi_wua_txt
+    hdf5.export_osi_wua_txt()
 
     # warnings
     if not print_cmd:

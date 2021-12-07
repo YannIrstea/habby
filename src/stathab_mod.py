@@ -481,11 +481,14 @@ class Stathab:
         dict_pref_stahab = self.stahab_get_pref()
 
         nb_models = len(dict_pref_stahab['code_bio_model'])
+
         hv_hv = np.zeros((nb_reach, nb_models, nbclaq))
         wua_hv = np.zeros((nb_reach, nb_models, nbclaq))
+
         hv_h = np.zeros((nb_reach, nb_models, nbclaq))
-        hv_v = np.zeros((nb_reach, nb_models, nbclaq))
         wua_h = np.zeros((nb_reach, nb_models, nbclaq))
+
+        hv_v = np.zeros((nb_reach, nb_models, nbclaq))
         wua_v = np.zeros((nb_reach, nb_models, nbclaq))
 
         for r in range(0, nb_reach):
@@ -635,8 +638,8 @@ class Stathab:
                                        h_all=hmod,
                                        w_all=wmod,
                                        vel_all=vmod,
-                                       VH=hv_hv[r],
-                                       SPU=wua_hv[r],
+                                       OSI=hv_hv[r],
+                                       WUA=wua_hv[r],
                                         targ_q_all=[]))
 
         # the biological habitat value and wua for all reach, all species
@@ -650,8 +653,8 @@ class Stathab:
         steep and in the tropical regions (usually the islands of Reunion and Guadeloupe).
 
         :param path_bio: the path to the preference file usually biology/stathab
-        :param by_vol: If True the output is by volum (VPU instead of SPU) from the velcoity pref file
-        :return: the SPU or VPU
+        :param by_vol: If True the output is by volum (WUV instead of WUA) from the velcoity pref file
+        :return: the WUA or WUV
         """
         # various info
         self.load_ok = False
@@ -755,8 +758,8 @@ class Stathab:
                                        h_all=hmod,
                                        w_all=wmod,
                                        vel_all=vmod,
-                                       VH=hv_hv[r],
-                                       SPU=wua_hv[r],
+                                       OSI=hv_hv[r],
+                                       WUA=wua_hv[r],
                                         targ_q_all=[]))
 
             # # ************************************************************************************************************
@@ -906,7 +909,7 @@ class Stathab:
                     hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data)
                 dict_pref_stahab['v_data'].append(
                     hab_var.variable_list[hab_var.variable_list.names().index(hvum.v.name)].data)
-                dict_pref_stahab['hv_pref_data'].append(hab_var.hv)
+                dict_pref_stahab['hv_pref_data'].append(hab_var.osi)
                 dict_pref_stahab['h_pref_data'].append([])
                 dict_pref_stahab['v_pref_data'].append([])
         return dict_pref_stahab
@@ -1422,7 +1425,7 @@ class Stathab:
         executed before. For the moment only the fish SIC is tested.
 
         :param path_ori: the path to the output files from stathab based on the R code
-        :param by_vel: If True, the velcoity-based vpu is used. Otherise, it is height-based spu
+        :param by_vel: If True, the velcoity-based vpu is used. Otherise, it is height-based wua
 
         """
 
@@ -1442,7 +1445,7 @@ class Stathab:
             plt.ylabel('VPU')
         else:
             plt.title('Stathab - Tropical univariate, based on height preference - SIC ')
-            plt.ylabel('SPU')
+            plt.ylabel('WUA')
         plt.plot(self.q_all[0], self.j_all[0, 0, :], '-')
         plt.plot(q_r, vpu, 'x')
         plt.xlabel('Q [m3/sec]')
@@ -1728,7 +1731,7 @@ def main():
         mystathab.stathab_trop_biv(path_bio)
         mystathab.test_stathab_trop_biv(path_ori)
     else:
-        # False-> height based spu, True-> vpu
+        # False-> height based wua, True-> vpu
         mystathab.stathab_steep_calc(path_bio, False)
         mystathab.test_stathab_trop_uni(path_ori, False)
 
