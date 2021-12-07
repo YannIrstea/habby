@@ -302,7 +302,7 @@ def plot_suitability_curve_bivariate(state, information_model_dict, selected_fis
 
         # pre plot
         fig, ax = plt.subplots(1, 1)
-        plt.get_current_fig_manager().set_window_title('HSI' + " : " + model_var.name)
+        plt.get_current_fig_manager().set_window_title('Suitability Index' + " : " + model_var.name)
 
         # plot
         meshcolor = ax.imshow(pref_values_array,
