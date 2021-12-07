@@ -31,7 +31,7 @@
          <PreferenceShearStress>
             <MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues Unit="pascal" UnitSymbol="Pa">0.0771 0.0828 0.0945 0.118 0.141 0.166 0.218 0.272 0.393 0.529 0.682 0.826 1.09 1.59 2.27 3.17 4.48 6.34 8.95 12.7 17.9</MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues>
             <HemisphereNumber Unit="HFST" UnitSymbol="HFST">0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20</HemisphereNumber>
-            <PreferenceValues>0.13 0.17 0.22 0.29 0.37 0.46 0.56 0.67 0.78 0.87 0.94 0.98 1 0.99 0.96 0.92 0.86 0.80 0.73 0.66 0.59</PreferenceValues>
+            <SuitabilityIndex>0.13 0.17 0.22 0.29 0.37 0.46 0.56 0.67 0.78 0.87 0.94 0.98 1 0.99 0.96 0.92 0.86 0.80 0.73 0.66 0.59</SuitabilityIndex>
          </PreferenceShearStress>
          </Stage>
       </Stages>

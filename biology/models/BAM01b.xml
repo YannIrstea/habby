@@ -37,43 +37,43 @@
          <Stage Type="[0,45[" Dimension="Total Length" Unit="Millimeter" UnitSymbol="mm">
             <PreferenceHeightOfWater>
                <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 7.5 12.5 17.5 22.5 27.5 32.5 42.5 47.5 90</HeightOfWaterValues>
-               <PreferenceValues>0 1 0.35 0.14 0.14 0.11 0.07 0.08 0 0</PreferenceValues>
+               <SuitabilityIndex>0 1 0.35 0.14 0.14 0.11 0.07 0.08 0 0</SuitabilityIndex>
             </PreferenceHeightOfWater>
             <PreferenceVelocity>
                <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 7.5 12.5 17.5 32.5 52.5 90</VelocityValues>
-               <PreferenceValues>1 1 0.67 0.23 0.17 0.11 0 0</PreferenceValues>
+               <SuitabilityIndex>1 1 0.67 0.23 0.17 0.11 0 0</SuitabilityIndex>
             </PreferenceVelocity>
             <PreferenceSubstrate>
                <SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Coarser">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
-               <PreferenceValues>0.1 0.1 0.1 0.57 0.21 1 0.4 0.1</PreferenceValues>
+               <SuitabilityIndex>0.1 0.1 0.1 0.57 0.21 1 0.4 0.1</SuitabilityIndex>
             </PreferenceSubstrate>
          </Stage>
          <Stage Type="[45,120[" Dimension="Total Length" Unit="Millimeter" UnitSymbol="mm">
             <PreferenceHeightOfWater>
                <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 12.5 27.5 57.5 67.5 87.5 90</HeightOfWaterValues>
-               <PreferenceValues>0 0.46 0.64 0.96 1 0.8 0.8</PreferenceValues>
+               <SuitabilityIndex>0 0.46 0.64 0.96 1 0.8 0.8</SuitabilityIndex>
             </PreferenceHeightOfWater>
             <PreferenceVelocity>
                <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 12.5 22.5 32.5 42.5 47.5 62.5 72.5 90</VelocityValues>
-               <PreferenceValues>0 0.57 0.57 0.59 0.6 0.87 1 0 0</PreferenceValues>
+               <SuitabilityIndex>0 0.57 0.57 0.59 0.6 0.87 1 0 0</SuitabilityIndex>
             </PreferenceVelocity>
             <PreferenceSubstrate>
                <SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Coarser">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
-               <PreferenceValues>0.1 0.1 0.67 0.24 0.39 0.82 0.88 1</PreferenceValues>
+               <SuitabilityIndex>0.1 0.1 0.67 0.24 0.39 0.82 0.88 1</SuitabilityIndex>
             </PreferenceSubstrate>
          </Stage>
          <Stage Type="[120,270[" Dimension="Total Length" Unit="Millimeter" UnitSymbol="mm">
             <PreferenceHeightOfWater>
                <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 12.5 37.5 47.5 62.5 82.5 90</HeightOfWaterValues>
-               <PreferenceValues>0 0.24 0.52 0.5 0.93 1 1</PreferenceValues>
+               <SuitabilityIndex>0 0.24 0.52 0.5 0.93 1 1</SuitabilityIndex>
             </PreferenceHeightOfWater>
             <PreferenceVelocity>
                <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 7.5 22.5 32.5 37.5 52.5 72.5 77.5 90</VelocityValues>
-               <PreferenceValues>0 0.38 0.41 0.46 0.51 1 0.96 0 0</PreferenceValues>
+               <SuitabilityIndex>0 0.38 0.41 0.46 0.51 1 0.96 0 0</SuitabilityIndex>
             </PreferenceVelocity>
             <PreferenceSubstrate>
                <SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Coarser">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
-               <PreferenceValues>0.1 0.1 0.23 0.18 0.18 0.53 0.72 1</PreferenceValues>
+               <SuitabilityIndex>0.1 0.1 0.23 0.18 0.18 0.53 0.72 1</SuitabilityIndex>
             </PreferenceSubstrate>
          </Stage>
       </Stages>

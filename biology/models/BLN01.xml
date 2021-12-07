@@ -28,29 +28,29 @@
          <Stage Type="juvenile">
             <PreferenceHeightOfWater>
                <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
-               <PreferenceValues>0 0.79 0.79 1 0.94 0.47 0.47</PreferenceValues>
+               <SuitabilityIndex>0 0.79 0.79 1 0.94 0.47 0.47</SuitabilityIndex>
             </PreferenceHeightOfWater>
             <PreferenceVelocity>
                <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 200</VelocityValues>
-               <PreferenceValues>0.8 0.8 1 0.69 0.46 0.23 0</PreferenceValues>
+               <SuitabilityIndex>0.8 0.8 1 0.69 0.46 0.23 0</SuitabilityIndex>
             </PreferenceVelocity>
             <PreferenceSubstrate>
                <SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
-               <PreferenceValues>0.8 0.8 0.8 0.8 1 0.94 0.77 0.65</PreferenceValues>
+               <SuitabilityIndex>0.8 0.8 0.8 0.8 1 0.94 0.77 0.65</SuitabilityIndex>
             </PreferenceSubstrate>
          </Stage>
          <Stage Type="adult">
             <PreferenceHeightOfWater>
                <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
-               <PreferenceValues>0 0.46 0.46 0.73 1 0.54 0.54</PreferenceValues>
+               <SuitabilityIndex>0 0.46 0.46 0.73 1 0.54 0.54</SuitabilityIndex>
             </PreferenceHeightOfWater>
             <PreferenceVelocity>
                <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 200</VelocityValues>
-               <PreferenceValues>0.39 0.39 0.87 0.85 1 0.7 0</PreferenceValues>
+               <SuitabilityIndex>0.39 0.39 0.87 0.85 1 0.7 0</SuitabilityIndex>
             </PreferenceVelocity>
             <PreferenceSubstrate>
                <SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
-               <PreferenceValues>0.38 0.38 0.38 0.38 0.46 0.71 1 0.82</PreferenceValues>
+               <SuitabilityIndex>0.38 0.38 0.38 0.38 0.46 0.71 1 0.82</SuitabilityIndex>
             </PreferenceSubstrate>
          </Stage>
       </Stages>
