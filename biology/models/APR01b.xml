@@ -35,18 +35,18 @@
    <ModelType Type="univariate suitability index curves">
       <Stages>
          <Stage Type="[50,100[" Dimension="Total Length" Unit="Millimeter" UnitSymbol="mm">
-            <PreferenceHeightOfWater>
+            <SuitabilityHeightOfWater>
                <HeightOfWaterValues Unit="Meter" UnitSymbol="m">0 0.025 0.075 0.125 0.175 0.225 0.275 0.325 0.375 0.425 0.475 0.525 0.575 0.625 0.675 0.725 0.775 0.825 0.875 0.925 0.975 1.025 1.075 1.125 1.175 1.225 1.275 1.325 1.375 1.6</HeightOfWaterValues>
                <SuitabilityIndex>0 0 0.08974 0.22564 0.5 0.62308 0.87949 0.93590 1 0.82564 0.7 0.53590 0.46667 0.34359 0.30769 0.21282 0.16667 0.11282 0.07179 0.05897 0.05385 0.05128 0.03846 0.03077 0.02821 0.01795 0.00769 0.00256 0.00513 0.00769</SuitabilityIndex>
-            </PreferenceHeightOfWater>
-            <PreferenceVelocity>
+            </SuitabilityHeightOfWater>
+            <SuitabilityVelocity>
                <VelocityValues Unit="MeterPerSecond" UnitSymbol="m/s">0 0.025 0.075 0.125 0.175 0.225 0.275 0.325 0.375 0.425 0.475 0.525 0.575 0.625 0.675 0.725 0.775 0.825 0.875 0.925 0.975 1.025 1.075 1.125 1.175 1.225 1.275 1.325 1.375 1.5</VelocityValues>
                <SuitabilityIndex>0 1 0.83176 0.67453 0.51730 0.42925 0.34277 0.26730 0.21384 0.18711 0.17610 0.14623 0.09906 0.04874 0.04403 0.03774 0.04403 0.02987 0.02044 0.00629 0 0 0 0 0 0 0 0 0 0</SuitabilityIndex>
-            </PreferenceVelocity>
-            <PreferenceSubstrate>
+            </SuitabilityVelocity>
+            <SuitabilitySubstrate>
                <SubstrateValues ClassificationName="Code Sandre (Malavoi et Souchon 1989)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11 s12</SubstrateValues>
                <SuitabilityIndex>0 0 0.097315436 0.389261745 0.186241611 0.186241611 0.66442953 1 0.741610738 0.315436242 0.010067114 0.030201342</SuitabilityIndex>
-            </PreferenceSubstrate>
+            </SuitabilitySubstrate>
          </Stage>
       </Stages>
    </ModelType>

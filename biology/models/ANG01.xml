@@ -28,18 +28,18 @@
    <ModelType Type="univariate suitability index curves">
       <Stages>
          <Stage Type="all_stages">
-            <PreferenceHeightOfWater>
+            <SuitabilityHeightOfWater>
                <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
                <SuitabilityIndex>0 0.13 0.13 0.46 0.92 1 1</SuitabilityIndex>
-            </PreferenceHeightOfWater>
-            <PreferenceVelocity>
+            </SuitabilityHeightOfWater>
+            <SuitabilityVelocity>
                <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 0 2.5 12.5 30 60 100 200</VelocityValues>
                <SuitabilityIndex>1 1 1 0.8 0.28 0.14 0.12 0</SuitabilityIndex>
-            </PreferenceVelocity>
-            <PreferenceSubstrate>
+            </SuitabilityVelocity>
+            <SuitabilitySubstrate>
                <SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
                <SuitabilityIndex>1 1 1 1 0.67 0.45 0.66 0.55</SuitabilityIndex>
-            </PreferenceSubstrate>
+            </SuitabilitySubstrate>
          </Stage>
       </Stages>
    </ModelType>

@@ -27,46 +27,46 @@
    <ModelType Type="univariate suitability index curves">
       <Stages>
          <Stage Type="fry">
-            <PreferenceHeightOfWater>
+            <SuitabilityHeightOfWater>
                <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
                <SuitabilityIndex>0 0.68 0.68 0.87 1 0.83 0.83</SuitabilityIndex>
-            </PreferenceHeightOfWater>
-            <PreferenceVelocity>
+            </SuitabilityHeightOfWater>
+            <SuitabilityVelocity>
                <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 200</VelocityValues>
                <SuitabilityIndex>1 1 0.69 0.61 0.39 0.23 0</SuitabilityIndex>
-            </PreferenceVelocity>
-            <PreferenceSubstrate>
+            </SuitabilityVelocity>
+            <SuitabilitySubstrate>
                <SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
                <SuitabilityIndex>1 1 1 1 0.52 0.49 0.53 0.59</SuitabilityIndex>
-            </PreferenceSubstrate>
+            </SuitabilitySubstrate>
          </Stage>
          <Stage Type="juvenile">
-            <PreferenceHeightOfWater>
+            <SuitabilityHeightOfWater>
                <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
                <SuitabilityIndex>0 0.37 0.37 0.8 0.91 1 1</SuitabilityIndex>
-            </PreferenceHeightOfWater>
-            <PreferenceVelocity>
+            </SuitabilityHeightOfWater>
+            <SuitabilityVelocity>
                <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 200</VelocityValues>
                <SuitabilityIndex>0.33 0.33 0.58 0.7 1 0.61 0</SuitabilityIndex>
-            </PreferenceVelocity>
-            <PreferenceSubstrate>
+            </SuitabilityVelocity>
+            <SuitabilitySubstrate>
                <SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
                <SuitabilityIndex>1 1 1 1 0.69 0.94 0.91 0.97</SuitabilityIndex>
-            </PreferenceSubstrate>
+            </SuitabilitySubstrate>
          </Stage>
          <Stage Type="adult">
-            <PreferenceHeightOfWater>
+            <SuitabilityHeightOfWater>
                <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
                <SuitabilityIndex>0 0 0 0.5 0.88 1 1</SuitabilityIndex>
-            </PreferenceHeightOfWater>
-            <PreferenceVelocity>
+            </SuitabilityHeightOfWater>
+            <SuitabilityVelocity>
                <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 200</VelocityValues>
                <SuitabilityIndex>0.41 0.41 0.88 0.71 1 0.59 0</SuitabilityIndex>
-            </PreferenceVelocity>
-            <PreferenceSubstrate>
+            </SuitabilityVelocity>
+            <SuitabilitySubstrate>
                <SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
                <SuitabilityIndex>1 1 1 1 0.21 0.86 0.5 0.71</SuitabilityIndex>
-            </PreferenceSubstrate>
+            </SuitabilitySubstrate>
          </Stage>
       </Stages>
    </ModelType>

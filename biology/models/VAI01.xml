@@ -28,24 +28,24 @@
    <ModelType Type="univariate suitability index curves">
       <Stages>
          <Stage Type="juvenile">
-            <PreferenceHeightOfWater>
+            <SuitabilityHeightOfWater>
                <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
                <SuitabilityIndex>0 1 1 0.86 0.46 0.31 0.31</SuitabilityIndex>
-            </PreferenceHeightOfWater>
-            <PreferenceVelocity>
+            </SuitabilityHeightOfWater>
+            <SuitabilityVelocity>
                <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 200</VelocityValues>
                <SuitabilityIndex>1 1 0.73 0.56 0.18 0.01 0</SuitabilityIndex>
-            </PreferenceVelocity>
+            </SuitabilityVelocity>
          </Stage>
          <Stage Type="adult">
-            <PreferenceHeightOfWater>
+            <SuitabilityHeightOfWater>
                <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
                <SuitabilityIndex>0 0.8 0.8 1 0.75 0.38 0.38</SuitabilityIndex>
-            </PreferenceHeightOfWater>
-            <PreferenceVelocity>
+            </SuitabilityHeightOfWater>
+            <SuitabilityVelocity>
                <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 200</VelocityValues>
                <SuitabilityIndex>0.76 0.76 1 0.96 0.67 0.11 0</SuitabilityIndex>
-            </PreferenceVelocity>
+            </SuitabilityVelocity>
          </Stage>
       </Stages>
    </ModelType>
