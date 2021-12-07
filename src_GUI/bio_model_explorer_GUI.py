@@ -570,7 +570,7 @@ class BioModelFilterTab(QScrollArea):
         after selection in the last 'regular' key/filter adding items in 'fish_code_alternative','inv_code_alternative' key/listwidgets
         :return:
         """
-        sp = [x for x, y in zip(self.biological_models_dict_gui['code_alternative'],    
+        sp = [x for x, y in zip(self.biological_models_dict_gui['code_alternative'],
                                 list(self.bio_model_explorer_selection_dict['selected']))
               if y]
         sp = {x for y in sp for x in y}
