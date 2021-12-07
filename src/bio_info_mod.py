@@ -154,11 +154,11 @@ def get_biomodels_informations_for_database(path_xml):
                 hvum.h.original_unit = pref_element[0].findall(".//HeightOfWaterValues")[0].attrib["Unit"]
                 hvum_stage.software_detected_list.append(hvum.h)
                 h_data = [list(map(float, pref_element[0].findall(".//HeightOfWaterValues")[0].text.split(" "))),
-                        list(map(float, pref_element[0].findall(".//PreferenceValues")[0].text.split(" ")))]
+                        list(map(float, pref_element[0].findall(".//SuitabilityIndex")[0].text.split(" ")))]
                 h_not_valid = check_if_data_model_has_error(h_data[0], "HeightOfWaterValues", increasing=True)
-                hv_not_valid = check_if_data_model_has_error(h_data[1], "PreferenceValues", increasing=False)
+                hv_not_valid = check_if_data_model_has_error(h_data[1], "SuitabilityIndex", increasing=False)
                 if len(h_data[0]) != len(h_data[1]):
-                    return "Error: HeightOfWaterValues and PreferenceValues are not the same length in " + path_xml
+                    return "Error: HeightOfWaterValues and SuitabilityIndex are not the same length in " + path_xml
 
             hvum.v.software_attributes_list = ["PreferenceVelocity"]
             pref_element = stage.findall(".//" + hvum.v.software_attributes_list[0])
@@ -166,11 +166,11 @@ def get_biomodels_informations_for_database(path_xml):
                 hvum.v.original_unit = pref_element[0].findall(".//VelocityValues")[0].attrib["Unit"]
                 hvum_stage.software_detected_list.append(hvum.v)
                 v_data = [list(map(float, pref_element[0].findall(".//VelocityValues")[0].text.split(" "))),
-                        list(map(float, pref_element[0].findall(".//PreferenceValues")[0].text.split(" ")))]
+                        list(map(float, pref_element[0].findall(".//SuitabilityIndex")[0].text.split(" ")))]
                 v_not_valid = check_if_data_model_has_error(v_data[0], "VelocityValues", increasing=True)
-                hv_not_valid = check_if_data_model_has_error(v_data[1], "PreferenceValues", increasing=False)
+                hv_not_valid = check_if_data_model_has_error(v_data[1], "SuitabilityIndex", increasing=False)
                 if len(v_data[0]) != len(v_data[1]):
-                    return "Error: VelocityValues and PreferenceValues are not the same length in " + path_xml
+                    return "Error: VelocityValues and SuitabilityIndex are not the same length in " + path_xml
 
             hvum.shear_stress.software_attributes_list = ["PreferenceShearStress"]
             pref_element = stage.findall(".//" + hvum.shear_stress.software_attributes_list[0])
@@ -179,12 +179,12 @@ def get_biomodels_informations_for_database(path_xml):
                 hvum_stage.software_detected_list.append(hvum.shear_stress)
                 shearstress_data = [list(map(float, pref_element[0].findall(".//MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues")[0].text.split(" "))),
                                   list(map(float, pref_element[0].findall(".//HemisphereNumber")[0].text.split(" "))),
-                                  list(map(float, pref_element[0].findall(".//PreferenceValues")[0].text.split(" ")))]
+                                  list(map(float, pref_element[0].findall(".//SuitabilityIndex")[0].text.split(" ")))]
                 shearstress_not_valid = all((check_if_data_model_has_error(shearstress_data[0], "MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues", increasing=True),
                                          check_if_data_model_has_error(shearstress_data[1], "HemisphereNumber", increasing=True)))
-                hv_not_valid = check_if_data_model_has_error(shearstress_data[2], "PreferenceValues", increasing=False)
+                hv_not_valid = check_if_data_model_has_error(shearstress_data[2], "SuitabilityIndex", increasing=False)
                 if len(shearstress_data[0]) != len(shearstress_data[1]) != len(shearstress_data[2]):
-                    return "Error: MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues and HemisphereNumber and PreferenceValues are not the same length in " + path_xml
+                    return "Error: MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues and HemisphereNumber and SuitabilityIndex are not the same length in " + path_xml
 
             pref_element = stage.findall(".//PreferenceSubstrate")
             if pref_element:
@@ -216,11 +216,11 @@ def get_biomodels_informations_for_database(path_xml):
                     return "Error: Substrate classification method not recognized : " + substrate_type + " in " + path_xml
 
                 sub_data = [list(map(float, [element[1:] for element in pref_element[0].findall(".//SubstrateValues")[0].text.split(" ")])),
-                                  list(map(float, pref_element[0].findall(".//PreferenceValues")[0].text.split(" ")))]
+                                  list(map(float, pref_element[0].findall(".//SuitabilityIndex")[0].text.split(" ")))]
                 sub_not_valid = check_if_data_model_has_error(sub_data[0], "SubstrateValues", increasing=True)
-                hv_not_valid = check_if_data_model_has_error(sub_data[1], "PreferenceValues", increasing=False)
+                hv_not_valid = check_if_data_model_has_error(sub_data[1], "SuitabilityIndex", increasing=False)
                 if len(sub_data[0]) != len(sub_data[1]):
-                    return "Error: SubstrateValues and PreferenceValues are not the same length in " + path_xml
+                    return "Error: SubstrateValues and SuitabilityIndex are not the same length in " + path_xml
         elif model_type == "bivariate suitability index models":
             pref_element = stage.findall(".//HeightOfWaterValues")
             hvum.h.software_attributes_list = ["HeightOfWaterValues"]
@@ -243,7 +243,7 @@ def get_biomodels_informations_for_database(path_xml):
                 print("Error: VelocityValues not recognised for bivariate suitability index models. Please verify this xml file :", path_xml)
                 return "Error: VelocityValues not recognised for bivariate suitability index models. Please verify this xml file :" + path_xml
 
-            pref_element = stage.findall(".//PreferenceValues")
+            pref_element = stage.findall(".//SuitabilityIndex")
             if pref_element:
                 if "DescriptionMode" in pref_element[0].attrib.keys():
                     if not pref_element[0].attrib["DescriptionMode"] == 'VelocityIncreasingAndThenHeightOfWaterIncreasing':
@@ -252,16 +252,16 @@ def get_biomodels_informations_for_database(path_xml):
                         return "Error: DescriptionMode is not 'VelocityIncreasingAndThenHeightOfWaterIncreasing' for bivariate suitability index models. Please verify this xml file :" + path_xml
                     else:
                         hv_data = list(map(float, pref_element[0].text.split(" ")))
-                        hv_not_valid = check_if_data_model_has_error(hv_data, "PreferenceValues", increasing=False)
+                        hv_not_valid = check_if_data_model_has_error(hv_data, "SuitabilityIndex", increasing=False)
                 else:
-                    print("Error: DescriptionMode not recognised in PreferenceValues for bivariate suitability index models. Please verify this xml file :",
+                    print("Error: DescriptionMode not recognised in SuitabilityIndex for bivariate suitability index models. Please verify this xml file :",
                         path_xml)
-                    return "Error: DescriptionMode not recognised in PreferenceValues for bivariate suitability index models. Please verify this xml file :" + path_xml
+                    return "Error: DescriptionMode not recognised in SuitabilityIndex for bivariate suitability index models. Please verify this xml file :" + path_xml
             else:
-                print("Error: PreferenceValues not recognised for bivariate suitability index models. Please verify this xml file :", path_xml)
-                return "Error: PreferenceValues not recognised for bivariate suitability index models. Please verify this xml file :" + path_xml
+                print("Error: SuitabilityIndex not recognised for bivariate suitability index models. Please verify this xml file :", path_xml)
+                return "Error: SuitabilityIndex not recognised for bivariate suitability index models. Please verify this xml file :" + path_xml
             if len(h_data) * len(v_data) != len(hv_data):
-                return "Error: HeightOfWaterValues * VelocityValues length different from PreferenceValues length in " + path_xml
+                return "Error: HeightOfWaterValues * VelocityValues length different from SuitabilityIndex length in " + path_xml
 
         # compile infor
         detect_name_list = hvum_stage.software_detected_list.names()
@@ -428,7 +428,7 @@ def read_pref(xmlfile):
 
         if information_model_dict["model_type"] == "bivariate suitability index models":
             # get pref
-            hab_var.hsi_model_data = list(map(float, root.findall(".//PreferenceValues")[hab_index].text.split(" ")))
+            hab_var.hsi_model_data = list(map(float, root.findall(".//SuitabilityIndex")[hab_index].text.split(" ")))
 
     return information_model_dict
 

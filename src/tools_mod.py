@@ -17,6 +17,7 @@ https://github.com/YannIrstea/habby
 import os
 from copy import deepcopy
 import numpy as np
+from decimal import Decimal
 from PyQt5.QtCore import QLocale
 
 """ INTERPOLATION TOOLS """
@@ -202,7 +203,12 @@ def compute_interpolation(data_2d, animal_list, reach_number, chronicle, types, 
     if rounddata:
         if not date_presence:
             horiz_headers = list(chronicle_gui.keys())[1:]
-            vertical_headers = list(map(str, chronicle_gui[types["units"]]))
+            # round vertical_headers
+            max_unit_decimal = max([abs(Decimal(str(unit)).as_tuple().exponent) for unit in chronicle_gui[types["units"]]])
+            if max_unit_decimal > 3:
+                vertical_headers = list(str('%.3f' % elem) for elem in chronicle_gui[types["units"]])
+            else:
+                vertical_headers = list(map(str, chronicle_gui[types["units"]]))
             del chronicle_gui[types["units"]]
             data_to_table = list(zip(*chronicle_gui.values()))
         if date_presence:
@@ -212,7 +218,7 @@ def compute_interpolation(data_2d, animal_list, reach_number, chronicle, types, 
             chronicle_gui[types["units"]] = list(map(str, chronicle_gui[types["units"]]))
             data_to_table = list(zip(*chronicle_gui.values()))
     # not round to export text and plot
-    if not rounddata:
+    elif not rounddata:
         if not date_presence:
             horiz_headers = list(chronicle_interpolated.keys())[1:]
             vertical_headers = list(map(str, chronicle_interpolated["units"]))

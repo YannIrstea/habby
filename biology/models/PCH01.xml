@@ -30,15 +30,15 @@
          <Stage Type="all_stages">
             <PreferenceHeightOfWater>
                <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 12.5 30 60 80 300</HeightOfWaterValues>
-               <PreferenceValues>0 0.33 0.33 0.33 1 1 1</PreferenceValues>
+               <SuitabilityIndex>0 0.33 0.33 0.33 1 1 1</SuitabilityIndex>
             </PreferenceHeightOfWater>
             <PreferenceVelocity>
                <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 2.5 12.5 30 60 100 200</VelocityValues>
-               <PreferenceValues>0.83 0.83 1 0.17 0 0 0</PreferenceValues>
+               <SuitabilityIndex>0.83 0.83 1 0.17 0 0 0</SuitabilityIndex>
             </PreferenceVelocity>
             <PreferenceSubstrate>
                <SubstrateValues ClassificationName="Code EVHA 2.0 (GINOT 1998)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8</SubstrateValues>
-               <PreferenceValues>0.86 0.86 0.86 0.86 0.57 0.29 1 0.86</PreferenceValues>
+               <SuitabilityIndex>0.86 0.86 0.86 0.86 0.57 0.29 1 0.86</SuitabilityIndex>
             </PreferenceSubstrate>
          </Stage>
       </Stages>
