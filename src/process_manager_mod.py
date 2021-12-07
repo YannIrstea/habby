@@ -301,7 +301,10 @@ class MyProcessManager(QThread):
                                                                                    unit_type,
                                                                                    animal,
                                                                                    string_tr,
-                                                                                   'OSI = {0:3.2f}'.format(animal.osi[reach_number][unit_number]) + " / UA = " + '{0:3.2f}'.format(animal.percent_area_unknown[reach_number][unit_number]) + " %")
+                                                                                   'OSI = {0:3.2f}'.format(animal.osi[reach_number][unit_number]) +
+                                                                                   " / WUA = " + '{0:3.2f}'.format(
+                                                                                       animal.wua[reach_number][unit_number]) + " m²" +
+                                                                                   " / UA = " + '{0:3.2f}'.format(animal.percent_area_unknown[reach_number][unit_number]) + " %")
 
                                     # class MyProcess
                                     progress_value = Value("d", 0.0)

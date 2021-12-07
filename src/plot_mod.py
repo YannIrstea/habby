@@ -109,7 +109,7 @@ def plot_suitability_curve(state, information_model_dict, selected_fish_stage, p
                       facecolor='c',
                       align='center')
             ax[2].set_xlabel(sub_var_list[0].name_gui + ' [' + sub_var_list[0].unit + ']')
-            ax[2].set_ylabel('SI []')
+            ax[2].set_ylabel('Suitability Index []')
             ax[2].set_ylim([-0.1, 1.1])
             ax[2].set_xlim([0.4, len(sub_var_list[0].data[0]) + 0.6])
 
@@ -158,7 +158,7 @@ def plot_suitability_curve(state, information_model_dict, selected_fish_stage, p
 
                 ax[index_model_var, stage_index].set_xlabel(model_var.name_gui + " [" + model_var.unit + "]")
 
-                ax[index_model_var, stage_index].set_ylabel('SI []' + "\n" + stage_var.stage)
+                ax[index_model_var, stage_index].set_ylabel('Suitability Index []' + "\n" + stage_var.stage)
                 ax[index_model_var, stage_index].set_ylim([-0.1, 1.1])
 
     # all cases
@@ -237,7 +237,7 @@ def plot_suitability_curve_hem(state, information_model_dict, selected_fish_stag
                rotation=45)
 
     axarr.set_xlabel(qt_tr.translate("plot_mod", 'HEM [HFST] / shear stress [N/m²]'))
-    axarr.set_ylabel('SI []')
+    axarr.set_ylabel('Suitability Index []')
     axarr.set_ylim([0.0, 1.0])
 
     plt.tight_layout(rect=[0, 0, 1, 0.95])
@@ -302,7 +302,7 @@ def plot_suitability_curve_bivariate(state, information_model_dict, selected_fis
 
         # pre plot
         fig, ax = plt.subplots(1, 1)
-        plt.get_current_fig_manager().set_window_title('HSI' + " : " + model_var.name)
+        plt.get_current_fig_manager().set_window_title('Suitability Index' + " : " + model_var.name)
 
         # plot
         meshcolor = ax.imshow(pref_values_array,
@@ -320,7 +320,7 @@ def plot_suitability_curve_bivariate(state, information_model_dict, selected_fis
 
         # color_bar bar
         color_bar = plt.colorbar(meshcolor)
-        color_bar.set_label('HSI []')
+        color_bar.set_label('Suitability Index []')
 
         ax = [ax]
 
@@ -467,7 +467,6 @@ def plot_fish_osi_wua(state, data_2d, reach_number, habitat_variable_list, proje
         mar = '.'
     else:
         mar = None
-    mar2 = "2"
     path_im = project_properties['path_figure']
     erase1 = project_properties['erase_id']
     types_plot = project_properties['type_plot']
@@ -475,7 +474,7 @@ def plot_fish_osi_wua(state, data_2d, reach_number, habitat_variable_list, proje
     color_list, style_list = get_colors_styles_line_from_nb_input(len(habitat_variable_list))
 
     # prep data
-    name_hdf5 = data_2d.filename
+    name_hdf5 = os.path.splitext(data_2d.filename)[0]
     area_all = [unit.total_wet_area for unit in data_2d[reach_number]]
     unit_name = data_2d.unit_list[reach_number]
     unit_type = data_2d.unit_type
@@ -485,7 +484,8 @@ def plot_fish_osi_wua(state, data_2d, reach_number, habitat_variable_list, proje
     reach_name = data_2d[reach_number][0].reach_name
 
     # plot
-    title = qt_tr.translate("plot_mod", "Habitat Value and Weighted Usable Area - Computational Step : ")
+    title = "Habitat results of reach " + reach_name + " at unit(s) : "
+
     if len(unit_name) == 1:
         plot_window_title = title + str(unit_name[0]) + " " + unit_type_only
     else:
@@ -494,10 +494,6 @@ def plot_fish_osi_wua(state, data_2d, reach_number, habitat_variable_list, proje
 
     fig, ax = plt.subplots(3, 1, sharex=True)
     plt.get_current_fig_manager().set_window_title(plot_window_title)
-
-    # name_fish_origin = list(name_fish)
-    # for id, n in enumerate(name_fish):
-    #     name_fish[id] = n.name.replace('_', ' ')
 
     # one time step - bar
     if len(unit_name) == 1:
@@ -513,9 +509,8 @@ def plot_fish_osi_wua(state, data_2d, reach_number, habitat_variable_list, proje
         ax[0].bar(y_pos, data_bar2)
         ax[0].set_xticks(y_pos)
         ax[0].set_xticklabels([])
-        ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
-        ax[0].set_title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name + " - " + str(
-            unit_name[0]) + " " + unit_type_only_scientific)
+        ax[0].set_ylabel('WUA [m²]')
+        ax[0].set_title("Weighted Usable Area")
 
         # osi
         osi = data_bar2 / area_all[reach_number]
@@ -525,8 +520,8 @@ def plot_fish_osi_wua(state, data_2d, reach_number, habitat_variable_list, proje
         # ax[1].set_xticklabels(name_fish, horizontalalignment="right")
         # ax[1].xaxis.set_tick_params(rotation=15)
         ax[1].set_xticklabels([])
-        ax[1].set_ylabel(qt_tr.translate("plot_mod", 'HSI (WUA/A) []'))
-        ax[1].set_title(qt_tr.translate("plot_mod", "Habitat value"))
+        ax[1].set_ylabel('OSI (WUA/A) []')
+        ax[1].set_title("Overall Suitability Index")
 
         # %
         percent = np.array(percent)
@@ -534,9 +529,8 @@ def plot_fish_osi_wua(state, data_2d, reach_number, habitat_variable_list, proje
         ax[2].set_xticks(y_pos)
         ax[2].set_xticklabels(habitat_variable_list.names_gui(), horizontalalignment="right")
         ax[2].xaxis.set_tick_params(rotation=15)
-        ax[2].set_ylabel(qt_tr.translate("plot_mod", 'UA [%]'))
-        ax[2].set_title(
-            qt_tr.translate("plot_mod", "Unknown area"))
+        ax[2].set_ylabel('UA [%]')
+        ax[2].set_title("Unknown Area")
         ax[2].set_ylim(bottom=0.0)
 
         # GENERAL
@@ -548,8 +542,7 @@ def plot_fish_osi_wua(state, data_2d, reach_number, habitat_variable_list, proje
             filename = name_hdf5 + "_" + reach_name + "_" + str(unit_name[0]).replace(".", "_") + '_' \
                        + habitat_variable_list[0].name_gui.replace(' ', '_')
         else:  # multi fish
-            filename = name_hdf5 + "_" + reach_name + "_" + str(unit_name[0]).replace(".", "_") + '_' \
-                       + qt_tr.translate("plot_mod", "HSI")
+            filename = name_hdf5 + "_" + reach_name + "_" + str(unit_name[0]).replace(".", "_") + "_OSI"
 
         # export or not
         if types_plot == "image export" or types_plot == "both":
@@ -576,8 +569,8 @@ def plot_fish_osi_wua(state, data_2d, reach_number, habitat_variable_list, proje
                        color=color_list[fish_index],
                        linestyle=style_list[fish_index],
                        marker=mar)
-        ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
-        ax[0].set_title(qt_tr.translate("plot_mod", "Weighted Usable Area - ") + reach_name)
+        ax[0].set_ylabel('WUA [m²]')
+        ax[0].set_title("Weighted Usable Area")
         if len(unit_name) < 25:
             ax[0].set_xticks(x_data)
         elif len(unit_name) < 100:
@@ -598,8 +591,8 @@ def plot_fish_osi_wua(state, data_2d, reach_number, habitat_variable_list, proje
                        marker=mar)
 
         ax[1].set_ylim([-0.1, 1.1])
-        ax[1].set_ylabel(qt_tr.translate("plot_mod", 'OSI (WUA/A) []'))
-        ax[1].set_title(qt_tr.translate("plot_mod", 'Overall Suitability Index'))
+        ax[1].set_ylabel('OSI (WUA/A) []')
+        ax[1].set_title('Overall Suitability Index')
         if len(unit_name) < 25:
             ax[1].set_xticks(x_data)
         elif len(unit_name) < 100:
@@ -620,8 +613,8 @@ def plot_fish_osi_wua(state, data_2d, reach_number, habitat_variable_list, proje
                        marker=mar)
 
         ax[2].set_xlabel(unit_type_scientific)
-        ax[2].set_ylabel(qt_tr.translate("plot_mod", 'UA [%]'))
-        ax[2].set_title(qt_tr.translate("plot_mod", 'Unknown area'))
+        ax[2].set_ylabel('UA [%]')
+        ax[2].set_title('Unknown area')
         # label
         if len(unit_name) < 25:
             ax[2].set_xticks(x_data)
@@ -652,7 +645,7 @@ def plot_fish_osi_wua(state, data_2d, reach_number, habitat_variable_list, proje
         if len(habitat_variable_list) == 1:  # one fish
             filename = name_hdf5 + "_" + reach_name + "_units_" + habitat_variable_list[0].name_gui.replace(' ', '_')
         else:
-            filename = name_hdf5 + "_" + reach_name + "_units_" + qt_tr.translate("plot_mod", "HSI")
+            filename = name_hdf5 + "_" + reach_name + "_units_" + "OSI"
 
         if types_plot == "image export" or types_plot == "both":
             if not erase1:
@@ -731,7 +724,7 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
     data_to_table["units"] = list(map(lambda x: np.nan if x == "None" else float(x), data_to_table["units"]))
 
     # plot
-    title = qt_tr.translate("plot_mod", "Habitat Value and Weighted Usable Area interpolated - Unit : ")
+    title = "Habitat results interpolated of reach " + reach_name + " at unit(s) : "
     if len(sim_name) == 1:
         plot_window_title = title + str(sim_name[0]) + " "
     if len(sim_name) > 1:
@@ -756,8 +749,8 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
                    linestyle=style_list[name_fish_num],
                    label=animal.name.replace('_', ' '),
                    marker=mar)
-    ax[0].set_ylabel(qt_tr.translate("plot_mod", 'WUA [m$^2$]'))
-    ax[0].set_title(qt_tr.translate("plot_mod", 'Weighted Usable Area interpolated - ') + reach_name)
+    ax[0].set_ylabel('WUA [m²]')
+    ax[0].set_title('Weighted Usable Area interpolated')
     if len(sim_name) < 25:
         ax[0].set_xticks(x_data)  # , rotation=rot
     elif len(sim_name) < 100:
@@ -777,8 +770,8 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
                    linestyle=style_list[name_fish_num],
                    label=animal.name.replace('_', ' '),
                    marker=mar)
-    ax[1].set_ylabel(qt_tr.translate("plot_mod", 'OSI []'))
-    ax[1].set_title(qt_tr.translate("plot_mod", 'Overall Suitability Index interpolated'))
+    ax[1].set_ylabel('OSI []')
+    ax[1].set_title('Overall Suitability Index interpolated')
     ax[1].set_ylim([-0.1, 1.1])
     if len(sim_name) < 25:
         ax[1].set_xticks(x_data)  # , rotation=rot
@@ -808,8 +801,8 @@ def plot_interpolate_chronicle(state, data_to_table, _, vertical_headers, data_2
                    linestyle=style_list[name_fish_num],
                    label=animal.name.replace('_', ' '),
                    marker=mar)
-    ax[2].set_ylabel(qt_tr.translate("plot_mod", 'UA [%]'))
-    ax[2].set_title(qt_tr.translate("plot_mod", 'Unknown area'))
+    ax[2].set_ylabel('UA [%]')
+    ax[2].set_title('Unknown area interpolated')
     # all case
     if is_constant:
         ax[2].set_xlabel(qt_tr.translate("plot_mod", 'Desired ') + unit_type)
