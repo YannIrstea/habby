@@ -148,7 +148,7 @@ def get_biomodels_informations_for_database(path_xml):
 
         # data = list of values
         if model_type == "univariate suitability index curves":
-            hvum.h.software_attributes_list = ["PreferenceHeightOfWater"]
+            hvum.h.software_attributes_list = ["SuitabilityHeightOfWater"]
             pref_element = stage.findall(".//" + hvum.h.software_attributes_list[0])
             if pref_element:
                 hvum.h.original_unit = pref_element[0].findall(".//HeightOfWaterValues")[0].attrib["Unit"]
@@ -160,7 +160,7 @@ def get_biomodels_informations_for_database(path_xml):
                 if len(h_data[0]) != len(h_data[1]):
                     return "Error: HeightOfWaterValues and SuitabilityIndex are not the same length in " + path_xml
 
-            hvum.v.software_attributes_list = ["PreferenceVelocity"]
+            hvum.v.software_attributes_list = ["SuitabilityVelocity"]
             pref_element = stage.findall(".//" + hvum.v.software_attributes_list[0])
             if pref_element:
                 hvum.v.original_unit = pref_element[0].findall(".//VelocityValues")[0].attrib["Unit"]
@@ -172,7 +172,7 @@ def get_biomodels_informations_for_database(path_xml):
                 if len(v_data[0]) != len(v_data[1]):
                     return "Error: VelocityValues and SuitabilityIndex are not the same length in " + path_xml
 
-            hvum.shear_stress.software_attributes_list = ["PreferenceShearStress"]
+            hvum.shear_stress.software_attributes_list = ["SuitabilityShearStress"]
             pref_element = stage.findall(".//" + hvum.shear_stress.software_attributes_list[0])
             if pref_element:
                 hvum.shear_stress.original_unit = pref_element[0].findall(".//MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues")[0].attrib["Unit"]
@@ -186,7 +186,7 @@ def get_biomodels_informations_for_database(path_xml):
                 if len(shearstress_data[0]) != len(shearstress_data[1]) != len(shearstress_data[2]):
                     return "Error: MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues and HemisphereNumber and SuitabilityIndex are not the same length in " + path_xml
 
-            pref_element = stage.findall(".//PreferenceSubstrate")
+            pref_element = stage.findall(".//SuitabilitySubstrate")
             if pref_element:
                 substrate_original_unit = pref_element[0].findall(".//SubstrateValues")[0].attrib["ClassificationName"]
                 if substrate_original_unit in ("Code EVHA 2.0 (GINOT 1998)", "Code Cemagref (Malavoi 1989)"):
@@ -197,18 +197,18 @@ def get_biomodels_informations_for_database(path_xml):
                     return "Error: Substrate classification code not recognized :" + substrate_original_unit + " in " + path_xml
                 substrate_type = pref_element[0].findall(".//SubstrateValues")[0].attrib["Variables"]
                 if substrate_type == 'Coarser':
-                    hvum.sub_coarser.software_attributes_list = ["PreferenceSubstrate"]
+                    hvum.sub_coarser.software_attributes_list = ["SuitabilitySubstrate"]
                     hvum.sub_coarser.original_unit = substrate_original_unit
                     hvum.sub_coarser.unit = substrate_unit
                     hvum_stage.software_detected_list.append(hvum.sub_coarser)
                 elif substrate_type == 'Dominant':
-                    hvum.sub_dom.software_attributes_list = ["PreferenceSubstrate"]
+                    hvum.sub_dom.software_attributes_list = ["SuitabilitySubstrate"]
                     hvum.sub_dom.original_unit = substrate_original_unit
                     hvum.sub_dom.unit = substrate_unit
                     hvum_stage.software_detected_list.append(hvum.sub_dom)
                 elif substrate_type == 'Percentages':
                     substrate_type = substrate_type[:-1]
-                    hvum.sub_percentage.software_attributes_list = ["PreferenceSubstrate"]
+                    hvum.sub_percentage.software_attributes_list = ["SuitabilitySubstrate"]
                     hvum.sub_percentage.original_unit = substrate_original_unit
                     hvum.sub_percentage.unit = substrate_unit
                     hvum_stage.software_detected_list.append(hvum.sub_percentage)
@@ -363,7 +363,7 @@ def get_biomodels_informations_for_database(path_xml):
 
 def read_pref(xmlfile):
     """
-    This function reads the preference curve from the xml file and
+    This function reads the Suitability curve from the xml file and
      get the subtrate, height and velocity data.
     It return the data in meter. Unit for space can be in centimeter,
      milimeter or meter. Unit for time should be in
@@ -522,13 +522,13 @@ def execute_request(path_bio, name_database, request):
 def get_stage(names_bio, path_bio):
     """
     This function loads all the stages present in a list o
-    xml preference files (JUV, ADU, etc) and the latin name of
+    xml Suitability files (JUV, ADU, etc) and the latin name of
     the fish species. All the files should be in the same folder indicated by
     path_bio. It is mainly used by habby_cmd
     but it can be useful in other cases also.
 
-    :param names_bio: A list of xml biological preference file
-    :param path_bio: the path to the xml preference files (usually './biology')
+    :param names_bio: A list of xml biological Suitability file
+    :param path_bio: the path to the xml Suitability files (usually './biology')
     :return: the stages in a list of string
 
     """
