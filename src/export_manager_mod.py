@@ -46,9 +46,6 @@ def export_report(xmlfile, project_properties, qt_tr, progress_value, delta_anim
     plt.rcParams['figure.figsize'] = 21, 29.7  # a4
     plt.rcParams['font.size'] = 24
 
-    path_bio = os.path.dirname(xmlfile)
-    path_im_bio = path_bio
-
     information_model_dict = read_pref(xmlfile)
 
     if information_model_dict["model_type"] != "bivariate suitability index models":
@@ -137,7 +134,7 @@ def export_report(xmlfile, project_properties, qt_tr, progress_value, delta_anim
                va='top',
                ha="left")  # , transform=newax.transAxes
 
-    if path_im_bio and information_model_dict["path_img"]:
+    if information_model_dict["path_img"]:
         fish_im_name = os.path.join(os.getcwd(), information_model_dict["path_img"])
         if os.path.isfile(fish_im_name):
             im = plt.imread(mpl.cbook.get_sample_data(fish_im_name))
