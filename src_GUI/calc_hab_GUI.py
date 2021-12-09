@@ -400,7 +400,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 default_substrate_type = user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage]
                 # set position to combobox
                 self.sub_mode_qtablewidget.cellWidget(index, 0).setCurrentIndex(substrate_type_available.index(default_substrate_type))
-            if not default:
+            else:
                 if new_sub_str in substrate_type_available:
                     # set positon to combobox
                     self.sub_mode_qtablewidget.cellWidget(index, 0).setCurrentIndex(substrate_type_available.index(new_sub_str))
@@ -608,6 +608,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 default_choice_index = hydraulic_type_available.index(user_preferences.biological_models_dict["hydraulic_type"][index_fish][index_stage])
                 if choosen_index == default_choice_index:
                     item_combobox_hyd.setStyleSheet(self.combobox_style_default)
+                    item_combobox_hyd.setToolTip(
+                        self.tr("default hydraulic option from biological model file."))
                 else:
                     item_combobox_hyd.setStyleSheet(self.combobox_style_user)
                 item_combobox_hyd.model().item(default_choice_index).setBackground(QColor(self.default_color))
@@ -650,6 +652,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
                         choosen_index = default_choice_index
                 if choosen_index == default_choice_index:
                     item_combobox_sub.setStyleSheet(self.combobox_style_default)
+                    item_combobox_sub.setToolTip(
+                        self.tr("default substrate option from biological model file."))
                 else:
                     item_combobox_sub.setStyleSheet(self.combobox_style_user)
                 item_combobox_sub.model().item(default_choice_index).setBackground(QColor(self.default_color))
