@@ -1078,7 +1078,7 @@ class Unit(dict):
 
         if node:
             # check if points duplicates presence
-            u, c = np.unique(self["node"][self.hvum.xy.name], return_counts=True, axis=0)
+            u, c = np.unique(np.column_stack((self["node"][self.hvum.xy.name], self["node"]["data"][self.hvum.z.name].to_numpy())), return_counts=True, axis=0)
             dup = u[c > 1]
             if len(dup) != 0:
                 node_duplicate_tf = True
