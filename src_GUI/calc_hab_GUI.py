@@ -349,6 +349,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             combobox = self.hyd_mode_qtablewidget.cellWidget(index, 0)
             # get item
             hydraulic_type_available = [combobox.itemText(i) for i in range(combobox.count())]
+
             if default:
                 # get default
                 name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
@@ -356,6 +357,13 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 # get stage index
                 index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
                 default_hydraulic_type = user_preferences.biological_models_dict["hydraulic_type"][index_fish][index_stage]
+                # is default available by .hab data ?
+                if default_hydraulic_type == "HEM" and (not self.current_hab_informations_dict["dimension_ok"] or not self.current_hab_informations_dict[
+                        "z_presence_ok"] or not self.current_hab_informations_dict[
+                        "shear_stress_ok"]):  # not 2d or not z
+                        default_hydraulic_type = "Neglect"
+                        self.hyd_mode_qtablewidget.cellWidget(index, 0).setToolTip(
+                            self.tr(".hab data not adapted :\nnot 2d data, not z node data or no shear_stress data."))
                 # set positon to combobox
                 self.hyd_mode_qtablewidget.cellWidget(index, 0).setCurrentIndex(hydraulic_type_available.index(default_hydraulic_type))
             if not default:
@@ -397,6 +405,32 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     # set positon to combobox
                     self.sub_mode_qtablewidget.cellWidget(index, 0).setCurrentIndex(substrate_type_available.index(new_sub_str))
 
+    def check_if_model_exist_in_hab(self, model_index):
+        # 1 column
+        item_str = self.selected_aquatic_animal_qtablewidget.item(model_index, 0).text()
+        name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
+        # 2 column
+        hyd_opt_str = self.hyd_mode_qtablewidget.cellWidget(model_index, 0).currentText()
+        # 3 column
+        sub_opt_str = self.sub_mode_qtablewidget.cellWidget(model_index, 0).currentText()
+        # 4 column
+        item_checkbox = self.presence_qtablewidget.cellWidget(model_index, 0).layout().itemAt(0).widget()
+
+        # get full name
+        fish_name_full = code_bio_model + "_" + stage + "_" + hyd_opt_str + "_" + sub_opt_str
+
+        # check or not
+        if fish_name_full in self.current_hab_informations_dict["fish_list"]:
+            item_checkbox.setChecked(True)
+        else:
+            item_checkbox.setChecked(False)
+
+    def check_uncheck_allmodels_presence(self):
+        print("check_uncheck_allmodels_presence")
+        self.get_current_hab_informations()
+        for model_index in range(self.selected_aquatic_animal_qtablewidget.rowCount()):
+            self.check_if_model_exist_in_hab(model_index)
+
     def color_hyd_combobox(self):
         """
         if one of hydraulic qtablewidget comboboxs changed : color of combobox current item is changed
@@ -425,32 +459,6 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # check if exist
         self.check_if_model_exist_in_hab(model_index)
-
-    def check_if_model_exist_in_hab(self, model_index):
-        # 1 column
-        item_str = self.selected_aquatic_animal_qtablewidget.item(model_index, 0).text()
-        name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
-        # 2 column
-        hyd_opt_str = self.hyd_mode_qtablewidget.cellWidget(model_index, 0).currentText()
-        # 3 column
-        sub_opt_str = self.sub_mode_qtablewidget.cellWidget(model_index, 0).currentText()
-        # 4 column
-        item_checkbox = self.presence_qtablewidget.cellWidget(model_index, 0).layout().itemAt(0).widget()
-
-        # get full name
-        fish_name_full = code_bio_model + "_" + stage + "_" + hyd_opt_str + "_" + sub_opt_str
-
-        # check or not
-        if fish_name_full in self.current_hab_informations_dict["fish_list"]:
-            item_checkbox.setChecked(True)
-        else:
-            item_checkbox.setChecked(False)
-
-    def check_uncheck_allmodels_presence(self):
-        print("check_uncheck_allmodels_presence")
-        self.get_current_hab_informations()
-        for model_index in range(self.selected_aquatic_animal_qtablewidget.rowCount()):
-            self.check_if_model_exist_in_hab(model_index)
 
     def change_general_hyd_combobox(self):
         model_index = int(self.sender().objectName())
@@ -603,8 +611,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 else:
                     item_combobox_hyd.setStyleSheet(self.combobox_style_user)
                 item_combobox_hyd.model().item(default_choice_index).setBackground(QColor(self.default_color))
-                if not self.current_hab_informations_dict["dimension_ok"] or not self.current_hab_informations_dict["z_presence_ok"] or not self.current_hab_informations_dict["shear_stress_ok"]:  # not 2d or not z
-                    if "HEM" in hydraulic_type_available:
+                if "HEM" in hydraulic_type_available:
+                    if not self.current_hab_informations_dict["dimension_ok"] or not self.current_hab_informations_dict["z_presence_ok"] or not self.current_hab_informations_dict["shear_stress_ok"]:  # not 2d or not z
                         item_combobox_hyd.model().item(hydraulic_type_available.index("HEM")).setEnabled(False)
                         item_combobox_hyd.model().item(hydraulic_type_available.index("HEM")).setToolTip(
                             self.tr(".hab data not adapted :\nnot 2d data, not z node data or no shear_stress data."))
