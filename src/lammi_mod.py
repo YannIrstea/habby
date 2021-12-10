@@ -46,6 +46,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.file_type = "binary"
         # reach
         self.morphology_available = True
+        # finit_volum_test
+        self.finit_volum_test = True
         # hydraulic variables
         self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
                                                     attribute_list=["z"],
@@ -56,6 +58,13 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.hvum.link_unit_with_software_attribute(name=self.hvum.v.name,
                                                     attribute_list=["v"],
                                                     position="node")
+        if self.finit_volum_test:
+            self.hvum.link_unit_with_software_attribute(name=self.hvum.h.name,
+                                                        attribute_list=["h"],
+                                                        position="mesh")
+            self.hvum.link_unit_with_software_attribute(name=self.hvum.v.name,
+                                                        attribute_list=["v"],
+                                                        position="mesh")
         self.hvum.link_unit_with_software_attribute(name=self.hvum.sub_s1.name,
                                                     attribute_list=["s1"],
                                                     position="mesh")
@@ -154,9 +163,17 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                             variables_wish.data[reach_number].append(
                                 self.lqdico[timestep_index]["node_hvz"][:, index_variable].astype(variables_wish.dtype))
                         if variables_wish.position == "mesh":
-                            variables_wish.data[reach_number].append(
-                                self.lqdico[timestep_index]["mesh_substrate"][:, sub_case].astype(variables_wish.dtype))
-                            sub_case += 1
+                            if variables_wish.sub:
+                                variables_wish.data[reach_number].append(
+                                    self.lqdico[timestep_index]["mesh_substrate"][:, sub_case].astype(variables_wish.dtype))
+                                sub_case += 1
+                            else:
+                                if variables_wish.name == self.hvum.h.name:
+                                    index_variable = 0
+                                elif variables_wish.name == self.hvum.v.name:
+                                    index_variable = 1
+                                variables_wish.data[reach_number].append(
+                                    self.lqdico[timestep_index]["mesh_hv"][:, index_variable].astype(variables_wish.dtype))
 
                 # struct
                 self.hvum.xy.data[reach_number].append(self.lqdico[timestep_index]["node_xy"])
