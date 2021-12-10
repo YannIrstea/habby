@@ -1330,9 +1330,14 @@ def construct_from_lammi(transectsfiledefintion):
                             for j in range(8):
                                 if not (is_number(splline[j])):
                                     bok = False
-                                else:
-                                    k = j + 1 if j < 5 else j  # substrat transformation Code EDF R&D (Cailleux 1954) to Code Cemagref EVHA
-                                    subpercentagecemagref[ivertices][k] += float(splline[j])
+                                else: # substrat transformation Code EDF R&D (Cailleux 1954) to Code Cemagref EVHA
+                                    if j<5:
+                                        subpercentagecemagref[ivertices][j+1] += float(splline[j])
+                                    elif j==5:
+                                        subpercentagecemagref[ivertices][j ] += 0.5 * float(splline[j])
+                                        subpercentagecemagref[ivertices][j + 1] += 0.5*float(splline[j])
+                                    else:
+                                        subpercentagecemagref[ivertices][j] +=  float(splline[j])
                             if not bok:
                                 return None, None, transectprn[iprn][0] + ' line ' + str(iline) + \
                                        ' the first eight value must be integer values of percentages of ' \
@@ -1354,6 +1359,8 @@ def construct_from_lammi(transectsfiledefintion):
                                            'depth velocity and represetative width of the present vertical '
                             hv[ivertices][0], hv[ivertices][1], la[ivertices] = float(splline[8]), float(
                                 splline[9]), float(splline[10])
+                            if hv[ivertices][0] == 0:
+                                hv[ivertices][1] = 0
                             ivertices += 1
                             if nbvertices == ivertices:
                                 cheklevel = 5
@@ -1363,6 +1370,7 @@ def construct_from_lammi(transectsfiledefintion):
 
                                 tin = np.zeros((8 * nbvertices, 3), dtype=np.int64)
                                 mesh_substrate = np.zeros((8 * nbvertices, 8), dtype=np.int64)
+                                mesh_hv = np.zeros((8 * nbvertices, 2), dtype=np.float64)
                                 node_xy = np.zeros((6 * nbvertices + 2, 2), dtype=np.float64)
                                 node_hvz = np.zeros((6 * nbvertices + 2, 3), dtype=np.float64)
                                 nbmeshk=0
@@ -1382,6 +1390,7 @@ def construct_from_lammi(transectsfiledefintion):
                                 for k in range(nbvertices):
                                     for kk in range(8):
                                         mesh_substrate[imesh + kk, :] = subpercentagecemagref[k, :]
+                                        mesh_hv[imesh + kk, :] = hv[k, :]
                                     imesh += 8
                                 ytop = (y0 + np.sum(la)) / 2
                                 # Defining/calclulating z0 the upstream altitude of the water surface for each discharge
@@ -1449,15 +1458,16 @@ def construct_from_lammi(transectsfiledefintion):
 
                                 # PHASE B : building a complete set of tin/nodes for each discharge by adding tin/nodes builds for each cross section #################################################
                                 if iprn == 0:
-                                    lqdico.append({'tin': tin, 'mesh_substrate': mesh_substrate, 'node_xy': node_xy,
-                                                   'node_hvz': node_hvz})
+                                    lqdico.append({'tin': tin, 'mesh_substrate': mesh_substrate, 'mesh_hv': mesh_hv,
+                                                   'node_xy': node_xy,'node_hvz': node_hvz})
                                     newnodeindex.append(6 * nbvertices + 2)
                                 else:
                                     lqdico[iq - 1]['tin'] = np.vstack(
                                         (lqdico[iq - 1]['tin'], tin + newnodeindex[iq - 1]))
                                     lqdico[iq - 1]['mesh_substrate'] = np.vstack(
                                         (lqdico[iq - 1]['mesh_substrate'], mesh_substrate))
-
+                                    lqdico[iq - 1]['mesh_hv'] = np.vstack(
+                                        (lqdico[iq - 1]['mesh_hv'], mesh_hv))
                                     #to avoid nodes whith the same position at a previous transect we move slightly the x position with a translation of 0.000001 m
                                     # note that instead we could have nodes at the same positions with different depth and velocity by joinning upstream and downstream transects
                                     lqdico[iq - 1]['node_xy'] = np.vstack(
