@@ -347,15 +347,19 @@ class HydraulicSimulationResultsAnalyzer:
             # create one dict for all column
             data_index_file = dict((key, []) for key in headers)
             data_row_list = dataraw.split("\n")[2:]
-            for line in data_row_list:
-                if line == "":
-                    # print("empty line")
-                    pass
-                else:
-                    for index, column_name in enumerate(headers):
-                        # "\t" is the column separator
-                        # (if split without arg, date with time is also splitted for hec ras 2D)
-                        data_index_file[column_name].append(line.split("\t")[index])
+            try:
+                for line in data_row_list:
+                    if line == "":
+                        # print("empty line")
+                        pass
+                    else:
+                        for index, column_name in enumerate(headers):
+                            # "\t" is the column separator
+                            # (if split without arg, date with time is also splitted for hec ras 2D)
+                            data_index_file[column_name].append(line.split("\t")[index])
+            except IndexError:
+                self.hydrau_description_list = "Error: indexHYDRAU.txt file is not weel formated. Column separator is a tabulation."
+                return
 
             if self.model_type == 'rubar2d':
                 self.more_than_one_file_selected_by_user = False
@@ -380,9 +384,13 @@ class HydraulicSimulationResultsAnalyzer:
                         self.hydrau_description_list = "Error: " + file_from_indexfile + " doesn't exist in " + self.folder_path
                         return
             elif self.index_hydrau_file_selected:  # from indexHYDRAU.txt
-                # self.more_than_one_file_selected_by_user or more_than_one_file_in indexHYDRAU (if from .txt)
-                if len(list(set(data_index_file["filename"]))) > 1:
-                    self.more_than_one_file_selected_by_user = True
+                try:
+                    # self.more_than_one_file_selected_by_user or more_than_one_file_in indexHYDRAU (if from .txt)
+                    if len(list(set(data_index_file["filename"]))) > 1:
+                        self.more_than_one_file_selected_by_user = True
+                except KeyError:
+                    self.hydrau_description_list = "Error: filename column not recognized"
+                    return
                 # textfiles filesexisting matching
                 selectedfiles_textfiles_match = [False] * len(data_index_file["filename"])
                 for i, file_from_indexfile in enumerate(data_index_file["filename"]):
