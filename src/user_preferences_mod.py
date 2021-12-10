@@ -112,17 +112,28 @@ class UserPreferences(AppDataFolders):
 
     # MODEL BIO
     def get_list_xml_model_files(self):
-        # get list of xml files
-        self.models_from_habby = sorted(
-            [f for f in os.listdir(self.path_bio) if os.path.isfile(os.path.join(self.path_bio, f)) and ".xml" in f])
-        self.picture_from_habby = sorted(
-            [f for f in os.listdir(self.path_bio) if os.path.isfile(os.path.join(self.path_bio, f)) and ".png" in f])
-        self.models_from_user_appdata = sorted([f for f in os.listdir(self.user_pref_biology_models) if
-                                                os.path.isfile(
-                                                    os.path.join(self.user_pref_biology_models, f)) and ".xml" in f])
-        self.picture_from_user_appdata = sorted([f for f in os.listdir(self.user_pref_biology_models) if
-                                                 os.path.isfile(
-                                                     os.path.join(self.user_pref_biology_models, f)) and ".png" in f])
+        # habby sources
+        self.models_from_habby = []
+        for root, _, fichiers in os.walk(self.path_bio):
+            for fichier in fichiers:
+                if fichier.endswith(".xml"):
+                    self.models_from_habby.append(os.path.join(root, fichier))
+        self.picture_from_habby = []
+        for root, _, fichiers in os.walk(self.path_bio):
+            for fichier in fichiers:
+                if fichier.endswith(".png"):
+                    self.picture_from_habby.append(os.path.join(root, fichier))
+        # user sources
+        self.models_from_user_appdata = []
+        for root, _, fichiers in os.walk(self.user_pref_biology_models):
+            for fichier in fichiers:
+                if fichier.endswith(".xml"):
+                    self.models_from_user_appdata.append(os.path.join(root, fichier))
+        self.picture_from_user_appdata = []
+        for root, _, fichiers in os.walk(self.user_pref_biology_models):
+            for fichier in fichiers:
+                if fichier.endswith(".png"):
+                    self.picture_from_user_appdata.append(os.path.join(root, fichier))
 
     def create_or_update_biology_models_json(self):
         # if not exist
@@ -164,10 +175,8 @@ class UserPreferences(AppDataFolders):
         for xml_origine in ["user", "habby"]:
             if xml_origine == "user":
                 xml_list = self.models_from_user_appdata
-                path_bio = self.user_pref_biology_models
             elif xml_origine == "habby":
                 xml_list = self.models_from_habby
-                path_bio = self.path_bio
 
             # for each xml file
             for file_ind, xml_filename in enumerate(xml_list):
@@ -178,10 +187,8 @@ class UserPreferences(AppDataFolders):
                         self.models_from_user_appdata = []
                         xml_list = []
                         continue
-                # get path
-                path_xml = os.path.join(path_bio, xml_filename)
                 # get_biomodels_informations_for_database
-                information_model_dict = bio_info_mod.get_biomodels_informations_for_database(path_xml)
+                information_model_dict = bio_info_mod.get_biomodels_informations_for_database(xml_filename)
                 if type(information_model_dict) == dict:
                     # append in dict
                     biological_models_dict["country"].append(information_model_dict["country"])
@@ -203,7 +210,7 @@ class UserPreferences(AppDataFolders):
                     biological_models_dict["code_biological_model"].append(information_model_dict["code_biological_model"])
                     biological_models_dict["modification_date"].append(information_model_dict["modification_date"])
                     biological_models_dict["latin_name"].append(information_model_dict["latin_name"])
-                    biological_models_dict["path_xml"].append(path_xml)
+                    biological_models_dict["path_xml"].append(xml_filename)
                     biological_models_dict["path_img"].append(information_model_dict["path_img"])
                 elif type(information_model_dict) == str:
                     self.diff_list = information_model_dict

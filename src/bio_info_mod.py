@@ -39,9 +39,6 @@ def get_biomodels_informations_for_database(path_xml):
     #  4 codebiomodel and stage don't have to contain " " and "_"
 
     # open the file
-    if os.path.split(path_xml)[0] == '':  # without path : get classic curves
-        path_xml = os.path.join("biology", "models", path_xml)
-
     try:
         try:
             docxml = ET.parse(path_xml)
@@ -375,8 +372,6 @@ def read_pref(xmlfile):
 
     """
     failload = None
-    if os.path.split(xmlfile)[0] == '':  # without path : get classic curves
-        xmlfile = os.path.join("biology", "models", xmlfile)
 
     xml_name = os.path.basename(xmlfile)
 
@@ -517,59 +512,6 @@ def execute_request(path_bio, name_database, request):
         return
 
     return res
-
-
-def get_stage(names_bio, path_bio):
-    """
-    This function loads all the stages present in a list o
-    xml Suitability files (JUV, ADU, etc) and the latin name of
-    the fish species. All the files should be in the same folder indicated by
-    path_bio. It is mainly used by habby_cmd
-    but it can be useful in other cases also.
-
-    :param names_bio: A list of xml biological Suitability file
-    :param path_bio: the path to the xml Suitability files (usually './biology')
-    :return: the stages in a list of string
-
-    """
-    stages_all = []
-    latin_all = []
-
-    for n in names_bio:
-
-        # load the file
-        try:
-            try:
-                docxml = ET.parse(os.path.join(path_bio, n))
-                root = docxml.getroot()
-            except IOError:
-                print("Warning: the xml file " + n + " does not exist \n")
-                break
-        except ET.ParseError:
-            print("Warning: the xml file " + n + "is not well-formed.\n")
-            break
-
-        # get the stage
-        stages = root.findall(".//Stage")
-        if len(stages) == 0:
-            print('no stage found in ' + n + "\n")
-            break
-        else:
-            try:
-                stages = [s.attrib['Type'] for s in stages]
-            except KeyError:
-                print('no stage found in ' + n + "\n")
-                break
-        stages_all.append(stages)
-
-        # get latin name
-        data = root.find(".//LatinName")
-        # None is null for python 3
-        if data is not None:
-            latin = data.text.strip()
-        latin_all.append(latin)
-
-    return latin_all, stages_all
 
 
 def get_hydrosignature(xmlfile):
