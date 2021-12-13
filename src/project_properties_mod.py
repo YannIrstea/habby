@@ -102,7 +102,7 @@ def create_default_project_properties_dict(all_export_enabled=False):
     project_properties['format'] = ".png"  # png, pdf
     project_properties['resolution'] = 300  # dpi
     project_properties['fish_name_type'] = 0  # latin_name, french, english, code_alternative
-    project_properties['marker'] = True  # Add point to line plot
+    project_properties['marker'] = False  # Add point to line plot
     project_properties['hs_axe_mod'] = 1  # hs axe mod visualisation
 
     # gui
