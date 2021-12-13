@@ -144,7 +144,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
         if not len(set(hyd_varying_z_index[reach_number])) == 1:
             hyd_unit_z_equal = False
 
-    """ check_validity """
+    """ check_duplicates """
     data_2d.check_duplicates()
     if len(data_2d[0]) == 0:
         print("Error: All selected units or timestep have duplicates nodes or meshs.")
@@ -196,7 +196,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
                     sleep(0.1)  # to wait q.put() ..
             return
 
-    """ bank hydraulic aberations  """
+    # """ bank hydraulic aberations  """
     # data_2d.fix_aberrations(npasses=1, tolerance=0.01, connectedness_criterion=True, bank_depth=0.05)
     # cProfile.runctx("data_2d.fix_aberrations(npasses=1, tolerance=0.01, connectedness_criterion=False, bank_depth=1)",globals={},locals={"data_2d":data_2d},filename="c:/habby_dev/files/cut6.profile")
 
@@ -208,6 +208,9 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
 
     """ remove null area """
     data_2d.remove_null_area()
+
+    """ remove_unused_node """
+    data_2d.remove_unused_node()
 
     """ update whole_profile unit and hyd_unit_correspondence if units has been removed """
     if hyd_varying_mesh or not hyd_unit_z_equal:

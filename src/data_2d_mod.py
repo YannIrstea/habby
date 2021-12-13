@@ -300,6 +300,15 @@ class Data2d(list):
             if unit_to_remove_list:
                 self.remove_unit_from_unit_index_list(unit_to_remove_list, reach_number)
 
+    def remove_unused_node(self):
+        #
+        # for each reach
+        for reach_number in range(self.reach_number):
+            unit_to_remove_list = []
+            # for each unit
+            for unit_number in range(len(self[reach_number])):
+                self[reach_number][unit_number].remove_unused_node()
+
     def set_min_height_to_0(self, min_height):
         self.hyd_min_height = min_height
         # for each reach
@@ -1061,10 +1070,30 @@ class Unit(dict):
             print("Warning: " + str(np.sum(index_to_remove)) +
                   " mesh(s) with a null surface have been removed in unit " + str(self.unit_name) + ".")
 
+    def remove_unused_node(self):
+        tin_flatten = self["mesh"][self.hvum.tin.name].flatten()
+        i_pt_unique, i2 = np.unique(tin_flatten, return_inverse=True, axis=0)
+        tin_flatten2 = i2[tin_flatten]
+        if len(self["node"]["xy"]) > len(i_pt_unique):
+            # update tin
+            self["mesh"][self.hvum.tin.name] = tin_flatten2[self["mesh"][self.hvum.tin.name]]
+            # update xy
+            self["node"]["xy"] = self["node"]["xy"][i_pt_unique]
+            # update node data
+            self["node"]["data"] = self["node"]["data"].iloc[i_pt_unique]
+            print("Warning: " + str(len(self["node"]["xy"]) - len(i_pt_unique)) + " unused node(s) has been removed.")
+
     def is_duplicates_mesh_or_point(self, case, mesh, node):
+        """
+        if duplicates node
+        :param case: str check case
+        :param mesh: bool to check if duplicates mesh
+        :param node:bool to check if duplicates node
+        :return: True : remove unit, False : keep unit
+        """
         # init
         mesh_duplicate_tf = False
-        node_duplicate_tf = False
+        node_xyz_duplicate_tf = False
 
         if mesh:
             # check if mesh duplicates presence
@@ -1073,21 +1102,29 @@ class Unit(dict):
             if len(dup) != 0:
                 mesh_duplicate_tf = True
                 print("Warning: The mesh of the unit " + self.unit_name + " is not loaded (" + str(len(dup)) +
-                      " duplicate(s) mesh(s) " + case + " : " +
-                      ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ").")
+                      " duplicate(s) mesh(s) " + case + ".")
+                # : " + ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ").")
 
         if node:
-            # check if points duplicates presence
+            # check if points duplicates presence XYZ
             u, c = np.unique(np.column_stack((self["node"][self.hvum.xy.name], self["node"]["data"][self.hvum.z.name].to_numpy())), return_counts=True, axis=0)
             dup = u[c > 1]
             if len(dup) != 0:
-                node_duplicate_tf = True
+                node_xyz_duplicate_tf = True
                 print("Warning: The mesh of the unit " + self.unit_name + " is not loaded (" + str(len(dup)) +
-                      " duplicate(s) node(s) " + case + " : " +
-                      ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ").")
-
+                      " duplicate(s) node(s) in xyz " + case + ".")
+                # : " + ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ").")
+            if not node_xyz_duplicate_tf:
+                # check if points duplicates presence
+                u, c = np.unique(self["node"][self.hvum.xy.name], return_counts=True, axis=0)
+                dup = u[c > 1]
+                if len(dup) != 0:
+                    # do not block process, only warning (must be removed by mesh null area process)
+                    print("Warning: The mesh of the unit " + self.unit_name + " has " + str(len(dup)) +
+                          " duplicate(s) node(s) in xy " + case + ".")
+                # : " + ", ".join([str(mesh_str) for mesh_str in dup.tolist()]) + ").")
         # return
-        if mesh_duplicate_tf or node_duplicate_tf:
+        if mesh_duplicate_tf or node_xyz_duplicate_tf:
             return True
         else:
             return False

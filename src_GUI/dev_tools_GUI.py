@@ -202,3 +202,26 @@ class DoubleClicOutputGroup(QObject):
         else:
             # standard event processing
             return QObject.eventFilter(self, obj, event)
+
+
+class MyFilter(QObject):
+    """
+    This is a filter which is used to know when a QWidget is going out of focus. Practically this is used
+    if the user goes away from a QLineEdit. If this events happens, the project is automatically saved with the new
+    info of the user.
+    """
+    outfocus_signal = pyqtSignal()
+    """
+    A signal to change the user name and the description of the project
+    """
+
+    def eventFilter(self, widget, event):
+        # FocusOut event
+        if event.type() == QEvent.FocusOut:
+            self.outfocus_signal.emit()
+            # return False so that the widget will also handle the event
+            # otherwise it won't focus out
+            return False
+        else:
+            # we don't care about other events
+            return False

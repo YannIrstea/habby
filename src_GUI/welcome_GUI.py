@@ -15,12 +15,14 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-from PyQt5.QtCore import pyqtSignal, Qt, QObject, QEvent
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QGroupBox,\
-    QLabel, QGridLayout, QLineEdit, QTextEdit, QSpacerItem, \
-    QMessageBox, QScrollArea, QSizePolicy, QFrame
+from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtWidgets import QGroupBox,\
+    QLabel, QGridLayout, QLineEdit, QTextEdit, QMessageBox, QScrollArea, QSizePolicy, QFrame
 from PyQt5.QtGui import QPixmap, QFont
 import matplotlib as mpl
+
+from src_GUI.dev_tools_GUI import MyFilter
+
 mpl.use("Qt5Agg")  # backends and toolbar for pyqt5
 
 from src.project_properties_mod import load_project_properties
@@ -153,26 +155,4 @@ class WelcomeW(QScrollArea):
         """
         self.send_log.emit('Warning: ' + self.tr('No example prepared yet.'))
 
-
-class MyFilter(QObject):
-    """
-    This is a filter which is used to know when a QWidget is going out of focus. Practically this is used
-    if the user goes away from a QLineEdit. If this events happens, the project is automatically saved with the new
-    info of the user.
-    """
-    outfocus_signal = pyqtSignal()
-    """
-    A signal to change the user name and the description of the project
-    """
-
-    def eventFilter(self, widget, event):
-        # FocusOut event
-        if event.type() == QEvent.FocusOut:
-            self.outfocus_signal.emit()
-            # return False so that the widget will also handle the event
-            # otherwise it won't focus out
-            return False
-        else:
-            # we don't care about other events
-            return False
 
