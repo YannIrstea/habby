@@ -1071,12 +1071,11 @@ class Unit(dict):
                   " mesh(s) with a null surface have been removed in unit " + str(self.unit_name) + ".")
 
     def remove_unused_node(self):
-        tin_flatten = self["mesh"][self.hvum.tin.name].flatten()
-        i_pt_unique, i2 = np.unique(tin_flatten, return_inverse=True, axis=0)
-        tin_flatten2 = i2[tin_flatten]
+        shape0=self["mesh"][self.hvum.tin.name].shape
+        i_pt_unique, i2 = np.unique(self["mesh"][self.hvum.tin.name].flatten(), return_inverse=True, axis=0)
         if len(self["node"]["xy"]) > len(i_pt_unique):
             # update tin
-            self["mesh"][self.hvum.tin.name] = tin_flatten2[self["mesh"][self.hvum.tin.name]]
+            shape0=self["mesh"][self.hvum.tin.name] = i2.reshape(shape0)
             # update xy
             self["node"]["xy"] = self["node"]["xy"][i_pt_unique]
             # update node data
