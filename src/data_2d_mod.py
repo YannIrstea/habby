@@ -1071,16 +1071,17 @@ class Unit(dict):
                   " mesh(s) with a null surface have been removed in unit " + str(self.unit_name) + ".")
 
     def remove_unused_node(self):
-        shape0=self["mesh"][self.hvum.tin.name].shape
+        shape0 = self["mesh"][self.hvum.tin.name].shape
         i_pt_unique, i2 = np.unique(self["mesh"][self.hvum.tin.name].flatten(), return_inverse=True, axis=0)
-        if len(self["node"]["xy"]) > len(i_pt_unique):
+        node_unused_nb = len(self["node"]["xy"]) - len(i_pt_unique)
+        if node_unused_nb:
             # update tin
-            shape0=self["mesh"][self.hvum.tin.name] = i2.reshape(shape0)
+            self["mesh"][self.hvum.tin.name] = i2.reshape(shape0)
             # update xy
             self["node"]["xy"] = self["node"]["xy"][i_pt_unique]
             # update node data
             self["node"]["data"] = self["node"]["data"].iloc[i_pt_unique]
-            print("Warning: " + str(len(self["node"]["xy"]) - len(i_pt_unique)) + " unused node(s) has been removed.")
+            print("Warning: " + str(node_unused_nb) + " unused node(s) has been removed.")
 
     def is_duplicates_mesh_or_point(self, case, mesh, node):
         """
