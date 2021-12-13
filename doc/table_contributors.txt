@@ -10,3 +10,4 @@ Pierre	Sagnes	OFB	Steering group	France
 Hervé	Capra	INRAE	steering group	France
 Véronique	GOURAUD 	EDF	steering group	France
 Laurence	Tissot	EDF	LAMMI - steering group	France
+Leonardo	Xavier de Mendonça	INRAE	developer trainee	Brazil
