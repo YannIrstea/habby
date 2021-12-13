@@ -8,3 +8,5 @@ build
 *.profile
 *.yml
 .DS_Store
+.projet
+.pydevprojet
