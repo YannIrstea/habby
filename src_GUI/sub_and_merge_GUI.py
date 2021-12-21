@@ -157,8 +157,6 @@ class SubstrateAndMerge(QWidget):
         self.name_att = ''
         self.hname2 = QLineEdit('Sub_CONST')
         self.hname2.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        self.substrate_classification_codes = ['Cemagref', 'Sandre']
-        self.substrate_classification_methods = ['coarser-dominant', 'percentage']
         self.pathfile_polygon = ''
         self.lasf_hdf5 = ''
         self.init_iu()

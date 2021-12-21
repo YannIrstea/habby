@@ -24,7 +24,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QPushButton, \
     QLabel, QGridLayout, \
     QLineEdit, QFileDialog, \
-    QComboBox, QMessageBox, QGroupBox, \
+    QComboBox, QMessageBox, QGroupBox, QRadioButton, \
     QAbstractItemView, QScrollArea, QFrame, QVBoxLayout, QSizePolicy, \
     QHBoxLayout
 
@@ -177,6 +177,11 @@ class HydrauTab(QScrollArea):
             self.model_group.clean_gui()
             # extensions
             # self.select_file_button.setText(self.tr('Choose file(s) (' + self.extension + ')'))
+            if self.model_group.model_type == "lammi":
+                self.model_group.update_for_lammi(on=True)
+            else:
+                self.model_group.update_for_lammi(on=False)
+
             self.model_group.result_file_title_label.setText(self.tr('Result file (') + self.model_group.extension + ')')
             self.model_group.name_last_hdf5(self.model_group.model_type)
             self.model_group.show()
@@ -342,6 +347,37 @@ class ModelInfoGroup(QGroupBox):
         # usefull_node_variable_label_title.setFixedHeight(widget_height)
         self.usefull_node_variable_label = QLabel(self.tr('unknown'))
 
+        # LAMMI substrate
+        classification_code_title_label = QLabel(self.tr('Sub classification code'))
+        classification_code_title_label.setToolTip(self.tr("LAMMI data substrate classification code"))
+        self.sub_classification_code_edf_radio = QRadioButton("EDF")
+        self.sub_classification_code_edf_radio.setToolTip(self.tr("8 EDF classes"))
+        self.sub_classification_code_edf_radio.setChecked(True)
+        self.sub_classification_code_cemagref_radio = QRadioButton("Cemagef")
+        self.sub_classification_code_cemagref_radio.setToolTip(self.tr("8 Cemagref classes"))
+        self.sub_classification_code_sandre_radio = QRadioButton("Sandre")
+        self.sub_classification_code_sandre_radio.setToolTip(self.tr("12 SANDRE classes"))
+        sub_classification_code_frame = QFrame()
+        radio_layout_1 = QHBoxLayout(sub_classification_code_frame)
+        radio_layout_1.setAlignment(Qt.AlignLeft)
+        radio_layout_1.addWidget(self.sub_classification_code_edf_radio)
+        radio_layout_1.addWidget(self.sub_classification_code_cemagref_radio)
+        radio_layout_1.addWidget(self.sub_classification_code_sandre_radio)
+
+        # LAMMI equation
+        equation_title_label = QLabel(self.tr('Equation mode'))
+        equation_title_label.setToolTip(self.tr("LAMMI hydraulic data equation mode"))
+        self.sub_equation_fe_radio = QRadioButton(self.tr("Finite element"))
+        self.sub_equation_fe_radio.setToolTip(self.tr("Vertical 1D hydraulic profile data set to node."))
+        self.sub_equation_fe_radio.setChecked(True)
+        self.sub_equation_fv_radio = QRadioButton(self.tr("Finite volume"))
+        self.sub_equation_fv_radio.setToolTip(self.tr("Vertical 1D hydraulic profile data set to mesh."))
+        equation_frame = QFrame()
+        radio_layout_2 = QHBoxLayout(equation_frame)
+        radio_layout_2.setAlignment(Qt.AlignLeft)
+        radio_layout_2.addWidget(self.sub_equation_fe_radio)
+        radio_layout_2.addWidget(self.sub_equation_fv_radio)
+
         # epsg
         epsg_title_label = QLabel(self.tr('EPSG code'))
         self.epsg_label = QLineEdit(self.tr('unknown'))
@@ -364,25 +400,44 @@ class ModelInfoGroup(QGroupBox):
                                                  send_refresh_filenames=self.drop_hydro)
 
         # layout
-        layout_ascii = QGridLayout()
-        layout_ascii.addWidget(self.result_file_title_label, 0, 0)
-        layout_ascii.addLayout(self.selection_layout, 0, 1)
-        layout_ascii.addWidget(reach_name_title_label, 1, 0)
-        layout_ascii.addWidget(self.reach_name_combobox, 1, 1)
-        layout_ascii.addWidget(unit_title_label, 3, 0)
-        layout_ascii.addLayout(unit_layout, 3, 1)
-        layout_ascii.addWidget(usefull_mesh_variable_label_title, 5, 0)
-        layout_ascii.addWidget(self.usefull_mesh_variable_label, 5, 1)  # from row, from column, nb row, nb column
-        layout_ascii.addWidget(usefull_node_variable_label_title, 6, 0)
-        layout_ascii.addWidget(self.usefull_node_variable_label, 6, 1)  # from row, from column, nb row, nb column
-        layout_ascii.addWidget(epsg_title_label, 7, 0)
-        layout_ascii.addWidget(self.epsg_label, 7, 1)
-        layout_ascii.addWidget(hdf5_name_title_label, 8, 0)
-        layout_ascii.addWidget(self.hdf5_name_lineedit, 8, 1)
-        layout_ascii.addLayout(self.progress_layout, 9, 0, 1, 2)
-        layout_ascii.addWidget(self.last_hydraulic_file_label, 10, 0)
-        layout_ascii.addWidget(self.last_hydraulic_file_name_label, 10, 1)
-        self.setLayout(layout_ascii)
+        self.hydrau_layout = QGridLayout()
+        self.hydrau_layout.addWidget(self.result_file_title_label, 0, 0)
+        self.hydrau_layout.addLayout(self.selection_layout, 0, 1)
+        self.hydrau_layout.addWidget(reach_name_title_label, 1, 0)
+        self.hydrau_layout.addWidget(self.reach_name_combobox, 1, 1)
+        self.hydrau_layout.addWidget(unit_title_label, 3, 0)
+        self.hydrau_layout.addLayout(unit_layout, 3, 1)
+        self.hydrau_layout.addWidget(usefull_mesh_variable_label_title, 5, 0)
+        self.hydrau_layout.addWidget(self.usefull_mesh_variable_label, 5, 1)  # from row, from column, nb row, nb column
+        self.hydrau_layout.addWidget(usefull_node_variable_label_title, 6, 0)
+        self.hydrau_layout.addWidget(self.usefull_node_variable_label, 6, 1)  # from row, from column, nb row, nb column
+
+        self.hydrau_layout.addWidget(classification_code_title_label, 7, 0)
+        self.hydrau_layout.addWidget(sub_classification_code_frame, 7, 1)
+
+        self.hydrau_layout.addWidget(equation_title_label, 8, 0)
+        self.hydrau_layout.addWidget(equation_frame, 8, 1)
+
+        self.hydrau_layout.addWidget(epsg_title_label, 9, 0)
+        self.hydrau_layout.addWidget(self.epsg_label, 9, 1)
+        self.hydrau_layout.addWidget(hdf5_name_title_label, 10, 0)
+        self.hydrau_layout.addWidget(self.hdf5_name_lineedit, 10, 1)
+        self.hydrau_layout.addLayout(self.progress_layout, 11, 0, 1, 2)
+        self.hydrau_layout.addWidget(self.last_hydraulic_file_label, 12, 0)
+        self.hydrau_layout.addWidget(self.last_hydraulic_file_name_label, 12, 1)
+        self.setLayout(self.hydrau_layout)
+
+    def update_for_lammi(self, on=False):
+        if on:
+            self.hydrau_layout.itemAtPosition(7, 0).widget().show()
+            self.hydrau_layout.itemAtPosition(7, 1).widget().show()
+            self.hydrau_layout.itemAtPosition(8, 0).widget().show()
+            self.hydrau_layout.itemAtPosition(8, 1).widget().show()
+        else:
+            self.hydrau_layout.itemAtPosition(7, 0).widget().hide()
+            self.hydrau_layout.itemAtPosition(7, 1).widget().hide()
+            self.hydrau_layout.itemAtPosition(8, 0).widget().hide()
+            self.hydrau_layout.itemAtPosition(8, 1).widget().hide()
 
     def read_attribute_xml(self, att_here):
         """
