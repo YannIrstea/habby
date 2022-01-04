@@ -24,7 +24,7 @@ def c_mesh_max_slope_surface(tin,xy,z,h):
     :param xy: numpy array of coordinate x,y of each node
     :param z:  numpy array of bottom altitude of each node
     :param h:  numpy array of height of water of each node
-    :return: mesh_max_slope_surface of each mesh: numpy array
+    :return: mesh_max_slope_surface of each mesh: numpy arraysrc/hrr.py:27
     '''
     xy1 = xy[tin[:, 0]]
     z1 = z[tin[:, 0]]
