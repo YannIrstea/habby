@@ -353,16 +353,13 @@ class ModelInfoGroup(QGroupBox):
         self.sub_classification_code_edf_radio = QRadioButton("EDF")
         self.sub_classification_code_edf_radio.setToolTip(self.tr("8 EDF classes"))
         self.sub_classification_code_edf_radio.setChecked(True)
-        self.sub_classification_code_cemagref_radio = QRadioButton("Cemagef")
+        self.sub_classification_code_cemagref_radio = QRadioButton("Cemagref")
         self.sub_classification_code_cemagref_radio.setToolTip(self.tr("8 Cemagref classes"))
-        self.sub_classification_code_sandre_radio = QRadioButton("Sandre")
-        self.sub_classification_code_sandre_radio.setToolTip(self.tr("12 SANDRE classes"))
         sub_classification_code_frame = QFrame()
         radio_layout_1 = QHBoxLayout(sub_classification_code_frame)
         radio_layout_1.setAlignment(Qt.AlignLeft)
         radio_layout_1.addWidget(self.sub_classification_code_edf_radio)
         radio_layout_1.addWidget(self.sub_classification_code_cemagref_radio)
-        radio_layout_1.addWidget(self.sub_classification_code_sandre_radio)
 
         # LAMMI equation
         equation_title_label = QLabel(self.tr('Equation mode'))
