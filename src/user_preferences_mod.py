@@ -35,7 +35,7 @@ class UserPreferences(AppDataFolders):
         self.modified = False
         self.user_preference_cruve_list = []
         # default preferences data
-        self.create_defaut_user_preferences()
+        self.data = self.create_defaut_user_preferences()
         # biological models
         self.path_bio = os.path.join("biology", "models")  # path to biological
         # biological_models_dict
@@ -77,20 +77,30 @@ class UserPreferences(AppDataFolders):
                       "and try again.")
 
     def create_defaut_user_preferences(self):
-        self.data = dict(habby_version=HABBY_VERSION_STR,
+        return dict(habby_version=HABBY_VERSION_STR,
                         language="english",  # english, french, spanish
                          name_prj="",
                          path_prj="",
                          recent_project_path=[],
                          recent_project_name=[],
                          theme="classic",  # classic, dark
-                         wind_position=(50, 75, 950, 720))  # X position, Y position, height, width
+                         wind_position=(50, 75, 950, 720),  # X position, Y position, height, width
+                         lammi_sub_classification_code="EDF",  # EDF or Cemagref for lammi data
+                         lammi_equation_type="FE")  # FV or FE for lammi data
 
     def create_or_load_user_preferences(self):
         if not os.path.isfile(self.user_pref_habby_file_path):  # check if preferences file exist
             self.save_user_preferences_json()  # create it
         else:
-            self.load_user_preferences_json()  # load it
+            # if new key added to user_preferences : recreate a new
+            existing_dict = self.load_user_preferences_json()  # load it
+            if existing_dict.keys() == self.data.keys():
+                self.data = existing_dict
+            else:
+                # recreate new
+                self.data = self.create_defaut_user_preferences()
+                self.save_user_preferences_json()  # erase file
+
             # if new version of habby : recreate a new
             try:
                 user_old_habby_version = str(self.data["habby_version"])
@@ -99,8 +109,8 @@ class UserPreferences(AppDataFolders):
             user_old_habby_version = tuple(map(int, user_old_habby_version.split('.')))  # version tuple
             HABBY_VERSION_TUPLE = tuple(map(int, HABBY_VERSION_STR.split('.')))  # version tuple
             if user_old_habby_version < HABBY_VERSION_TUPLE:  # X.Y.Z version level
-                self.create_defaut_user_preferences()
-                self.save_user_preferences_json()  # create it
+                self.data = self.create_defaut_user_preferences()
+                self.save_user_preferences_json()  # erase file
 
     def save_user_preferences_json(self):
         with open(self.user_pref_habby_file_path, "wt") as write_file:
@@ -108,7 +118,8 @@ class UserPreferences(AppDataFolders):
 
     def load_user_preferences_json(self):
         with open(self.user_pref_habby_file_path, "r") as read_file:
-            self.data = json.load(read_file)
+            data_dict = json.load(read_file)
+        return data_dict
 
     # MODEL BIO
     def get_list_xml_model_files(self):

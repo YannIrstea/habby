@@ -28,6 +28,7 @@ from PyQt5.QtWidgets import QPushButton, \
     QAbstractItemView, QScrollArea, QFrame, QVBoxLayout, QSizePolicy, \
     QHBoxLayout
 
+from src.user_preferences_mod import user_preferences
 from src.hydraulic_results_manager_mod import HydraulicSimulationResultsAnalyzer
 from src.hydraulic_result_mod import HydraulicModelInformation
 from src.project_properties_mod import load_project_properties, save_project_properties, load_specific_properties
@@ -142,7 +143,7 @@ class HydrauTab(QScrollArea):
         model_layout.addStretch()
 
         # model_group
-        self.model_group = ModelInfoGroup(self.path_prj, self.name_prj, self.send_log, self.tr(""))
+        self.model_group = ModelInfoGroup(self.path_prj, self.name_prj, self.send_log)
         self.model_group.hide()
         self.model_list_combobox.currentIndexChanged.connect(self.change_model_type_gui)
 
@@ -278,7 +279,7 @@ class ModelInfoGroup(QGroupBox):
     drop_hydro = pyqtSignal()
     drop_merge = pyqtSignal()
 
-    def __init__(self, path_prj, name_prj, send_log, title):
+    def __init__(self, path_prj, name_prj, send_log):
         super().__init__()
         self.path_prj = path_prj
         self.name_prj = name_prj
@@ -352,9 +353,17 @@ class ModelInfoGroup(QGroupBox):
         classification_code_title_label.setToolTip(self.tr("LAMMI data substrate classification code"))
         self.sub_classification_code_edf_radio = QRadioButton("EDF")
         self.sub_classification_code_edf_radio.setToolTip(self.tr("8 EDF classes"))
-        self.sub_classification_code_edf_radio.setChecked(True)
         self.sub_classification_code_cemagref_radio = QRadioButton("Cemagref")
         self.sub_classification_code_cemagref_radio.setToolTip(self.tr("8 Cemagref classes"))
+        if user_preferences.data["lammi_sub_classification_code"] == "EDF":
+            self.sub_classification_code_edf_radio.setChecked(True)
+        elif user_preferences.data["lammi_sub_classification_code"] == "Cemagref":
+            self.sub_classification_code_cemagref_radio.setChecked(True)
+        else:
+            self.send_log.emit(self.tr("Warning: lammi_sub_classification_code not recognized in user preferences."))
+            print("Warning: lammi_sub_classification_code not recognized in user preferences.")
+            self.sub_classification_code_cemagref_radio.setChecked(True)
+        self.sub_classification_code_edf_radio.toggled.connect(self.lammi_choice_changed)
         sub_classification_code_frame = QFrame()
         radio_layout_1 = QHBoxLayout(sub_classification_code_frame)
         radio_layout_1.setAlignment(Qt.AlignLeft)
@@ -364,16 +373,24 @@ class ModelInfoGroup(QGroupBox):
         # LAMMI equation
         equation_title_label = QLabel(self.tr('Equation mode'))
         equation_title_label.setToolTip(self.tr("LAMMI hydraulic data equation mode"))
-        self.sub_equation_fe_radio = QRadioButton(self.tr("Finite element"))
-        self.sub_equation_fe_radio.setToolTip(self.tr("Vertical 1D hydraulic profile data set to node."))
-        self.sub_equation_fe_radio.setChecked(True)
-        self.sub_equation_fv_radio = QRadioButton(self.tr("Finite volume"))
-        self.sub_equation_fv_radio.setToolTip(self.tr("Vertical 1D hydraulic profile data set to mesh."))
+        self.equation_fe_radio = QRadioButton(self.tr("Finite element"))
+        self.equation_fe_radio.setToolTip(self.tr("Vertical 1D hydraulic profile data set to node."))
+        self.equation_fv_radio = QRadioButton(self.tr("Finite volume"))
+        self.equation_fv_radio.setToolTip(self.tr("Vertical 1D hydraulic profile data set to mesh."))
+        if user_preferences.data["lammi_equation_type"] == "FE":
+            self.equation_fe_radio.setChecked(True)
+        elif user_preferences.data["lammi_equation_type"] == "FV":
+            self.equation_fv_radio.setChecked(True)
+        else:
+            self.send_log.emit(self.tr("Warning: lammi_equation_type not recognized in user preferences."))
+            print("Warning: lammi_equation_type not recognized in user preferences.")
+            self.equation_fe_radio.setChecked(True)
+        self.equation_fe_radio.toggled.connect(self.lammi_choice_changed)
         equation_frame = QFrame()
         radio_layout_2 = QHBoxLayout(equation_frame)
         radio_layout_2.setAlignment(Qt.AlignLeft)
-        radio_layout_2.addWidget(self.sub_equation_fe_radio)
-        radio_layout_2.addWidget(self.sub_equation_fv_radio)
+        radio_layout_2.addWidget(self.equation_fe_radio)
+        radio_layout_2.addWidget(self.equation_fv_radio)
 
         # epsg
         epsg_title_label = QLabel(self.tr('EPSG code'))
@@ -435,6 +452,20 @@ class ModelInfoGroup(QGroupBox):
             self.hydrau_layout.itemAtPosition(7, 1).widget().hide()
             self.hydrau_layout.itemAtPosition(8, 0).widget().hide()
             self.hydrau_layout.itemAtPosition(8, 1).widget().hide()
+
+    def lammi_choice_changed(self):
+        # sub
+        if self.sub_classification_code_edf_radio.isChecked():
+            user_preferences.data["lammi_sub_classification_code"] = "EDF"
+        elif self.sub_classification_code_cemagref_radio.isChecked():
+            user_preferences.data["lammi_sub_classification_code"] = "Cemagref"
+        # equ
+        if self.equation_fe_radio.isChecked():
+            user_preferences.data["lammi_equation_type"] = "FE"
+        elif self.equation_fv_radio.isChecked():
+            user_preferences.data["lammi_equation_type"] = "FV"
+        # save
+        user_preferences.save_user_preferences_json()
 
     def read_attribute_xml(self, att_here):
         """

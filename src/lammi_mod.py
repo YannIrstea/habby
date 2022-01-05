@@ -28,6 +28,7 @@ from src import hdf5_mod
 import matplotlib as mpl
 
 from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
+from src.user_preferences_mod import user_preferences
 
 
 class HydraulicSimulationResults(HydraulicSimulationResultsBase):
@@ -47,7 +48,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         # reach
         self.morphology_available = True
         # finit_volum_test
-        self.finit_volum_test = True
+        self.hyd_equation_type = user_preferences.data["lammi_equation_type"]
+
         # hydraulic variables
         self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
                                                     attribute_list=["z"],
@@ -58,7 +60,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.hvum.link_unit_with_software_attribute(name=self.hvum.v.name,
                                                     attribute_list=["v"],
                                                     position="node")
-        if self.finit_volum_test:
+        if self.hyd_equation_type == "FV":
             self.hvum.link_unit_with_software_attribute(name=self.hvum.h.name,
                                                         attribute_list=["h"],
                                                         position="mesh")
@@ -93,7 +95,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.sub = True
         self.sub_mapping_method = "point"
         self.sub_classification_method = "percentage"  # "coarser-dominant" / "percentage"
-        self.sub_classification_code = "Cemagref"  # "Cemagref" / "Sandre"
+        self.sub_classification_code = user_preferences.data["lammi_sub_classification_code"]  # EDF or Cemagref
 
         self.hyd_varying_mesh = True
 
@@ -1495,7 +1497,9 @@ def construct_from_lammi(transectsfiledefintion):
     if nbiq != iq and iprn!=0:
         return None, None, transectprn[iprn][0] + ' the number of discharges provided is less ' \
                                                   'than what was expected in ' + referencefile
-
+    # TODO: get substrate and equation_type condition
+    # user_preferences.data["lammi_sub_classification_code"] == "EDF"  # EDF or Cemagref
+    # user_preferences.data["lammi_equation_type"] == "FE"  # FE or FV
 
     return stationname, lq, lqdico
 
