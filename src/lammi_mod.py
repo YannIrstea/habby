@@ -95,7 +95,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.sub = True
         self.sub_mapping_method = "point"
         self.sub_classification_method = "percentage"  # "coarser-dominant" / "percentage"
-        self.sub_classification_code = user_preferences.data["lammi_sub_classification_code"]  # EDF or Cemagref
+        self.sub_classification_code = "Cemagref"  # always (if EDF convert to cemagref)
 
         self.hyd_varying_mesh = True
 
@@ -1500,10 +1500,6 @@ def construct_from_lammi(transectsfiledefintion):
 
     if nbiq != iq and iprn!=0:
         return None, None, transectprn[iprn][0] + ' the number of discharges provided is less ' \
-                                                  'than what was expected in ' + referencefile
-    # TODO: get substrate and equation_type condition
-    # user_preferences.data["lammi_sub_classification_code"] == "EDF"  # EDF or Cemagref
-    #     # user_preferences.data["lammi_equation_type"] == "FE"  # FE or FV
 
     return stationname, lq, lqdico
 
