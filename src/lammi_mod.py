@@ -1349,14 +1349,18 @@ def construct_from_lammi(transectsfiledefintion):
                             for j in range(8):
                                 if not (is_number(splline[j])):
                                     bok = False
-                                else: # substrat transformation Code EDF R&D (Cailleux 1954) to Code Cemagref EVHA
-                                    if j<5:
-                                        subpercentagecemagref[ivertices][j+1] += float(splline[j])
-                                    elif j==5:
-                                        subpercentagecemagref[ivertices][j ] += 0.5 * float(splline[j])
-                                        subpercentagecemagref[ivertices][j + 1] += 0.5*float(splline[j])
-                                    else:
-                                        subpercentagecemagref[ivertices][j] +=  float(splline[j])
+                                else:
+                                    if user_preferences.data["lammi_sub_classification_code"] == "EDF":  # EDF or Cemagref
+                                    # substrat transformation Code EDF R&D (Cailleux 1954) to Code Cemagref EVHA
+                                        if j<5:
+                                            subpercentagecemagref[ivertices][j+1] += float(splline[j])
+                                        elif j==5:
+                                            subpercentagecemagref[ivertices][j ] += 0.5 * float(splline[j])
+                                            subpercentagecemagref[ivertices][j + 1] += 0.5*float(splline[j])
+                                        else:
+                                            subpercentagecemagref[ivertices][j] +=  float(splline[j])
+                                    else:# substrat from LAMMI is already coded in Cemagref EVHA
+                                        subpercentagecemagref[ivertices][j] = float(splline[j])
                             if not bok:
                                 return None, None, transectprn[iprn][0] + ' line ' + str(iline) + \
                                        ' the first eight value must be integer values of percentages of ' \
@@ -1499,7 +1503,7 @@ def construct_from_lammi(transectsfiledefintion):
                                                   'than what was expected in ' + referencefile
     # TODO: get substrate and equation_type condition
     # user_preferences.data["lammi_sub_classification_code"] == "EDF"  # EDF or Cemagref
-    # user_preferences.data["lammi_equation_type"] == "FE"  # FE or FV
+    #     # user_preferences.data["lammi_equation_type"] == "FE"  # FE or FV
 
     return stationname, lq, lqdico
 
