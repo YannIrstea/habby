@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BiologicalModel>
+    <CdBiologicalModel>GLOS02</CdBiologicalModel>
+    <Country>France</Country>
+    <MadeBy>INRAE former IRSTEA</MadeBy>
+    <Invertebrate>
+       <CdAppelTaxon SchemeAgencyID="SANDRE">909</CdAppelTaxon>
+       <LatinName>Glossiphonia Johnson, 1816</LatinName>
+       <ComNames>
+          <ComName Language="French"></ComName>
+          <ComName Language="English"></ComName>
+       </ComNames>
+       <CdAlternative OrgCdAlternative="Irstea Lyon">GLOS</CdAlternative>
+    </Invertebrate>
+    <General>
+       <CreationYear>2020</CreationYear>
+       <Description Language="French">
+          <![CDATA[
+          Origine:
+          Réanalyse des données Doledec et al. (2007) et Merigoux et al. (2009) avec ajouts de données issues du suivi RHONECO et Lignon du Forêz.
+          La courbe vitesse des de Glossiphonia est issue de données récoltées dans 1 rivière Française entre 2002 et 2012 et implique 587 individus collectés dans 301 échantillons dans 11 campagnes (Sites X Dates).
+          Remarque: La courbe vitesse est construite sur une gamme de valeur d'habitat allant de 0 et 143 cm/s avec extrapolation jusqu'à 200 cm/s.
+          Références: 
+          Doledec, S., Lamouroux, N., Fuchs, U., & Merigoux, S. (2007). Modelling the hydraulic preferences of benthic macroinvertebrates in small European streams. Freshwater Biology, 52(1), 145-164.
+          Mérigoux, S., Lamouroux, N., Olivier, J. M., & Doledec, S. (2009). Invertebrate hydraulic preferences and predicted impacts of changes in discharge in a large river. Freshwater Biology, 54(6), 1343-1356.
+          Lamouroux, N., Gore, J. A., Lepori, F., & Statzner, B. (2015). The ecological restoration of large rivers needs science based, predictive tools meeting public expectations: an overview of the Rhône project. Freshwater Biology, 60(6), 1069-1084.
+          Forcellini, M., Plichard, L., Dolédec, S., Mérigoux, S., Olivier, J. M., Cauvy-Fraunié, S., & Lamouroux, N. (2020). Microhabitat selection by macroinvertebrates: generality among rivers and functional interpretation. Journal of Ecohydraulics, 1-14.
+           ]]>
+       </Description>
+       <Description Language="English">
+          <![CDATA[
+          Origine:
+          Reanalysis of Doledec et al (2007) and Merigoux et al (2009) data with additions of data from RHONECO and Lignon du Forêz monitoring.
+          The Glossiphonia velocity curve is derived from data collected in 1 French river between 2002 and 2012 and involves 587 individuals collected in 301 samples in 11 surveys (Sites X Dates).
+          Note: The Velocity curves was constructed over a range of habitat values from 0 to 143 cm/s with extrapolation to 200 cm/s.
+          References:
+          Doledec, S., Lamouroux, N., Fuchs, U., & Merigoux, S. (2007). Modelling the hydraulic preferences of benthic macroinvertebrates in small European streams. Freshwater Biology, 52(1), 145-164.
+          Mérigoux, S., Lamouroux, N., Olivier, J. M., & Doledec, S. (2009). Invertebrate hydraulic preferences and predicted impacts of changes in discharge in a large river. Freshwater Biology, 54(6), 1343-1356.
+          Lamouroux, N., Gore, J. A., Lepori, F., & Statzner, B. (2015). The ecological restoration of large rivers needs science based, predictive tools meeting public expectations: an overview of the Rhône project. Freshwater Biology, 60(6), 1069-1084.
+          Forcellini, M., Plichard, L., Dolédec, S., Mérigoux, S., Olivier, J. M., Cauvy-Fraunié, S., & Lamouroux, N. (2020). Microhabitat selection by macroinvertebrates: generality among rivers and functional interpretation. Journal of Ecohydraulics, 1-14.
+           ]]>
+       </Description>
+       <Image></Image>
+    </General>
+    <ModelType Type="univariate suitability index curves">
+       <Stages>
+          <Stage Type="all_stages">
+             <SuitabilityVelocity>
+                <VelocityValues Unit="CentimeterPerSecond" UnitSymbol="cm/s">0 10 20 30 40 50 60 70 80 90 100 110 120 130 140 150 160 170 180 190 200</VelocityValues>
+                <SuitabilityIndex>1 0.74 0.55 0.41 0.31 0.24 0.2 0.16 0.14 0.12 0.11 0.1 0.09 0.08 0.07 0.07 0.06 0.06 0.05 0.05 0.04</SuitabilityIndex>
+             </SuitabilityVelocity>
+          </Stage>
+       </Stages>
+    </ModelType>
+    <HydrosignatureOfTheSamplingData Type="Area" calculation_mode="NOXY4">
+       <HeightOfWaterClasses Unit="Meter" UnitSymbol="m">0.0 0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 3.0</HeightOfWaterClasses>
+       <VelocityClasses Unit="MeterPerSecond" UnitSymbol="m/s">0.0 0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 5.0</VelocityClasses>
+       <HydrosignatureValues Type="Percentages" DescriptionMode="VelocityIncreasingAndThenHeightOfWaterIncreasing">6.094968107725018 5.17363571934798 5.244507441530829 2.9057406094968106 1.630049610205528 0.42523033309709424 0.07087172218284904 0.07087172218284904 0.0 5.669737774627923 9.425939050318922 10.772501771793054 10.914245216158752 7.4415308291991495 4.890148830616584 1.630049610205528 0.9922041105598866 0.28348688873139616 1.48830616583983 2.4805102763997167 4.181431608788094 3.8270729978738482 3.047484053862509 3.968816442239546 1.700921332388377 0.5669737774627923 0.21261516654854712 0.21261516654854712 0.4961020552799433 0.6378454996456414 1.2048192771084338 1.1339475549255846 0.42523033309709424 0.28348688873139616 0.14174344436569808 0.07087172218284904 0.07087172218284904 0.0 0.0 0.07087172218284904 0.07087172218284904 0.07087172218284904 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0</HydrosignatureValues>
+    </HydrosignatureOfTheSamplingData>
+</BiologicalModel>

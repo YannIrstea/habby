@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BiologicalModel>
+    <CdBiologicalModel>DUGE01</CdBiologicalModel>
+    <Country>France</Country>
+    <MadeBy>INRAE former IRSTEA</MadeBy>
+    <Invertebrate>
+       <CdAppelTaxon SchemeAgencyID="SANDRE">1056</CdAppelTaxon>
+       <LatinName>Dugesia Girard, 1850</LatinName>
+       <ComNames>
+          <ComName Language="French"></ComName>
+          <ComName Language="English"></ComName>
+       </ComNames>
+       <CdAlternative OrgCdAlternative="Irstea Lyon">DUGE</CdAlternative>
+    </Invertebrate>
+    <General>
+       <CreationYear>2020</CreationYear>
+       <Description Language="French">
+          <![CDATA[
+          Origine:
+          Réanalyse des données Doledec et al. (2007) et Merigoux et al. (2009) avec ajouts de données issues du suivi RHONECO et Lignon du Forêz.
+          La courbe HFST de Dugesia est issue de données récoltées dans 1 rivière Française en 2000 et implique 518 individus collectés dans 70 échantillons dans 2 campagnes (Sites X Dates).
+          Remarque: La courbe HFST est construite sur une gamme de valeur d'habitat allant de l'hémisphère 0 à 17 avec extrapolation jusqu'à 19.
+          Références: 
+          Doledec, S., Lamouroux, N., Fuchs, U., & Merigoux, S. (2007). Modelling the hydraulic preferences of benthic macroinvertebrates in small European streams. Freshwater Biology, 52(1), 145-164.
+          Mérigoux, S., Lamouroux, N., Olivier, J. M., & Doledec, S. (2009). Invertebrate hydraulic preferences and predicted impacts of changes in discharge in a large river. Freshwater Biology, 54(6), 1343-1356.
+          Lamouroux, N., Gore, J. A., Lepori, F., & Statzner, B. (2015). The ecological restoration of large rivers needs science based, predictive tools meeting public expectations: an overview of the Rhône project. Freshwater Biology, 60(6), 1069-1084.
+          Forcellini, M., Plichard, L., Dolédec, S., Mérigoux, S., Olivier, J. M., Cauvy-Fraunié, S., & Lamouroux, N. (2020). Microhabitat selection by macroinvertebrates: generality among rivers and functional interpretation. Journal of Ecohydraulics, 1-14.
+           ]]>
+       </Description>
+       <Description Language="English">
+          <![CDATA[
+          Origine:
+          Reanalysis of Doledec et al (2007) and Merigoux et al (2009) data with additions of data from RHONECO and Lignon du Forêz monitoring.
+          The Dugesia HFST curve is derived from data collected in 1 French river in 2000 and involves 518 individuals collected in 70 samples in 2 surveys (Sites X Dates).
+          Note: The HFST curve was constructed over a range of habitat values from hemisphere 0 to 17 with extrapolation to 19.
+          References:
+          Doledec, S., Lamouroux, N., Fuchs, U., & Merigoux, S. (2007). Modelling the hydraulic preferences of benthic macroinvertebrates in small European streams. Freshwater Biology, 52(1), 145-164.
+          Mérigoux, S., Lamouroux, N., Olivier, J. M., & Doledec, S. (2009). Invertebrate hydraulic preferences and predicted impacts of changes in discharge in a large river. Freshwater Biology, 54(6), 1343-1356.
+          Lamouroux, N., Gore, J. A., Lepori, F., & Statzner, B. (2015). The ecological restoration of large rivers needs science based, predictive tools meeting public expectations: an overview of the Rhône project. Freshwater Biology, 60(6), 1069-1084.
+          Forcellini, M., Plichard, L., Dolédec, S., Mérigoux, S., Olivier, J. M., Cauvy-Fraunié, S., & Lamouroux, N. (2020). Microhabitat selection by macroinvertebrates: generality among rivers and functional interpretation. Journal of Ecohydraulics, 1-14.
+           ]]>
+       </Description>
+       <Image></Image>
+    </General>
+    <ModelType Type="univariate suitability index curves">
+       <Stages>
+          <Stage Type="all_stages">
+             <SuitabilityShearStress>
+                <MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues Unit="pascal" UnitSymbol="Pa">0.0771 0.0828 0.0945 0.118 0.141 0.166 0.218 0.272 0.393 0.529 0.682 0.826 1.09 1.59 2.27 3.17 4.48 6.34 8.95 12.7</MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues>
+                <HemisphereNumber Unit="HFST" UnitSymbol="HFST">0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19</HemisphereNumber>
+                <SuitabilityIndex>1 0.77 0.54 0.46 0.31 0.31 0.23 0.23 0.23 0.23 0.23 0.23 0.23 0.23 0.23 0.23 0.23 0.23 0.23 0.23</SuitabilityIndex>
+             </SuitabilityShearStress>
+          </Stage>
+       </Stages>
+    </ModelType>
+    <HydrosignatureOfTheSamplingData Type="Area" calculation_mode="NOXY4">
+       <HeightOfWaterClasses Unit="Meter" UnitSymbol="m">0.0 0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 3.0</HeightOfWaterClasses>
+       <VelocityClasses Unit="MeterPerSecond" UnitSymbol="m/s">0.0 0.2 0.4 0.6 0.8 1.0 1.2 1.4 1.6 5.0</VelocityClasses>
+       <HydrosignatureValues Type="Percentages" DescriptionMode="VelocityIncreasingAndThenHeightOfWaterIncreasing">6.094968107725018 5.17363571934798 5.244507441530829 2.9057406094968106 1.630049610205528 0.42523033309709424 0.07087172218284904 0.07087172218284904 0.0 5.669737774627923 9.425939050318922 10.772501771793054 10.914245216158752 7.4415308291991495 4.890148830616584 1.630049610205528 0.9922041105598866 0.28348688873139616 1.48830616583983 2.4805102763997167 4.181431608788094 3.8270729978738482 3.047484053862509 3.968816442239546 1.700921332388377 0.5669737774627923 0.21261516654854712 0.21261516654854712 0.4961020552799433 0.6378454996456414 1.2048192771084338 1.1339475549255846 0.42523033309709424 0.28348688873139616 0.14174344436569808 0.07087172218284904 0.07087172218284904 0.0 0.0 0.07087172218284904 0.07087172218284904 0.07087172218284904 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0</HydrosignatureValues>
+    </HydrosignatureOfTheSamplingData>
+</BiologicalModel>
