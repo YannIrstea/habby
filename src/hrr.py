@@ -8,6 +8,18 @@ def connectivity_mesh_table(tin):
     aindex=np.arange(len(tin))
     segment= np.r_[np.c_[tin[:,0:2],aindex],np.c_[tin[:,1:],aindex],np.c_[tin[:,[0,2]],aindex]]
     segment = segment[np.lexsort((segment[:, 1], segment[:, 0]))]
+    loca =np.full((len(tin), 3), -1, dtype=np.int64)
+    posfree=np.zeros((len(tin), 1), dtype=np.int64)
+    for j in range(3*len(tin)-1):
+        if np.all(segment[j][0:2]==segment[j+1][0:2]):
+            loca[segment[j][2]][posfree[segment[j][2]]]=segment[j+1][2]
+            loca[segment[j+1][2]][posfree[segment[j+1][2]]] = segment[j][2]
+            posfree[segment[j][2]]+=1
+            posfree[segment[j+1][2]] += 1
+            if posfree[segment[j][2]] >2 or posfree[segment[j+1][2]] >2:
+                print ('anomalie majeure')
+                return
+
     u, c = np.unique(segment[:,0:2], axis=0, return_counts=True)
 
 
