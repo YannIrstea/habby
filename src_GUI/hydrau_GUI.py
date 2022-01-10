@@ -34,6 +34,7 @@ from src.hydraulic_result_mod import HydraulicModelInformation
 from src.project_properties_mod import load_project_properties, save_project_properties, load_specific_properties
 from src_GUI.dev_tools_GUI import QListWidgetClipboard
 from src_GUI.process_manager_GUI import ProcessProgLayout
+from src.lammi_mod import HydraulicSimulationResults
 
 np.set_printoptions(threshold=np.inf)
 
@@ -286,14 +287,8 @@ class ModelInfoGroup(QGroupBox):
         self.send_log = send_log
         self.path_last_file_loaded = self.path_prj
         self.hydraulic_model_information = HydraulicModelInformation()
-        self.running_time = 0
-        self.stop = Event()
-        self.q = Queue()
-        self.progress_value = Value("d", 0)
         self.p = Process(target=None)
         self.model_index = None
-        self.progress_value = Value("d", 0)
-        self.mystdout = None
         self.drop_hydro.connect(lambda: self.name_last_hdf5(self.model_type))
         self.init_ui()
 
@@ -399,7 +394,7 @@ class ModelInfoGroup(QGroupBox):
         self.epsg_label.returnPressed.connect(self.load_hydraulic_create_hdf5)
 
         # hdf5 name
-        hdf5_name_title_label = QLabel(self.tr('.hyd file name'))
+        self.hdf5_name_title_label = QLabel(".hyd " + self.tr('file name'))
         self.hdf5_name_lineedit = QLineEdit()
         self.hdf5_name_lineedit.returnPressed.connect(self.load_hydraulic_create_hdf5)
 
@@ -434,7 +429,7 @@ class ModelInfoGroup(QGroupBox):
 
         self.hydrau_layout.addWidget(epsg_title_label, 9, 0)
         self.hydrau_layout.addWidget(self.epsg_label, 9, 1)
-        self.hydrau_layout.addWidget(hdf5_name_title_label, 10, 0)
+        self.hydrau_layout.addWidget(self.hdf5_name_title_label, 10, 0)
         self.hydrau_layout.addWidget(self.hdf5_name_lineedit, 10, 1)
         self.hydrau_layout.addLayout(self.progress_layout, 11, 0, 1, 2)
         self.hydrau_layout.addWidget(self.last_hydraulic_file_label, 12, 0)
@@ -447,11 +442,15 @@ class ModelInfoGroup(QGroupBox):
             self.hydrau_layout.itemAtPosition(7, 1).widget().show()
             self.hydrau_layout.itemAtPosition(8, 0).widget().show()
             self.hydrau_layout.itemAtPosition(8, 1).widget().show()
+            self.hdf5_name_title_label.setText(".hab " + self.tr('file name'))
+            self.progress_layout.run_stop_button.setText(self.tr("Create .hab file"))
         else:
             self.hydrau_layout.itemAtPosition(7, 0).widget().hide()
             self.hydrau_layout.itemAtPosition(7, 1).widget().hide()
             self.hydrau_layout.itemAtPosition(8, 0).widget().hide()
             self.hydrau_layout.itemAtPosition(8, 1).widget().hide()
+            self.hdf5_name_title_label.setText(".hyd " + self.tr('file name'))
+            self.progress_layout.run_stop_button.setText(self.tr("Create .hyd file"))
 
     def lammi_choice_changed(self):
         # sub
@@ -464,6 +463,23 @@ class ModelInfoGroup(QGroupBox):
             user_preferences.data["lammi_equation_type"] = "FE"
         elif self.equation_fv_radio.isChecked():
             user_preferences.data["lammi_equation_type"] = "FV"
+
+        # update variable position
+        hsr = HydraulicSimulationResults(self.namefile, self.pathfile, self.model_type, self.path_prj)
+        width_char = 120
+        mesh_list = ", ".join(hsr.hvum.software_detected_list.meshs().names_gui())
+        if len(mesh_list) > width_char:
+            self.usefull_mesh_variable_label.setText(mesh_list[:width_char] + "...")
+            self.usefull_mesh_variable_label.setToolTip(mesh_list)
+        else:
+            self.usefull_mesh_variable_label.setText(mesh_list)
+        node_list = ", ".join(hsr.hvum.software_detected_list.nodes().names_gui())
+        if len(node_list) > width_char:
+            self.usefull_node_variable_label.setText(node_list[:width_char] + "...")
+            self.usefull_node_variable_label.setToolTip(node_list)
+        else:
+            self.usefull_node_variable_label.setText(node_list)
+
         # save
         user_preferences.save_user_preferences_json()
 
