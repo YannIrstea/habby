@@ -26,7 +26,7 @@ from PyQt5.QtWidgets import QPushButton, \
     QLineEdit, QFileDialog, \
     QComboBox, QMessageBox, QGroupBox, QRadioButton, \
     QAbstractItemView, QScrollArea, QFrame, QVBoxLayout, QSizePolicy, \
-    QHBoxLayout
+    QHBoxLayout, QButtonGroup
 
 from src.user_preferences_mod import user_preferences
 from src.hydraulic_results_manager_mod import HydraulicSimulationResultsAnalyzer
@@ -288,6 +288,9 @@ class ModelInfoGroup(QGroupBox):
         self.path_last_file_loaded = self.path_prj
         self.hydraulic_model_information = HydraulicModelInformation()
         self.p = Process(target=None)
+        self.pathfile = None
+        self.namefile = None
+        self.name_hdf5 = None
         self.model_index = None
         self.drop_hydro.connect(lambda: self.name_last_hdf5(self.model_type))
         self.init_ui()
@@ -344,11 +347,14 @@ class ModelInfoGroup(QGroupBox):
         self.usefull_node_variable_label = QLabel(self.tr('unknown'))
 
         # LAMMI substrate
+        sub_radio_group = QButtonGroup(self)
         classification_code_title_label = QLabel(self.tr('Sub classification code'))
         classification_code_title_label.setToolTip(self.tr("LAMMI data substrate classification code"))
         self.sub_classification_code_edf_radio = QRadioButton("EDF")
+        sub_radio_group.addButton(self.sub_classification_code_edf_radio)
         self.sub_classification_code_edf_radio.setToolTip(self.tr("8 EDF classes"))
         self.sub_classification_code_cemagref_radio = QRadioButton("Cemagref")
+        sub_radio_group.addButton(self.sub_classification_code_cemagref_radio)
         self.sub_classification_code_cemagref_radio.setToolTip(self.tr("8 Cemagref classes"))
         if user_preferences.data["lammi_sub_classification_code"] == "EDF":
             self.sub_classification_code_edf_radio.setChecked(True)
@@ -359,18 +365,20 @@ class ModelInfoGroup(QGroupBox):
             print("Warning: lammi_sub_classification_code not recognized in user preferences.")
             self.sub_classification_code_cemagref_radio.setChecked(True)
         self.sub_classification_code_edf_radio.toggled.connect(self.lammi_choice_changed)
-        sub_classification_code_frame = QFrame()
-        radio_layout_1 = QHBoxLayout(sub_classification_code_frame)
-        radio_layout_1.setAlignment(Qt.AlignLeft)
-        radio_layout_1.addWidget(self.sub_classification_code_edf_radio)
-        radio_layout_1.addWidget(self.sub_classification_code_cemagref_radio)
+        sub_radio_layout = QHBoxLayout()
+        sub_radio_layout.addWidget(self.sub_classification_code_edf_radio)
+        sub_radio_layout.addWidget(self.sub_classification_code_cemagref_radio)
+        sub_radio_layout.addStretch()
 
         # LAMMI equation
-        equation_title_label = QLabel(self.tr('Equation mode'))
-        equation_title_label.setToolTip(self.tr("LAMMI hydraulic data equation mode"))
+        equation_radio_group = QButtonGroup(self)
+        equation_title_label = QLabel(self.tr('Calculation mode'))
+        equation_title_label.setToolTip(self.tr("LAMMI hydraulic data calculation mode"))
         self.equation_fe_radio = QRadioButton(self.tr("Finite element"))
+        equation_radio_group.addButton(self.equation_fe_radio)
         self.equation_fe_radio.setToolTip(self.tr("Vertical 1D hydraulic profile data set to node."))
         self.equation_fv_radio = QRadioButton(self.tr("Finite volume"))
+        equation_radio_group.addButton(self.equation_fv_radio)
         self.equation_fv_radio.setToolTip(self.tr("Vertical 1D hydraulic profile data set to mesh."))
         if user_preferences.data["lammi_equation_type"] == "FE":
             self.equation_fe_radio.setChecked(True)
@@ -381,16 +389,14 @@ class ModelInfoGroup(QGroupBox):
             print("Warning: lammi_equation_type not recognized in user preferences.")
             self.equation_fe_radio.setChecked(True)
         self.equation_fe_radio.toggled.connect(self.lammi_choice_changed)
-        equation_frame = QFrame()
-        radio_layout_2 = QHBoxLayout(equation_frame)
-        radio_layout_2.setAlignment(Qt.AlignLeft)
-        radio_layout_2.addWidget(self.equation_fe_radio)
-        radio_layout_2.addWidget(self.equation_fv_radio)
+        equation_radio_layout = QHBoxLayout()
+        equation_radio_layout.addWidget(self.equation_fe_radio)
+        equation_radio_layout.addWidget(self.equation_fv_radio)
+        equation_radio_layout.addStretch()
 
         # epsg
         epsg_title_label = QLabel(self.tr('EPSG code'))
         self.epsg_label = QLineEdit(self.tr('unknown'))
-        # self.epsg_label.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         self.epsg_label.returnPressed.connect(self.load_hydraulic_create_hdf5)
 
         # hdf5 name
@@ -422,10 +428,10 @@ class ModelInfoGroup(QGroupBox):
         self.hydrau_layout.addWidget(self.usefull_node_variable_label, 6, 1)  # from row, from column, nb row, nb column
 
         self.hydrau_layout.addWidget(classification_code_title_label, 7, 0)
-        self.hydrau_layout.addWidget(sub_classification_code_frame, 7, 1)
+        self.hydrau_layout.addItem(sub_radio_layout, 7, 1)
 
         self.hydrau_layout.addWidget(equation_title_label, 8, 0)
-        self.hydrau_layout.addWidget(equation_frame, 8, 1)
+        self.hydrau_layout.addItem(equation_radio_layout, 8, 1)
 
         self.hydrau_layout.addWidget(epsg_title_label, 9, 0)
         self.hydrau_layout.addWidget(self.epsg_label, 9, 1)
@@ -437,18 +443,22 @@ class ModelInfoGroup(QGroupBox):
         self.setLayout(self.hydrau_layout)
 
     def update_for_lammi(self, on=False):
+        # hide/show lammi widgets
+        self.hydrau_layout.itemAtPosition(7, 0).widget().setVisible(on)
+        for widget_ind in range(0, self.hydrau_layout.itemAtPosition(7, 1).count()):
+            widget_temp = self.hydrau_layout.itemAtPosition(7, 1).itemAt(widget_ind).widget()
+            if widget_temp:
+                widget_temp.setVisible(on)
+        self.hydrau_layout.itemAtPosition(8, 0).widget().setVisible(on)
+        for widget_ind in range(0, self.hydrau_layout.itemAtPosition(8, 1).count()):
+            widget_temp = self.hydrau_layout.itemAtPosition(8, 1).itemAt(widget_ind).widget()
+            if widget_temp:
+                widget_temp.setVisible(on)
+        # change labels
         if on:
-            self.hydrau_layout.itemAtPosition(7, 0).widget().show()
-            self.hydrau_layout.itemAtPosition(7, 1).widget().show()
-            self.hydrau_layout.itemAtPosition(8, 0).widget().show()
-            self.hydrau_layout.itemAtPosition(8, 1).widget().show()
             self.hdf5_name_title_label.setText(".hab " + self.tr('file name'))
             self.progress_layout.run_stop_button.setText(self.tr("Create .hab file"))
         else:
-            self.hydrau_layout.itemAtPosition(7, 0).widget().hide()
-            self.hydrau_layout.itemAtPosition(7, 1).widget().hide()
-            self.hydrau_layout.itemAtPosition(8, 0).widget().hide()
-            self.hydrau_layout.itemAtPosition(8, 1).widget().hide()
             self.hdf5_name_title_label.setText(".hyd " + self.tr('file name'))
             self.progress_layout.run_stop_button.setText(self.tr("Create .hyd file"))
 
@@ -465,20 +475,21 @@ class ModelInfoGroup(QGroupBox):
             user_preferences.data["lammi_equation_type"] = "FV"
 
         # update variable position
-        hsr = HydraulicSimulationResults(self.namefile, self.pathfile, self.model_type, self.path_prj)
-        width_char = 120
-        mesh_list = ", ".join(hsr.hvum.software_detected_list.meshs().names_gui())
-        if len(mesh_list) > width_char:
-            self.usefull_mesh_variable_label.setText(mesh_list[:width_char] + "...")
-            self.usefull_mesh_variable_label.setToolTip(mesh_list)
-        else:
-            self.usefull_mesh_variable_label.setText(mesh_list)
-        node_list = ", ".join(hsr.hvum.software_detected_list.nodes().names_gui())
-        if len(node_list) > width_char:
-            self.usefull_node_variable_label.setText(node_list[:width_char] + "...")
-            self.usefull_node_variable_label.setToolTip(node_list)
-        else:
-            self.usefull_node_variable_label.setText(node_list)
+        if self.namefile and (self.sender() == self.equation_fe_radio or self.sender() == self.equation_fv_radio):
+            hsr = HydraulicSimulationResults(self.namefile, self.pathfile, self.model_type, self.path_prj)
+            width_char = 120
+            mesh_list = ", ".join(hsr.hvum.software_detected_list.meshs().names_gui())
+            if len(mesh_list) > width_char:
+                self.usefull_mesh_variable_label.setText(mesh_list[:width_char] + "...")
+                self.usefull_mesh_variable_label.setToolTip(mesh_list)
+            else:
+                self.usefull_mesh_variable_label.setText(mesh_list)
+            node_list = ", ".join(hsr.hvum.software_detected_list.nodes().names_gui())
+            if len(node_list) > width_char:
+                self.usefull_node_variable_label.setText(node_list[:width_char] + "...")
+                self.usefull_node_variable_label.setToolTip(node_list)
+            else:
+                self.usefull_node_variable_label.setText(node_list)
 
         # save
         user_preferences.save_user_preferences_json()
