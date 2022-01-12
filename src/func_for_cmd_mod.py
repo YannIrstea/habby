@@ -46,6 +46,7 @@ import src.calcul_hab_mod
 import src.hydraulic_process_mod
 import src.merge_mod
 import src.substrate_mod
+from src.project_properties_mod import delete_project
 
 
 def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False, erase_id=True):
@@ -178,22 +179,25 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
                 else:
                     option_restart = True
 
-        if not os.path.exists(path_prj):
-            create_project_structure(path_prj,
-                                     save_log=False,
-                                     version_habby=HABBY_VERSION,
-                                     user_name="CLI",
-                                     description="CLI-mode",
-                                     mode="CLI",
-                                     restarted=option_restart)
-            change_specific_properties(path_prj,
-                                       preference_names=["physic_tabs", "stat_tabs"],
-                                       preference_values=[True, True])
-            enable_disable_all_exports(path_prj, enabled=all_export_enabled)
-            print("# CREATE_PROJECT finished")
-        else:
-            print("Warning: The project " + name_prj + " already exists. The latter is not erased.")
-            print("# CREATE_PROJECT finished")
+        if os.path.exists(path_prj):
+            # print("Warning: The project " + name_prj + " already exists. The latter has been replaced.")
+            # error = delete_project(path_prj)
+            # if error:
+            #     print(error)
+            print("Error: The project " + path_prj + " already exists. The latter must be manually replaced.")
+            return
+        create_project_structure(path_prj,
+                                 save_log=False,
+                                 version_habby=HABBY_VERSION,
+                                 user_name="CLI",
+                                 description="CLI-mode",
+                                 mode="CLI",
+                                 restarted=option_restart)
+        change_specific_properties(path_prj,
+                                   preference_names=["physic_tabs", "stat_tabs"],
+                                   preference_values=[True, True])
+        enable_disable_all_exports(path_prj, enabled=all_export_enabled)
+        print("# CREATE_PROJECT finished")
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'CREATE_HYD':
@@ -1266,7 +1270,7 @@ def cli_load_sub(arguments, project_properties):
                           q,
                           True,
                           project_properties),
-                    name="LOAD_SUB")
+                    name="CREATE_SUB")
         cli_start_process_and_print_progress(p, progress_value)
 
 

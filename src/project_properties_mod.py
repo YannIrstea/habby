@@ -18,6 +18,7 @@ import os
 import json
 import sys
 from platform import system as operatingsystem
+from shutil import rmtree
 
 operatingsystem_str = operatingsystem()
 from datetime import datetime
@@ -236,6 +237,14 @@ def create_project_structure(path_prj, save_log, version_habby, user_name, descr
     if os.path.isdir(os.path.join(path_prj, 'hdf5')):
         with open(filenamec, 'wt') as f:
             f.write('open')
+
+
+def delete_project(path_prj):
+    try:
+        rmtree(path_prj)
+        return ""
+    except:
+        return 'Error: Old project and its files are opened by another programme.\nClose them and try again.'
 
 
 def save_project_properties(path_prj, project_properties):

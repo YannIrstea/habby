@@ -20,6 +20,7 @@ from platform import system as operatingsystem
 from subprocess import call
 from webbrowser import open as wbopen
 import matplotlib as mpl
+import matplotlib.pyplot as plt
 import numpy as np
 import qdarkstyle
 from PyQt5.QtCore import QTranslator, pyqtSignal, Qt, pyqtRemoveInputHook
@@ -49,7 +50,7 @@ from habby import HABBY_VERSION_STR
 from src.user_preferences_mod import user_preferences
 from src import hdf5_mod
 from src.about_mod import get_last_version_number_from_github
-import matplotlib.pyplot as plt
+from src.project_properties_mod import delete_project
 
 
 class MainWindows(QMainWindow):
@@ -449,7 +450,11 @@ class MainWindows(QMainWindow):
                 self.createnew.close()
                 return
             if res == QMessageBox.Yes:
-                self.delete_project(path_prj)
+                error = delete_project(path_prj)
+                if error:
+                    self.central_widget.write_log(
+                        'Error: ' + self.tr('Old project and its files are opened by another programme.\n'
+                                            'Close them and try again.'))
                 try:
                     os.makedirs(path_prj)
                 except (PermissionError, FileExistsError):
@@ -817,14 +822,6 @@ class MainWindows(QMainWindow):
         # clear log
         self.clear_log()
         self.central_widget.write_log(self.tr('Create or open a project.'))
-
-    def delete_project(self, new_project_path):
-        try:
-            shutil.rmtree(new_project_path)
-        except:
-            self.central_widget.write_log(
-                'Error: ' + self.tr('Old project and its files are opened by another programme.\n'
-                                    'Close them and try again.'))
 
     def empty_project(self):
         """
