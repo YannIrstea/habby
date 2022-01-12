@@ -39,6 +39,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         super().__init__(filename, folder_path, model_type, path_prj)
         self.file_type = "binary"
         self.morphology_available = True
+        self.hyd_calculation_method = "FEM"  # TODO: check if telemac data is FVM or FEM ? (change variable position + attribute)
+
         # hydraulic variables
         self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
                                                     attribute_list=["BOTTOM", "FOND"],

@@ -372,21 +372,21 @@ class ModelInfoGroup(QGroupBox):
 
         # LAMMI equation
         equation_radio_group = QButtonGroup(self)
-        equation_title_label = QLabel(self.tr('Calculation mode'))
-        equation_title_label.setToolTip(self.tr("LAMMI hydraulic data calculation mode"))
-        self.equation_fe_radio = QRadioButton(self.tr("Finite element"))
+        equation_title_label = QLabel(self.tr('Calculation method'))
+        equation_title_label.setToolTip(self.tr("LAMMI hydraulic data calculation method"))
+        self.equation_fe_radio = QRadioButton(self.tr("Finite Element Method"))
         equation_radio_group.addButton(self.equation_fe_radio)
         self.equation_fe_radio.setToolTip(self.tr("Vertical 1D hydraulic profile data set to node."))
-        self.equation_fv_radio = QRadioButton(self.tr("Finite volume"))
+        self.equation_fv_radio = QRadioButton(self.tr("Finite Volume Method"))
         equation_radio_group.addButton(self.equation_fv_radio)
         self.equation_fv_radio.setToolTip(self.tr("Vertical 1D hydraulic profile data set to mesh."))
-        if user_preferences.data["lammi_equation_type"] == "FE":
+        if user_preferences.data["lammi_calculation_method"] == "FEM":
             self.equation_fe_radio.setChecked(True)
-        elif user_preferences.data["lammi_equation_type"] == "FV":
+        elif user_preferences.data["lammi_calculation_method"] == "FVM":
             self.equation_fv_radio.setChecked(True)
         else:
-            self.send_log.emit(self.tr("Warning: lammi_equation_type not recognized in user preferences."))
-            print("Warning: lammi_equation_type not recognized in user preferences.")
+            self.send_log.emit(self.tr("Warning: lammi_calculation_method not recognized in user preferences."))
+            print("Warning: lammi_calculation_method not recognized in user preferences.")
             self.equation_fe_radio.setChecked(True)
         self.equation_fe_radio.toggled.connect(self.lammi_choice_changed)
         equation_radio_layout = QHBoxLayout()
@@ -470,9 +470,9 @@ class ModelInfoGroup(QGroupBox):
             user_preferences.data["lammi_sub_classification_code"] = "Cemagref"
         # equ
         if self.equation_fe_radio.isChecked():
-            user_preferences.data["lammi_equation_type"] = "FE"
+            user_preferences.data["lammi_calculation_method"] = "FEM"
         elif self.equation_fv_radio.isChecked():
-            user_preferences.data["lammi_equation_type"] = "FV"
+            user_preferences.data["lammi_calculation_method"] = "FVM"
 
         # update variable position
         if self.namefile and (self.sender() == self.equation_fe_radio or self.sender() == self.equation_fv_radio):

@@ -74,7 +74,8 @@ class HydraulicSimulationResultsBase:
         self.index_hydrau_file = "indexHYDRAU.txt"
         self.index_hydrau_file_path = os.path.join(self.folder_path, self.index_hydrau_file)
         # hydraulic attributes
-        self.hyd_equation_type = self.hmi.equation[self.hmi.attribute_models_list.index(self.model_type)]
+        self.hyd_equation_type = self.hmi.equation[self.hmi.attribute_models_list.index(self.model_type)]  # BSV, ..
+        self.hyd_calculation_method = self.hmi.calculation_method[self.hmi.attribute_models_list.index(self.model_type)]  # FVM, FEM
         # exist ?
         if not os.path.isfile(self.filename_path) and os.path.splitext(self.filename_path)[1]:
             self.warning_list.append("Error: The file does not exist.")
@@ -127,6 +128,7 @@ class HydraulicSimulationResultsBase:
         data_2d = Data2d(reach_number=len(self.reach_name_list),
                          unit_list=[self.timestep_name_wish_list])
         data_2d.hyd_equation_type = self.hyd_equation_type
+        data_2d.hyd_calculation_method = self.hyd_calculation_method
         data_2d.hvum = self.hvum
         self.hvum.hdf5_and_computable_list.sort_by_names_gui()
         node_list = self.hvum.hdf5_and_computable_list.nodes()

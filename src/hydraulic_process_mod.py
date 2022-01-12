@@ -195,6 +195,9 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
                     q.put(mystdout)
                     sleep(0.1)  # to wait q.put() ..
             return
+    else:
+        data_2d.hyd_cuted_mesh_partialy_dry = False
+
 
     # """ bank hydraulic aberations  """
     # data_2d.fix_aberrations(npasses=1, tolerance=0.01, connectedness_criterion=True, bank_depth=0.05)

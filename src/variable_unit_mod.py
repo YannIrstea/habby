@@ -659,7 +659,7 @@ class HydraulicVariableUnitManagement:
         """ required variable nodes """
         node_names = self.hdf5_and_computable_list.nodes().names()
 
-        # always z, if not detect : compute (FV to FE)
+        # always z, if not detect : compute (FVM to FEM)
         if self.z.name not in node_names:
             self.z.position = "node"
             self.z.hdf5 = True
