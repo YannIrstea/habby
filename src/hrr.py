@@ -7,20 +7,23 @@ def connectivity_mesh_table(tin):
     # 1 getteing the list of segment by couple of node index (sorted in order to be able to find dupilcate) 3rd column= origin mesh index
     aindex=np.arange(len(tin))
     segment= np.r_[np.c_[tin[:,0:2],aindex],np.c_[tin[:,1:],aindex],np.c_[tin[:,[0,2]],aindex]]
+    segment = np.r_[np.c_[np.sort(np.array(tin[:, 0:2], copy=True)), aindex], np.c_[np.sort(np.array(tin[:, 1:], copy=True)), aindex], np.c_[np.sort(np.array(tin[:, [0, 2]], copy=True)), aindex]]
     segment = segment[np.lexsort((segment[:, 1], segment[:, 0]))]
     loca =np.full((len(tin), 3), -1, dtype=np.int64)
     posfree=np.zeros((len(tin), 1), dtype=np.int64)
     for j in range(3*len(tin)-1):
         if np.all(segment[j][0:2]==segment[j+1][0:2]):
+            if posfree[segment[j][2]] > 2 or posfree[segment[j + 1][2]] > 2:
+                print('anomalie majeure')
+                return None, None
             loca[segment[j][2]][posfree[segment[j][2]]]=segment[j+1][2]
             loca[segment[j+1][2]][posfree[segment[j+1][2]]] = segment[j][2]
-            posfree[segment[j][2]]+=1
-            posfree[segment[j+1][2]] += 1
-            if posfree[segment[j][2]] >2 or posfree[segment[j+1][2]] >2:
-                print ('anomalie majeure')
-                return
+            posfree[segment[j][2]] += 1
+            posfree[segment[j + 1][2]] += 1
 
-    u, c = np.unique(segment[:,0:2], axis=0, return_counts=True)
+
+    return loca,posfree
+
 
 
 
@@ -94,12 +97,51 @@ if __name__ == '__main__':
             tin = hdf5_1.data_2d[reach_number][unit_number]["mesh"]["tin"]
 
 
+            # SUPER CUT
+            #every index of loca represent a mesh index of the tin with 3 values in column indexing the mesh indexes in contact ; -1 if not
+            loca,countcontact = connectivity_mesh_table (tin) # loca,posfree = connectivity_mesh_table (tin[0:5,:])
+            #note that if the  value for a mesh index in countcontact is 0 the mesh is isolated
+            countcontact=countcontact.flatten()
+            countcontact12=(countcontact>1) & (countcontact!=3) # to get the information TRUE if the mesh index is on a edge
 
-            connex = connectivity_mesh_table (tin[0:5,:])
+            xy = hdf5_1.data_2d[reach_number][unit_number]["node"]["xy"]
+            z_bottom_node = hdf5_1.data_2d[reach_number][unit_number]["node"]["data"]["z"]
+            h_node = hdf5_1.data_2d[reach_number][unit_number]["node"]["data"]["h"]
+            mesh_max_slope_surface=c_mesh_max_slope_surface(tin,xy,z_bottom_node.to_numpy(),h_node.to_numpy())
+            bmeshinvalid=np.full((len(tin), 1), False)
+            level = 4 # to be fixed to determine the number of contacts meshes where the reseach is done
+            for j in range(len(tin)):
+                if countcontact12[j]:
+                    a = set(loca[j][:countcontact[j]])|{j}
+                    aa=set(loca[j][:countcontact[j]])
+                    for ilevel in range(level):
+                        b=set()
+                        for ij in aa:
+                            b = b|set(loca[ij][:countcontact[ij]])
+                        aa=b-a
+                        a=a|b
+                    #condition for keeping the mesh
+                    surroundingmesh=list(a-{j})
+                    surroundingmesh3=np.array(surroundingmesh)[countcontact[surroundingmesh] == 3]
+                    # penta=mesh_max_slope_surface[surroundingmesh]
+                    penta3 = mesh_max_slope_surface[surroundingmesh3]
+                    if len(surroundingmesh3) >5 and 2*np.max(penta3)<mesh_max_slope_surface[j]:
+                        bmeshinvalid[j]=True
+
+
+
+
+
+
+
+
+
+
+
 
 
             xy = hdf5_1.data_2d[reach_number][unit_number]["node"]["xy"]
-            z_fond_node = hdf5_1.data_2d[reach_number][unit_number]["node"]["z"]
+            z_fond_node = hdf5_1.data_2d[reach_number][unit_number]["node"]["data"]["z"]
             h_node = hdf5_1.data_2d[reach_number][unit_number]["node"]["data"]["h"]
             h_mesh = hdf5_1.data_2d[reach_number][unit_number]["mesh"]["data"]["h"]
             i_whole_profile = hdf5_1.data_2d[reach_number][unit_number]["mesh"]["i_whole_profile"]
