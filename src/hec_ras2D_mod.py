@@ -44,7 +44,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         # hydraulic variables
         self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
                                                     attribute_list=["Cells Minimum Elevation"],
-                                                    position="mesh")  # after FV to FE conversion
+                                                    position="mesh")  # after FVM to FEM conversion
         self.hvum.link_unit_with_software_attribute(name=self.hvum.h.name,
                                                     attribute_list=["Depth"],
                                                     position="mesh")

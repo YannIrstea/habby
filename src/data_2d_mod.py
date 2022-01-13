@@ -43,9 +43,6 @@ class Data2d(list):
         self.data_extent = (0, 0, 0, 0)
         self.data_height = 0.0
         self.data_width = 0.0
-        self.hyd_equation_type = "unknown"
-        self.hyd_min_height = 0.0
-        self.hyd_cuted_mesh_partialy_dry = False
         # hs
         self.hs_summary_data = []
         self.sub_mapping_method = ""
@@ -94,6 +91,7 @@ class Data2d(list):
         self.get_informations()
         self.hvum = data_2d_new.hvum
         self.hyd_equation_type = data_2d_new.hyd_equation_type
+        self.hyd_calculation_method = data_2d_new.hyd_calculation_method
 
     def get_dimension(self):
         # get extent

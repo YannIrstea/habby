@@ -204,9 +204,9 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
         # data_description
         if bfvm:
-            self.hyd_equation_type = "FV"
+            self.hyd_calculation_method = "FVM"
         else:
-            self.hyd_equation_type = "FE"
+            self.hyd_calculation_method = "FEM"
         if bsub:
             self.sub = True
         self.reach_name_list = lreachname
@@ -671,9 +671,9 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                                 epsg_code=epsgcode)
         # data_description
         if bfvm:
-            data_description["hyd_equation_type"] = "FV"
+            data_description["hyd_calculation_method"] = "FVM"
         else:
-            data_description["hyd_equation_type"] = "FE"
+            data_description["hyd_calculation_method"] = "FEM"
         data_description["unit_list"] = lunitall
         data_description["unit_list_full"] = lunitall
         data_description["unit_list_tf"] = []

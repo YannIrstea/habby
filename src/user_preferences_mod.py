@@ -86,7 +86,7 @@ class UserPreferences(AppDataFolders):
                          theme="classic",  # classic, dark
                          wind_position=(50, 75, 950, 720),  # X position, Y position, height, width
                          lammi_sub_classification_code="EDF",  # EDF or Cemagref for lammi data
-                         lammi_equation_type="FE")  # FV or FE for lammi data
+                         lammi_calculation_method="FEM")  # FVM or FEM for lammi data
 
     def create_or_load_user_preferences(self):
         if not os.path.isfile(self.user_pref_habby_file_path):  # check if preferences file exist

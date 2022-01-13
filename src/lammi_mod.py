@@ -48,7 +48,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         # reach
         self.morphology_available = True
         # finit_volum_test
-        self.hyd_equation_type = user_preferences.data["lammi_equation_type"]
+        self.hyd_calculation_method = user_preferences.data["lammi_calculation_method"]
 
         # hydraulic variables
         self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
@@ -60,7 +60,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.hvum.link_unit_with_software_attribute(name=self.hvum.v.name,
                                                     attribute_list=["v"],
                                                     position="node")
-        if self.hyd_equation_type == "FV":
+        if self.hyd_calculation_method == "FVM":
             self.hvum.link_unit_with_software_attribute(name=self.hvum.h.name,
                                                         attribute_list=["h"],
                                                         position="mesh")
