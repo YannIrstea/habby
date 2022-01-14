@@ -95,6 +95,7 @@ if __name__ == '__main__':
 
 
             # SUPER CUT
+            bremoveisolatedmeshes=True
             #every index of loca represent a mesh index of the tin with 3 values in column indexing the mesh indexes in contact ; -1 if not
             loca,countcontact = connectivity_mesh_table (tin) # loca,posfree = connectivity_mesh_table (tin[0:5,:])
             #note that if the  value for a mesh index in countcontact is 0 the mesh is isolated
@@ -105,7 +106,9 @@ if __name__ == '__main__':
             z_bottom_node = hdf5_1.data_2d[reach_number][unit_number]["node"]["data"]["z"]
             h_node = hdf5_1.data_2d[reach_number][unit_number]["node"]["data"]["h"]
             mesh_max_slope_surface=c_mesh_max_slope_surface(tin,xy,z_bottom_node.to_numpy(),h_node.to_numpy())
-            bmeshinvalid=np.full((len(tin), 1), False)
+            bmeshinvalid=np.full((len(tin),), False)
+            if bremoveisolatedmeshes:
+                bmeshinvalid=np.logical_xor(bmeshinvalid, (countcontact==0))
             level = 4 # to be fixed to determine the number of contacts meshes where the reseach is done
             for j in range(len(tin)):
                 if countcontact12[j]:
