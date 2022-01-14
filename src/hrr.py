@@ -1,35 +1,29 @@
 from src.hdf5_mod import Hdf5Management
 import numpy as np
 
+
 def connectivity_mesh_table(tin):
-    #AIM finding  for each mesh the 3 neighbour meshes (ie sharing a segment)
-    connex = np.zeros((len(tin), 3), dtype=np.float64)
+    # AIM finding  for each mesh the 3 neighbour meshes (ie sharing a segment)
     # 1 getteing the list of segment by couple of node index (sorted in order to be able to find dupilcate) 3rd column= origin mesh index
-    aindex=np.arange(len(tin))
-    segment= np.r_[np.c_[tin[:,0:2],aindex],np.c_[tin[:,1:],aindex],np.c_[tin[:,[0,2]],aindex]]
-    segment = np.r_[np.c_[np.sort(np.array(tin[:, 0:2], copy=True)), aindex], np.c_[np.sort(np.array(tin[:, 1:], copy=True)), aindex], np.c_[np.sort(np.array(tin[:, [0, 2]], copy=True)), aindex]]
+    aindex = np.arange(len(tin))
+    segment = np.r_[np.c_[np.sort(np.array(tin[:, 0:2], copy=True)), aindex], np.c_[
+        np.sort(np.array(tin[:, 1:], copy=True)), aindex], np.c_[np.sort(np.array(tin[:, [0, 2]], copy=True)), aindex]]
     segment = segment[np.lexsort((segment[:, 1], segment[:, 0]))]
-    loca =np.full((len(tin), 3), -1, dtype=np.int64)
-    posfree=np.zeros((len(tin), 1), dtype=np.int64)
-    for j in range(3*len(tin)-1):
-        if np.all(segment[j][0:2]==segment[j+1][0:2]):
+    loca = np.full((len(tin), 3), -1, dtype=np.int64)
+    posfree = np.zeros((len(tin), 1), dtype=np.int64)
+    for j in range(3 * len(tin) - 1):
+        if np.all(segment[j][0:2] == segment[j + 1][0:2]):
             if posfree[segment[j][2]] > 2 or posfree[segment[j + 1][2]] > 2:
                 print('major anomaly in the construction of the mesh connectivity table')
-                return None, None
-            loca[segment[j][2]][posfree[segment[j][2]]]=segment[j+1][2]
-            loca[segment[j+1][2]][posfree[segment[j+1][2]]] = segment[j][2]
+                return None, None #TODO error to manage
+            loca[segment[j][2]][posfree[segment[j][2]]] = segment[j + 1][2]
+            loca[segment[j + 1][2]][posfree[segment[j + 1][2]]] = segment[j][2]
             posfree[segment[j][2]] += 1
             posfree[segment[j + 1][2]] += 1
-    return loca,posfree
+    return loca, posfree
 
 
-
-
-
-
-
-
-def c_mesh_max_slope_surface(tin,xy,z,h):
+def c_mesh_max_slope_surface(tin, xy, z, h):
     '''
 
     :param tin: Triangular Irregular Network numpy array of 3 nodes index describing each mesh
@@ -49,7 +43,7 @@ def c_mesh_max_slope_surface(tin,xy,z,h):
     h3 = h[tin[:, 2]]
 
     w = (xy2[:, 0] - xy1[:, 0]) * (xy3[:, 1] - xy1[:, 1]) - (xy2[:, 1] - xy1[:, 1]) * (xy3[:, 0] - xy1[:, 0])
-    zz1, zz2, zz3 = z1 + h1 , z2 + h2 , z3 + h3
+    zz1, zz2, zz3 = z1 + h1, z2 + h2, z3 + h3
     u = (xy2[:, 1] - xy1[:, 1]) * (zz3 - zz1) - (zz2 - zz1) * (xy3[:, 1] - xy1[:, 1])
     v = (xy3[:, 0] - xy1[:, 0]) * (zz2 - zz1) - (zz3 - zz1) * (xy2[:, 0] - xy1[:, 0])
     with np.errstate(divide='ignore', invalid='ignore'):
@@ -95,21 +89,22 @@ if __name__ == '__main__':
 
 
             # SUPER CUT
-            bremoveisolatedmeshes=True
+            #def supercut(tin, xy, z, h,bremoveisolatedmeshes=True,level=3):
+            #level to be fixed to determine the number of contacts meshes where the reseach is done
             #every index of loca represent a mesh index of the tin with 3 values in column indexing the mesh indexes in contact ; -1 if not
             loca,countcontact = connectivity_mesh_table (tin) # loca,posfree = connectivity_mesh_table (tin[0:5,:])
             #note that if the  value for a mesh index in countcontact is 0 the mesh is isolated
             countcontact=countcontact.flatten()
-            countcontact12=(countcontact>1) & (countcontact!=3) # to get the information TRUE if the mesh index is on a edge
+            countcontact12=(countcontact>0) & (countcontact!=3) # to get the information TRUE if the mesh index is on a edge
 
             xy = hdf5_1.data_2d[reach_number][unit_number]["node"]["xy"]
             z_bottom_node = hdf5_1.data_2d[reach_number][unit_number]["node"]["data"]["z"]
             h_node = hdf5_1.data_2d[reach_number][unit_number]["node"]["data"]["h"]
+
             mesh_max_slope_surface=c_mesh_max_slope_surface(tin,xy,z_bottom_node.to_numpy(),h_node.to_numpy())
             bmeshinvalid=np.full((len(tin),), False)
             if bremoveisolatedmeshes:
                 bmeshinvalid=np.logical_xor(bmeshinvalid, (countcontact==0))
-            level = 4 # to be fixed to determine the number of contacts meshes where the reseach is done
             for j in range(len(tin)):
                 if countcontact12[j]:
                     a = set(loca[j][:countcontact[j]])|{j}
@@ -125,7 +120,7 @@ if __name__ == '__main__':
                     surroundingmesh3=np.array(surroundingmesh)[countcontact[surroundingmesh] == 3]
                     # penta=mesh_max_slope_surface[surroundingmesh]
                     penta3 = mesh_max_slope_surface[surroundingmesh3]
-                    if len(surroundingmesh3) >5 and 2*np.max(penta3)<mesh_max_slope_surface[j]:
+                    if len(surroundingmesh3) >4 and 2*np.max(penta3)<mesh_max_slope_surface[j]:
                         bmeshinvalid[j]=True
 
 
