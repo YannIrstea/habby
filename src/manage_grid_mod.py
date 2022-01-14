@@ -2195,3 +2195,24 @@ def get_triangular_grid(ikle, coord_c, xy, h, v, z):
     z2 = np.array(z2)
 
     return ikle, coord_c, xy, v, h, z2
+
+
+def connectivity_mesh_table(tin):
+    # AIM finding  for each mesh the 3 neighbour meshes (ie sharing a segment)
+    # 1 getteing the list of segment by couple of node index (sorted in order to be able to find dupilcate) 3rd column= origin mesh index
+    aindex = np.arange(len(tin))
+    segment = np.r_[np.c_[np.sort(np.array(tin[:, 0:2], copy=True)), aindex], np.c_[
+        np.sort(np.array(tin[:, 1:], copy=True)), aindex], np.c_[np.sort(np.array(tin[:, [0, 2]], copy=True)), aindex]]
+    segment = segment[np.lexsort((segment[:, 1], segment[:, 0]))]
+    loca = np.full((len(tin), 3), -1, dtype=np.int64)
+    posfree = np.zeros((len(tin), 1), dtype=np.int64)
+    for j in range(3 * len(tin) - 1):
+        if np.all(segment[j][0:2] == segment[j + 1][0:2]):
+            if posfree[segment[j][2]] > 2 or posfree[segment[j + 1][2]] > 2:
+                print('Error: major anomaly in the construction of the mesh connectivity table')
+                return None, None #TODO error to manage
+            loca[segment[j][2]][posfree[segment[j][2]]] = segment[j + 1][2]
+            loca[segment[j + 1][2]][posfree[segment[j + 1][2]]] = segment[j][2]
+            posfree[segment[j][2]] += 1
+            posfree[segment[j + 1][2]] += 1
+    return loca, posfree

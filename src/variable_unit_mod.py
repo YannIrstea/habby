@@ -456,13 +456,22 @@ class HydraulicVariableUnitManagement:
                                                   dtype=np.float64,
                                                   index_gui=getframeinfo(currentframe()).lineno,
                                                   depend_on_h=False)
+        self.max_slope_surface = HydraulicVariable(value=None,
+                                                  unit="m/m",
+                                                  name="max_slope_surface",
+                                                  name_gui="max slope surface",
+                                                  descr="",
+                                                  dtype=np.float64,
+                                                  index_gui=getframeinfo(currentframe()).lineno,
+                                                  depend_on_h=True)
         self.max_slope_energy = HydraulicVariable(value=None,
                                                   unit="m/m",
                                                   name="max_slope_energy",
                                                   name_gui="max slope energy",
                                                   descr="",
                                                   dtype=np.float64,
-                                                  index_gui=getframeinfo(currentframe()).lineno)
+                                                  index_gui=getframeinfo(currentframe()).lineno,
+                                                  depend_on_h=True)
         self.temp = HydraulicVariable(value=None,
                                       unit="",
                                       name="temp",
@@ -776,7 +785,7 @@ class HydraulicVariableUnitManagement:
                 self.hdf5_and_computable_list.append(computed_node)
 
         # computable mesh
-        computable_mesh_list = [self.max_slope_bottom, self.max_slope_energy]
+        computable_mesh_list = [self.max_slope_bottom, self.max_slope_energy, self.max_slope_surface]
         computable_mesh_list = deepcopy(self.hdf5_and_computable_list.nodes()) + computable_mesh_list
 
         # shear_stress_beta
@@ -1230,7 +1239,16 @@ class HydraulicVariableUnitManagement:
                                 self.v.position = "node"
                                 self.v.hdf5 = True
                                 self.all_final_variable_list.append(self.v)
-
+                # max_slope_surface mesh ==> need : h, z
+                elif variable_wish.name == self.max_slope_surface.name:
+                    if self.h.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                        self.h.position = "node"
+                        self.h.hdf5 = True
+                        self.all_final_variable_list.append(self.h)
+                    if self.z.name not in self.all_final_variable_list.hdf5s().nodes().names():
+                        self.z.position = "node"
+                        self.z.hdf5 = True
+                        self.all_final_variable_list.append(self.z)
                 # max_slope_bottom mesh ==> need : z
                 elif variable_wish.name == self.max_slope_bottom.name:
                     if self.z.name not in self.all_final_variable_list.hdf5s().nodes().names():

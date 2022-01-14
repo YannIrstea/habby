@@ -473,10 +473,6 @@ class FigureProducerGroup(QGroupBoxCollapsible):
         self.send_log = send_log
         self.setTitle(title)
         self.total_fish_result = 0
-        self.variables_to_remove = ["mesh", "elevation", "water_height", "water_velocity",
-                                    "substrate_coarser", "substrate_dominant", "max_slope_bottom", "max_slope_energy",
-                                    "shear_stress",
-                                    "conveyance", "froude_number", "hydraulic_head", "water_level"]
         self.hvum = HydraulicVariableUnitManagement()
         self.gif_export = False
         self.nb_plot = 0
