@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 from src.manage_grid_mod import connectivity_mesh_table
 from src.merge_mod import finite_element_interpolation
+from src.data_2d_mod import Data2d
+
 
 def analyse_whole_profile(i_whole_profile1,i_whole_profile2):
     iwpmax=max(max(i_whole_profile1),max(i_whole_profile2))
@@ -64,7 +66,7 @@ def hrr(input_filename_1,deltatlist):
     hdf5_1.load_hdf5(whole_profil=True)
 
     hrrlistdic = []
-
+    new_data_2d = Data2d(reach_number=hdf5_1.data_2d.reach_number)  # new
 
     # loop
     for reach_number in range(hdf5_1.data_2d.reach_number):
@@ -81,7 +83,7 @@ def hrr(input_filename_1,deltatlist):
         hdf5_1.data_2d_whole[reach_number][0].c_mesh_max_slope_bottom()
         max_slope_bottom_whole_profile = hdf5_1.data_2d_whole[reach_number][0]["mesh"]["data"][
             hdf5_1.data_2d_whole.hvum.max_slope_bottom.name].to_numpy()
-        hrrlistdic.append({'unit_name':[],'tin':[],'i_whole_profile':[],'i_split':[],'max_slope_bottom':[],'deltaz':[],'hrr':[],'xy':[],'datanode':[]})
+        # hrrlistdic.append({'unit_name':[],'tin':[],'i_whole_profile':[],'i_split':[],'max_slope_bottom':[],'deltaz':[],'hrr':[],'xy':[],'datanode':[]})
 
         for unit_number in range(len(hdf5_1.data_2d[0])-1,0,-1): #Todo transitoire
             # Todo et recuperer temps depuis deltatlist
@@ -228,21 +230,42 @@ def hrr(input_filename_1,deltatlist):
             xy3=np.array(xy3)
             datanode3=np.array(datanode3)
 
+            # hvum copy
+            new_data_2d.hvum = hdf5_1.data_2d.hvum
+            # delta_level
+            new_data_2d.hvum.delta_level.position = "mesh"
+            new_data_2d.hvum.delta_level.hdf5 = True
+            new_data_2d.hvum.hdf5_and_computable_list.append(new_data_2d.hvum.delta_level)
+            # hrr
+            new_data_2d.hvum.hrr.position = "mesh"
+            new_data_2d.hvum.hrr.hdf5 = True
+            new_data_2d.hvum.hdf5_and_computable_list.append(new_data_2d.hvum.hrr)
 
+            new_data_2d[reach_number][unit_number].unit_name = q1+'>'+q2
+            new_data_2d[reach_number][unit_number]["mesh"]["tin"] = tin3
+            new_data_2d[reach_number][unit_number]["mesh"]["data"] = pd.DataFrame()
+            new_data_2d[reach_number][unit_number]["mesh"]["data"]["i_whole_profile"] = i_whole_profile3
+            new_data_2d[reach_number][unit_number]["mesh"]["data"]["i_split"] = i_split3
+            new_data_2d[reach_number][unit_number]["mesh"]["data"]["max_slope_bottom"] = max_slope_bottom3
+            new_data_2d[reach_number][unit_number]["mesh"]["data"]["delta_level"] = deltaz3
+            new_data_2d[reach_number][unit_number]["mesh"]["data"]["hrr"] = hrr3
+            new_data_2d[reach_number][unit_number]["node"]["xy"] = xy3
+            new_data_2d[reach_number][unit_number]["node"]["data"] = pd.DataFrame(datanode3, columns=hdf5_1.data_2d[reach_number][unit_number]["node"]["data"].columns)
 
+            # hrrlistdic[reach_number]['unit_name'].append(q1+'>'+q2)
+            # hrrlistdic[reach_number]['tin'].append(tin3)
+            # hrrlistdic[reach_number]['i_whole_profile'].append(i_whole_profile3)
+            # hrrlistdic[reach_number]['i_split'].append(i_split3)
+            # hrrlistdic[reach_number]['max_slope_bottom'].append(max_slope_bottom3)
+            # hrrlistdic[reach_number]['deltaz'].append(deltaz3)
+            # hrrlistdic[reach_number]['hrr'].append(hrr3)
+            # hrrlistdic[reach_number]['xy'].append(xy3)
+            # hrrlistdic[reach_number]['datanode'].append(datanode3)
 
-            hrrlistdic[reach_number]['unit_name'].append(q1+'>'+q2)
-            hrrlistdic[reach_number]['tin'].append(tin3)
-            hrrlistdic[reach_number]['i_whole_profile'].append(i_whole_profile3)
-            hrrlistdic[reach_number]['i_split'].append(i_split3)
-            hrrlistdic[reach_number]['max_slope_bottom'].append(max_slope_bottom3)
-            hrrlistdic[reach_number]['deltaz'].append(deltaz3)
-            hrrlistdic[reach_number]['hrr'].append(hrr3)
-            hrrlistdic[reach_number]['xy'].append(xy3)
-            hrrlistdic[reach_number]['datanode'].append(datanode3)
+    # get_dimension
+    new_data_2d.get_dimension()
 
-
-    return hrrlistdic
+    return new_data_2d, hdf5_1.data_2d_whole
 
 
 

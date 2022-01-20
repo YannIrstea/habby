@@ -420,6 +420,13 @@ class HydraulicVariableUnitManagement:
                                        descr="",
                                        dtype=np.float64,
                                        index_gui=getframeinfo(currentframe()).lineno)
+        self.delta_level = HydraulicVariable(value=None,
+                                       unit="m",
+                                       name="delta_level",
+                                       name_gui="delta water level",
+                                       descr="",
+                                       dtype=np.float64,
+                                       index_gui=getframeinfo(currentframe()).lineno)
         self.froude = HydraulicVariable(value=None,
                                         unit="",
                                         name="froude",
@@ -472,6 +479,13 @@ class HydraulicVariableUnitManagement:
                                                   dtype=np.float64,
                                                   index_gui=getframeinfo(currentframe()).lineno,
                                                   depend_on_h=True)
+        self.hrr = HydraulicVariable(value=None,
+                                       unit="m/h",
+                                       name="hrr",
+                                       name_gui="horizontal ramping rate",
+                                       descr="",
+                                       dtype=np.float64,
+                                       index_gui=getframeinfo(currentframe()).lineno)
         self.temp = HydraulicVariable(value=None,
                                       unit="",
                                       name="temp",
