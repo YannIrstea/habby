@@ -58,6 +58,7 @@ def calculate_deltaz3(iwp,locawp, countcontactwp,sortwp1, sortwp2,  rwp1, rwp2,t
     else:
         return np.nan
 
+
 def hrr(input_filename_1,deltatlist):
     # load file
     hdf5_1 = Hdf5Management(path_prj, input_filename_1, new=False, edit=False)
@@ -65,8 +66,8 @@ def hrr(input_filename_1,deltatlist):
     #Todo rajouter datamesh dans le cas d'un volume fini
     hdf5_1.load_hdf5(whole_profil=True)
 
-    hrrlistdic = []
-    new_data_2d = Data2d(reach_number=hdf5_1.data_2d.reach_number)  # new
+    new_data_2d = Data2d(reach_number=hdf5_1.data_2d.reach_number,
+                         unit_list=[["temp"] * (hdf5_1.data_2d[0].unit_number - 1)])  # new  # TODO: multi reach not done
 
     # loop
     for reach_number in range(hdf5_1.data_2d.reach_number):
@@ -83,9 +84,9 @@ def hrr(input_filename_1,deltatlist):
         hdf5_1.data_2d_whole[reach_number][0].c_mesh_max_slope_bottom()
         max_slope_bottom_whole_profile = hdf5_1.data_2d_whole[reach_number][0]["mesh"]["data"][
             hdf5_1.data_2d_whole.hvum.max_slope_bottom.name].to_numpy()
-        # hrrlistdic.append({'unit_name':[],'tin':[],'i_whole_profile':[],'i_split':[],'max_slope_bottom':[],'deltaz':[],'hrr':[],'xy':[],'datanode':[]})
-
+        unit_counter_3 = -1
         for unit_number in range(len(hdf5_1.data_2d[0])-1,0,-1): #Todo transitoire
+            unit_counter_3 += 1
             # Todo et recuperer temps depuis deltatlist
             deltat=deltatlist[unit_number]
 
@@ -94,7 +95,7 @@ def hrr(input_filename_1,deltatlist):
             #Todo check that the discharge are increasing time step hydropeaking the flow is increasing or decreasing  TXT file must indicate time interval and the way the information is sorted
             tin1 = hdf5_1.data_2d[reach_number][unit_number]["mesh"]["tin"]
             tin2 = hdf5_1.data_2d[reach_number][unit_number-1]["mesh"]["tin"]
-
+            datamesh1 = hdf5_1.data_2d[reach_number][unit_number]["mesh"]["data"]  # TODO: pandas_array.iloc
             # locawp, countcontactwp = connectivity_mesh_table(tin1)
             # loca1, countcontact1=connectivity_mesh_table(tin1)
             # loca2, countcontact2 = connectivity_mesh_table(tin2)
@@ -228,7 +229,7 @@ def hrr(input_filename_1,deltatlist):
             deltaz3=np.array(deltaz3)
             hrr3=(deltaz3/max_slope_bottom3)/deltat
             xy3=np.array(xy3)
-            datanode3=np.array(datanode3)
+            datanode3=np.array(datanode3)  # TODO: pandas data can have several dtype
 
             # hvum copy
             new_data_2d.hvum = hdf5_1.data_2d.hvum
@@ -241,27 +242,19 @@ def hrr(input_filename_1,deltatlist):
             new_data_2d.hvum.hrr.hdf5 = True
             new_data_2d.hvum.hdf5_and_computable_list.append(new_data_2d.hvum.hrr)
 
-            new_data_2d[reach_number][unit_number].unit_name = q1+'>'+q2
-            new_data_2d[reach_number][unit_number]["mesh"]["tin"] = tin3
-            new_data_2d[reach_number][unit_number]["mesh"]["data"] = pd.DataFrame()
-            new_data_2d[reach_number][unit_number]["mesh"]["data"]["i_whole_profile"] = i_whole_profile3
-            new_data_2d[reach_number][unit_number]["mesh"]["data"]["i_split"] = i_split3
-            new_data_2d[reach_number][unit_number]["mesh"]["data"]["max_slope_bottom"] = max_slope_bottom3
-            new_data_2d[reach_number][unit_number]["mesh"]["data"]["delta_level"] = deltaz3
-            new_data_2d[reach_number][unit_number]["mesh"]["data"]["hrr"] = hrr3
-            new_data_2d[reach_number][unit_number]["node"]["xy"] = xy3
-            new_data_2d[reach_number][unit_number]["node"]["data"] = pd.DataFrame(datanode3, columns=hdf5_1.data_2d[reach_number][unit_number]["node"]["data"].columns)
+            new_data_2d[reach_number][unit_counter_3].unit_name = q1+'>'+q2
+            new_data_2d[reach_number][unit_counter_3]["mesh"]["tin"] = tin3
+            new_data_2d[reach_number][unit_counter_3]["mesh"]["data"] = pd.DataFrame()  # TODO: data mesh with pandas_array.iloc
+            new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["i_whole_profile"] = i_whole_profile3
+            new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["i_split"] = i_split3
+            new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["max_slope_bottom"] = max_slope_bottom3
+            new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["delta_level"] = deltaz3
+            new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["hrr"] = hrr3
+            new_data_2d[reach_number][unit_counter_3]["node"]["xy"] = xy3
+            new_data_2d[reach_number][unit_counter_3]["node"]["data"] = pd.DataFrame(datanode3, columns=hdf5_1.data_2d[reach_number][unit_number]["node"]["data"].columns)
 
-            # hrrlistdic[reach_number]['unit_name'].append(q1+'>'+q2)
-            # hrrlistdic[reach_number]['tin'].append(tin3)
-            # hrrlistdic[reach_number]['i_whole_profile'].append(i_whole_profile3)
-            # hrrlistdic[reach_number]['i_split'].append(i_split3)
-            # hrrlistdic[reach_number]['max_slope_bottom'].append(max_slope_bottom3)
-            # hrrlistdic[reach_number]['deltaz'].append(deltaz3)
-            # hrrlistdic[reach_number]['hrr'].append(hrr3)
-            # hrrlistdic[reach_number]['xy'].append(xy3)
-            # hrrlistdic[reach_number]['datanode'].append(datanode3)
-
+    # compute area  # TODO: get original areas
+    new_data_2d.compute_variables([new_data_2d.hvum.area])
     # get_dimension
     new_data_2d.get_dimension()
 
@@ -271,7 +264,7 @@ def hrr(input_filename_1,deltatlist):
 
 if __name__ == '__main__':
     # set working directory to "C:\habby_dev\habby"
-    path_prj = r"C:\Users\yann.lecoarer\Documents\HABBY_projects\DefaultProj"
+    path_prj = r"C:\Users\yann.lecoarer\Documents\HABBY_projects\DefaultProj" # C:\Users\Quentin\Documents\HABBY_projects\DefaultProj
 
     # first file
     input_filename_1 = "d1_d2_d3_d4.hyd"
