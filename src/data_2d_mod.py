@@ -718,7 +718,8 @@ class Data2d(list):
                 if not self[reach_number][unit_number]["mesh"]["data"].empty:
                     self[reach_number][unit_number]["mesh"]["data"] = self[reach_number][unit_number]["mesh"]["data"][~bmeshinvalid]
 
-                print("Warning: The mesh of the unit " + self[reach_number][unit_number].unit_name + " has " + str(np.sum(bmeshinvalid)) + " mesh bank hydraulic aberations(s). The latter has been removed.")
+                if np.sum(bmeshinvalid):
+                    print("Warning: The mesh of the unit " + self[reach_number][unit_number].unit_name + " has " + str(np.sum(bmeshinvalid)) + " mesh bank hydraulic aberations(s). The latter has been removed.")
 
                 # # node data
                 # ipt_iklenew_unique = np.unique(self[reach_number][unit_number]["mesh"][self.hvum.tin.name])
