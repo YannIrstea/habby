@@ -114,6 +114,7 @@ def hrr(input_filename_1,deltatlist):
             i_split2 = hdf5_1.data_2d[reach_number][unit_number - 1]["mesh"]["data"]["i_split"]
             xy1 = hdf5_1.data_2d[reach_number][unit_number]["node"]["xy"]
             xy2 = hdf5_1.data_2d[reach_number][unit_number-1]["node"]["xy"]
+            # TODO: pandas data can have several dtype
             datanode1=hdf5_1.data_2d[reach_number][unit_number]["node"]["data"].to_numpy()
             datanode2 = hdf5_1.data_2d[reach_number][unit_number]["node"]["data"].to_numpy()
 
@@ -123,6 +124,7 @@ def hrr(input_filename_1,deltatlist):
             sortwp1, sortwp2, iwholedone, rwp1, rwp2=analyse_whole_profile(i_whole_profile1, i_whole_profile2)
             imeshpt3=0
             tin3 = []
+            datamesh3=[]
             i_whole_profile3 = []
             i_split3 = []
             max_slope_bottom3=[]
@@ -141,6 +143,7 @@ def hrr(input_filename_1,deltatlist):
                     xy3.append(xy1[tin1[sortwp1[rwp1[iwp][0] + k][1]][i3]])
                     datanode3.append(datanode1[tin1[sortwp1[rwp1[iwp][0] + k][1]][i3]])
                 tin3.append([imeshpt3, imeshpt3 + 1, imeshpt3 + 2])
+                datamesh3.append(datamesh1.iloc[sortwp1[rwp1[iwp][0] + k]])
 
                 iwholedone[iwp] = 1
 
@@ -157,15 +160,6 @@ def hrr(input_filename_1,deltatlist):
                         if rwp2[iwp][1]==0: # CASE 1a & 1b the tin1 mesh has been dryed
                             deltaz3_ = calculate_deltaz3(iwp, locawp, countcontactwp, sortwp1, sortwp2, rwp1, rwp2,
                                                          tin1, tin2, zsurf1, zsurf2)
-                            # i_whole_profile3.append(iwp)
-                            # max_slope_bottom3.append(max_slope_bottom_whole_profile[iwp])
-                            # deltaz3.append(deltaz3_)
-                            # i_split3.append(0) #even in the case of isplit1=1 ie cut2D have left a triangle part of the mesh that was partially wetted
-                            # for i3 in range(3):
-                            #     xy3.append(xy1[tin1[sortwp1[ rwp1[iwp][0] ][1]][i3]])
-                            #     datanode3.append(datanode1[tin1[sortwp1[rwp1[iwp][0]][1]][i3]])
-                            # tin3.append([imeshpt3, imeshpt3 + 1, imeshpt3 + 2])
-                            # iwholedone[iwp] = 1
                             store_mesh_tin1(0, imeshpt3)
                             imeshpt3 += 3
 
@@ -198,6 +192,7 @@ def hrr(input_filename_1,deltatlist):
                         #
                         #     for j in range(rwp2[iwp][1]):
                         #         tin3.append([imeshpt3, imeshpt3 + 1, imeshpt3 + 2])
+                        #         datamesh3.append(datamesh1.iloc[sortwp1[rwp1[iwp][0] ]]) # ou quelque chose du genre
                         #         i_whole_profile3.append(iwp)
                         #         max_slope_bottom3.append(max_slope_bottom_whole_profile[iwp])
                         #         deltaz3.append(deltaz3com)
@@ -227,9 +222,18 @@ def hrr(input_filename_1,deltatlist):
             i_split3 = np.array(i_split3)
             max_slope_bottom3=np.array(max_slope_bottom3)
             deltaz3=np.array(deltaz3)
-            hrr3=(deltaz3/max_slope_bottom3)/deltat
+            hrr3=(deltaz3/max_slope_bottom3)/(deltat*3600)
             xy3=np.array(xy3)
-            datanode3=np.array(datanode3)  # TODO: pandas data can have several dtype
+            datanode3=np.array(datanode3)
+            #TODO datamesh3
+
+            #remove_duplicate_points
+            # don't do xy3b, indices2, indices3 = np.unique... because indices2 haven't got the good size
+            xy3b, indices2 = np.unique(xy3, axis=0, return_inverse=True)
+            if len(xy3b)<len(xy3):
+                tin3= indices2[tin3]
+                xy3b,indices3 = np.unique(xy3, axis=0, return_index=True)
+                datanode3= datanode3[indices3]
 
             # hvum copy
             new_data_2d.hvum = hdf5_1.data_2d.hvum
@@ -244,13 +248,13 @@ def hrr(input_filename_1,deltatlist):
 
             new_data_2d[reach_number][unit_counter_3].unit_name = q1+'>'+q2
             new_data_2d[reach_number][unit_counter_3]["mesh"]["tin"] = tin3
-            new_data_2d[reach_number][unit_counter_3]["mesh"]["data"] = pd.DataFrame()  # TODO: data mesh with pandas_array.iloc
+            new_data_2d[reach_number][unit_counter_3]["mesh"]["data"] = pd.DataFrame()  # TODO: datamesh3 (à l'origine iwhole,isplikt et peut être des choses en volume fini) il faut refaire un pandas data mesh with pandas_array.iloc
             new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["i_whole_profile"] = i_whole_profile3
             new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["i_split"] = i_split3
             new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["max_slope_bottom"] = max_slope_bottom3
             new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["delta_level"] = deltaz3
             new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["hrr"] = hrr3
-            new_data_2d[reach_number][unit_counter_3]["node"]["xy"] = xy3
+            new_data_2d[reach_number][unit_counter_3]["node"]["xy"] = xy3b
             new_data_2d[reach_number][unit_counter_3]["node"]["data"] = pd.DataFrame(datanode3, columns=hdf5_1.data_2d[reach_number][unit_number]["node"]["data"].columns)
 
     # compute area  # TODO: get original areas
