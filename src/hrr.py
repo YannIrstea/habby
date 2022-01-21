@@ -264,17 +264,6 @@ def hrr(hydrosignature_description, progress_value, q=[], print_cmd=False, proje
                 xy3b,indices3 = np.unique(xy3, axis=0, return_index=True)
                 datanode3= datanode3[indices3]
 
-            # hvum copy
-            new_data_2d.hvum = hdf5_1.data_2d.hvum
-            # delta_level
-            new_data_2d.hvum.delta_level.position = "mesh"
-            new_data_2d.hvum.delta_level.hdf5 = True
-            new_data_2d.hvum.hdf5_and_computable_list.append(new_data_2d.hvum.delta_level)
-            # hrr
-            new_data_2d.hvum.hrr.position = "mesh"
-            new_data_2d.hvum.hrr.hdf5 = True
-            new_data_2d.hvum.hdf5_and_computable_list.append(new_data_2d.hvum.hrr)
-
             unit_list[reach_number][unit_counter_3] = q1+'>'+q2
             new_data_2d[reach_number][unit_counter_3].unit_name = q1+'>'+q2
             new_data_2d[reach_number][unit_counter_3]["mesh"]["tin"] = tin3
@@ -286,6 +275,17 @@ def hrr(hydrosignature_description, progress_value, q=[], print_cmd=False, proje
             new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["hrr"] = hrr3
             new_data_2d[reach_number][unit_counter_3]["node"]["xy"] = xy3b
             new_data_2d[reach_number][unit_counter_3]["node"]["data"] = pd.DataFrame(datanode3, columns=hdf5_1.data_2d[reach_number][unit_number]["node"]["data"].columns)
+
+    # hvum copy
+    new_data_2d.hvum = hdf5_1.data_2d.hvum
+    # delta_level
+    new_data_2d.hvum.delta_level.position = "mesh"
+    new_data_2d.hvum.delta_level.hdf5 = True
+    new_data_2d.hvum.hdf5_and_computable_list.append(new_data_2d.hvum.delta_level)
+    # hrr
+    new_data_2d.hvum.hrr.position = "mesh"
+    new_data_2d.hvum.hrr.hdf5 = True
+    new_data_2d.hvum.hdf5_and_computable_list.append(new_data_2d.hvum.hrr)
 
     # compute area  # TODO: get original areas
     new_data_2d.compute_variables([new_data_2d.hvum.area])
