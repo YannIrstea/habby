@@ -308,10 +308,8 @@ class Data2d(list):
                 self.remove_unit_from_unit_index_list(unit_to_remove_list, reach_number)
 
     def remove_unused_node(self):
-        #
         # for each reach
         for reach_number in range(self.reach_number):
-            unit_to_remove_list = []
             # for each unit
             for unit_number in range(len(self[reach_number])):
                 self[reach_number][unit_number].remove_unused_node()

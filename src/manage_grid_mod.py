@@ -2205,14 +2205,14 @@ def connectivity_mesh_table(tin):
         np.sort(np.array(tin[:, 1:], copy=True)), aindex], np.c_[np.sort(np.array(tin[:, [0, 2]], copy=True)), aindex]]
     segment = segment[np.lexsort((segment[:, 1], segment[:, 0]))]
     loca = np.full((len(tin), 3), -1, dtype=np.int64)
-    posfree = np.zeros((len(tin), 1), dtype=np.int64)
+    countcontact = np.zeros((len(tin), 1), dtype=np.int64)
     for j in range(3 * len(tin) - 1):
         if np.all(segment[j][0:2] == segment[j + 1][0:2]):
-            if posfree[segment[j][2]] > 2 or posfree[segment[j + 1][2]] > 2:
+            if countcontact[segment[j][2]] > 2 or countcontact[segment[j + 1][2]] > 2:
                 print('Error: major anomaly in the construction of the mesh connectivity table')
                 return None, None #TODO error to manage
-            loca[segment[j][2]][posfree[segment[j][2]]] = segment[j + 1][2]
-            loca[segment[j + 1][2]][posfree[segment[j + 1][2]]] = segment[j][2]
-            posfree[segment[j][2]] += 1
-            posfree[segment[j + 1][2]] += 1
-    return loca, posfree
+            loca[segment[j][2]][countcontact[segment[j][2]]] = segment[j + 1][2]
+            loca[segment[j + 1][2]][countcontact[segment[j + 1][2]]] = segment[j][2]
+            countcontact[segment[j][2]] += 1
+            countcontact[segment[j + 1][2]] += 1
+    return loca, countcontact
