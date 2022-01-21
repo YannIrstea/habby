@@ -42,8 +42,6 @@ class HsTab(QScrollArea):
     def __init__(self, path_prj, name_prj, send_log):
         super().__init__()
         self.tab_name = "hs"
-        self.tab_position = 6
-        self.mystdout = None
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.send_log = send_log

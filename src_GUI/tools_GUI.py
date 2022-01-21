@@ -23,6 +23,7 @@ from PyQt5.QtWidgets import QMessageBox, QFrame, QTabWidget,\
 from src import hdf5_mod
 from src_GUI.interpolation_GUI import InterpolationTab
 from src_GUI.hydrosignature_GUI import HsTab
+from src_GUI.hrr_GUI import HrrTab
 from src_GUI.new_tool_tab_to_create_GUI import OtherToolToCreateTab
 
 
@@ -67,12 +68,16 @@ class ToolsTab(QScrollArea):
         # hydrosignature tab
         self.hs_tab = HsTab(self.path_prj, self.name_prj, self.send_log)
 
+        # hrr_tab
+        self.hrr_tab = HrrTab(self.path_prj, self.name_prj, self.send_log)
+
         # other tool
         self.newtool_tab = OtherToolToCreateTab(self.path_prj, self.name_prj, self.send_log)
 
         self.sub_tabwidget.insertTab(1, self.interpolation_tab, self.tr("Interpolation"))
         self.sub_tabwidget.insertTab(2, self.hs_tab, self.tr("Hydrosignature"))
-        self.sub_tabwidget.insertTab(3, self.newtool_tab, self.tr("New tools coming soon"))
+        self.sub_tabwidget.insertTab(3, self.hrr_tab, self.tr("HRR"))
+        self.sub_tabwidget.insertTab(4, self.newtool_tab, self.tr("New tools coming soon"))
 
         # vertical layout
         self.setWidget(tools_frame)

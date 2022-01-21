@@ -1,6 +1,10 @@
-from src.hdf5_mod import Hdf5Management
+import sys
+from io import StringIO
+from time import sleep
 import numpy as np
 import pandas as pd
+
+from src.hdf5_mod import Hdf5Management
 from src.manage_grid_mod import connectivity_mesh_table
 from src.merge_mod import finite_element_interpolation
 from src.data_2d_mod import Data2d
@@ -59,7 +63,17 @@ def calculate_deltaz3(iwp,locawp, countcontactwp,sortwp1, sortwp2,  rwp1, rwp2,t
         return np.nan
 
 
-def hrr(input_filename_1,deltatlist):
+def hrr(hydrosignature_description, progress_value, q=[], print_cmd=False, project_properties={}):
+    if not print_cmd:
+        sys.stdout = mystdout = StringIO()
+    # progress
+    progress_value.value = 10
+
+    # deltatlist = hydrosignature_description["deltatlist"]
+    deltatlist = [0,3.6*3600,2.5*3600,1.8*3600]  # TODO: change it
+    input_filename_1 = hydrosignature_description["hdf5_name"]
+    path_prj = project_properties["path_prj"]
+
     # load file
     hdf5_1 = Hdf5Management(path_prj, input_filename_1, new=False, edit=False)
     # Todo check only one wholeprofile
@@ -71,6 +85,10 @@ def hrr(input_filename_1,deltatlist):
 
     # loop
     for reach_number in range(hdf5_1.data_2d.reach_number):
+
+        # progress
+        delta_reach = 90 / new_data_2d.reach_number
+
         xy_whole_profile = hdf5_1.data_2d_whole[reach_number][0]["node"]["xy"]
         z_whole_profile = hdf5_1.data_2d_whole[reach_number][0]["node"]["z"]
         tin_whole_profile = hdf5_1.data_2d_whole[reach_number][0]["mesh"]["tin"]
@@ -86,6 +104,10 @@ def hrr(input_filename_1,deltatlist):
             hdf5_1.data_2d_whole.hvum.max_slope_bottom.name].to_numpy()
         unit_counter_3 = -1
         for unit_number in range(len(hdf5_1.data_2d[0])-1,0,-1): #Todo transitoire
+
+            # progress
+            delta_unit = delta_reach / len(hdf5_1.data_2d[0])-1
+
             unit_counter_3 += 1
             # Todo et recuperer temps depuis deltatlist
             deltat=deltatlist[unit_number]
@@ -147,9 +169,14 @@ def hrr(input_filename_1,deltatlist):
 
                 iwholedone[iwp] = 1
 
-
+            # progress
+            delta_mesh = delta_unit / len(iwholedone)
 
             for iwp in range(len(iwholedone)):
+
+                # progress
+                progress_value.value = progress_value.value + delta_mesh
+
                 if iwholedone[iwp]==0:
                     if rwp1[iwp][1]==0: #  CASE 0  the tin1 mesh is dryed
                         if rwp2[iwp][1]==0:
@@ -262,7 +289,17 @@ def hrr(input_filename_1,deltatlist):
     # get_dimension
     new_data_2d.get_dimension()
 
-    return new_data_2d, hdf5_1.data_2d_whole
+    # TODO : export new hdf5 file with : new_data_2d, hdf5_1.data_2d_whole
+
+    # warnings
+    if not print_cmd:
+        sys.stdout = sys.__stdout__
+        if q:
+            q.put(mystdout)
+            sleep(0.1)  # to wait q.put() ..
+
+    # prog
+    progress_value.value = 100.0
 
 
 

@@ -32,6 +32,7 @@ from src.bio_info_mod import read_pref, get_hydrosignature
 from src.project_properties_mod import available_export_list
 from src.tools_mod import compute_interpolation, export_text_interpolatevalues
 from src.plot_mod import create_map_plot_string_dict
+from src.hrr import hrr
 
 
 class MyProcessManager(QThread):
@@ -514,6 +515,38 @@ class MyProcessManager(QThread):
                                    q=q)
             self.process_list.append(my_process)
 
+    # hrr
+    def set_hrr_hdf5_mode(self, path_prj, hrr_description_dict, project_properties):
+        # check_all_process_closed
+        if self.check_all_process_closed():
+            self.__init__("hrr")
+        else:
+            self.add_plots(1)
+
+        self.path_prj = path_prj
+        self.hrr_description_dict = hrr_description_dict
+        self.project_properties = project_properties
+
+    def load_data_and_append_hrr_process(self):
+        self.process_list = MyProcessList()
+        for hdf5_name in self.hrr_description_dict["hdf5_name_list"]:
+            hrr_description_dict = deepcopy(self.hrr_description_dict)
+            hrr_description_dict["hdf5_name"] = hdf5_name
+            # class MyProcess
+            progress_value = Value("d", 0.0)
+            q = Queue()
+            my_process = MyProcess(p=Process(target=hrr,
+                                             args=(hrr_description_dict,
+                                                   progress_value,
+                                                   q,
+                                                   False,
+                                                   self.project_properties),
+                                             name=hdf5_name),
+                                   progress_value=progress_value,
+                                   q=q)
+            self.process_list.append(my_process)
+
+
     # hs plot
     def load_data_and_append_hs_plot_process(self):
         for name_hdf5 in self.names_hdf5:
@@ -661,6 +694,8 @@ class MyProcessManager(QThread):
 
             self.process_list.append(my_process)
 
+  
+
     # estimhab_plot
     def set_estimhab_plot_mode(self, path_prj, plot_attr, project_properties):
         # check_all_process_closed
@@ -802,6 +837,8 @@ class MyProcessManager(QThread):
             self.load_data_and_append_export_process()
         elif self.process_type == "hs":
             self.load_data_and_append_hs_process()
+        elif self.process_type == "hrr":
+            self.load_data_and_append_hrr_process()
         elif self.process_type == "hs_plot":
             self.load_data_and_append_hs_plot_process()
         elif self.process_type == "interpolation":
