@@ -3,11 +3,12 @@ from io import StringIO
 from time import sleep
 import numpy as np
 import pandas as pd
+from multiprocessing import Value, Queue
 
 from src.hdf5_mod import Hdf5Management
 from src.manage_grid_mod import connectivity_mesh_table
-from src.merge_mod import finite_element_interpolation
 from src.data_2d_mod import Data2d
+from src.project_properties_mod import load_project_properties, save_project_properties
 
 
 def analyse_whole_profile(i_whole_profile1,i_whole_profile2):
@@ -79,10 +80,11 @@ def hrr(hydrosignature_description, progress_value, q=[], print_cmd=False, proje
     # Todo check only one wholeprofile
     #Todo rajouter datamesh dans le cas d'un volume fini
     hdf5_1.load_hdf5(whole_profil=True)
-
+    unit_list = [["temp"] * (hdf5_1.data_2d[0].unit_number - 1)]  # TODO: multi reach not done
     new_data_2d = Data2d(reach_number=hdf5_1.data_2d.reach_number,
-                         unit_list=[["temp"] * (hdf5_1.data_2d[0].unit_number - 1)])  # new  # TODO: multi reach not done
-
+                         unit_list=unit_list)  # new
+    # get attr
+    new_data_2d.__dict__.update(hdf5_1.data_2d.__dict__)  # copy all attr
     # loop
     for reach_number in range(hdf5_1.data_2d.reach_number):
 
@@ -106,7 +108,7 @@ def hrr(hydrosignature_description, progress_value, q=[], print_cmd=False, proje
         for unit_number in range(len(hdf5_1.data_2d[0])-1,0,-1): #Todo transitoire
 
             # progress
-            delta_unit = delta_reach / len(hdf5_1.data_2d[0])-1
+            delta_unit = delta_reach / len(range(len(hdf5_1.data_2d[0])-1,0,-1))
 
             unit_counter_3 += 1
             # Todo et recuperer temps depuis deltatlist
@@ -273,10 +275,11 @@ def hrr(hydrosignature_description, progress_value, q=[], print_cmd=False, proje
             new_data_2d.hvum.hrr.hdf5 = True
             new_data_2d.hvum.hdf5_and_computable_list.append(new_data_2d.hvum.hrr)
 
+            unit_list[reach_number][unit_counter_3] = q1+'>'+q2
             new_data_2d[reach_number][unit_counter_3].unit_name = q1+'>'+q2
             new_data_2d[reach_number][unit_counter_3]["mesh"]["tin"] = tin3
             new_data_2d[reach_number][unit_counter_3]["mesh"]["data"] = pd.DataFrame()  # TODO: datamesh3 (à l'origine iwhole,isplikt et peut être des choses en volume fini) il faut refaire un pandas data mesh with pandas_array.iloc
-            new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["i_whole_profile"] = i_whole_profile3
+            new_data_2d[reach_number][unit_counter_3]["mesh"]["i_whole_profile"] = i_whole_profile3
             new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["i_split"] = i_split3
             new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["max_slope_bottom"] = max_slope_bottom3
             new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["delta_level"] = deltaz3
@@ -288,8 +291,16 @@ def hrr(hydrosignature_description, progress_value, q=[], print_cmd=False, proje
     new_data_2d.compute_variables([new_data_2d.hvum.area])
     # get_dimension
     new_data_2d.get_dimension()
-
-    # TODO : export new hdf5 file with : new_data_2d, hdf5_1.data_2d_whole
+    # export new hdf5
+    hdf5 = Hdf5Management(path_prj, hdf5_1.filename[:-4] + "_HRR" + hdf5_1.extension, new=True)
+    # HYD
+    new_data_2d.unit_list = unit_list  # update
+    # new_data_2d.path_filename_source = hdf5_1.data_2d.path_filename_source
+    # new_data_2d.hyd_unit_correspondence = hdf5_1.data_2d.hyd_unit_correspondence
+    # new_data_2d.hyd_model_type = hdf5_1.data_2d.hyd_model_type
+    hdf5.create_hdf5_hyd(new_data_2d,
+                         hdf5_1.data_2d_whole,
+                         project_properties)
 
     # warnings
     if not print_cmd:
@@ -305,14 +316,19 @@ def hrr(hydrosignature_description, progress_value, q=[], print_cmd=False, proje
 
 if __name__ == '__main__':
     # set working directory to "C:\habby_dev\habby"
-    path_prj = r"C:\Users\yann.lecoarer\Documents\HABBY_projects\DefaultProj" # C:\Users\Quentin\Documents\HABBY_projects\DefaultProj
+    path_prj = r"C:\Users\Quent\Documents\HABBY_projects\DefaultProj" # C:\Users\yann.lecoarer\Documents\HABBY_projects\DefaultProj
 
-    # first file
-    input_filename_1 = "d1_d2_d3_d4.hyd"
-    hrr(input_filename_1,[0,3.6*3600,2.5*3600,1.8*3600])
-
-
-
+    project_properties = load_project_properties(path_prj)
+    hrr_description_dict = dict(deltatlist=[0, 3.6 * 3600, 2.5 * 3600, 1.8 * 3600],
+                           hdf5_name="a1_a2_a3_a4.hyd")
+    # class MyProcess
+    progress_value = Value("d", 0.0)
+    q = Queue()
+    hrr(hrr_description_dict,
+               progress_value,
+               q,
+               print_cmd=True,
+               project_properties=project_properties)
 
     # xy = hdf5_1.data_2d[reach_number][unit_number]["node"]["xy"]
     # z_fond_node = hdf5_1.data_2d[reach_number][unit_number]["node"]["data"]["z"]
