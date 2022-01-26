@@ -33,6 +33,8 @@ class HrrTab(QScrollArea):
     def __init__(self, path_prj, name_prj, send_log):
         super().__init__()
         self.tab_name = "hrr"
+        self.tab_title = "HRR"
+        self.tooltip_str = self.tr("Horizontal Ramping Rate")
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.send_log = send_log
@@ -85,7 +87,6 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.name_prj = name_prj
         self.send_log = send_log
         self.path_last_file_loaded = self.path_prj
-        self.classhv = None
         self.project_properties = load_project_properties(self.path_prj)
         self.setTitle(title)
         self.init_ui()
@@ -120,7 +121,6 @@ class ComputingGroup(QGroupBoxCollapsible):
 
         grid_layout = QGridLayout()
         grid_layout.addLayout(self.progress_layout, 5, 0, 1, 3)
-        grid_layout.setAlignment(Qt.AlignRight)
 
         general_layout = QVBoxLayout()
         general_layout.addLayout(file_selection_layout)

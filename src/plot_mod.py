@@ -1741,7 +1741,8 @@ def create_map_plot_string_dict(name_hdf5, reach_name, unit_name, unit_type, var
     # plot_string_dict
     plot_string_dict = dict(reach_name=reach_name,
                             unit_name=unit_name,
-                            title=variable.position + ' - ' +
+                            title=name_hdf5 + ' - ' +
+                                  variable.position + ' - ' +
                                   variable.name_gui.replace("_", " ") + ' - ' +
                                   reach_name + ' - '
                                   + unit_name + " [" + unit_type + "]",

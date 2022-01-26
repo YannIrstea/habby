@@ -1,3 +1,19 @@
+"""
+This file is part of the free software:
+ _   _   ___  ______________   __
+| | | | / _ \ | ___ \ ___ \ \ / /
+| |_| |/ /_\ \| |_/ / |_/ /\ V /
+|  _  ||  _  || ___ \ ___ \ \ /
+| | | || | | || |_/ / |_/ / | |
+\_| |_/\_| |_/\____/\____/  \_/
+
+Copyright (c) IRSTEA-EDF-AFB 2017-2018
+
+Licence CeCILL v2.1
+
+https://github.com/YannIrstea/habby
+
+"""
 import numpy as np
 import numpy.lib.recfunctions
 import os.path
@@ -512,6 +528,8 @@ def check_hs_class_validity(classhv):
 
 
 def hydraulic_class_from_file(filename):
+    ""
+    # TODO: read headers and units to check validity and matching unit with data2d unit data
     warnings_list = []
     f = open(filename, "r")
     hvclass = [[], []]

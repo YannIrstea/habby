@@ -32,12 +32,11 @@ from src.variable_unit_mod import HydraulicVariableUnitManagement
 
 
 class InterpolationTab(QScrollArea):
-    """
-    This class is a subclass of class QGroupBox.
-    """
-
     def __init__(self, path_prj, name_prj, send_log):
         super().__init__()
+        self.tab_name = "interpolation"
+        self.tab_title = "Interpolation"
+        self.tooltip_str = self.tr("Interpolation of habitat values")
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.send_log = send_log
