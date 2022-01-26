@@ -634,7 +634,7 @@
         <translation type="obsolete">Option substrat</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="683"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="695"/>
         <source>Biological models choosen (</source>
         <translation>Modèles biologiques choisis (</translation>
     </message>
@@ -659,22 +659,22 @@
         <translation type="obsolete">&lt;b&gt; Fichier(s) d&apos;habitat &lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="560"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="568"/>
         <source>Hydraulic HEM computation option is disable for habitat calculation  (hydraulic data in .hab are not of 2D type or do not contain z-values).</source>
         <translation>L&apos;option de calcul hydraulique HEM est désactivée pour le calcul d&apos;habitat (les données hydrauliques du .hab ne sont pas de type 2D ou ne contiennent pas de valeurs z).</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="569"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="577"/>
         <source>Substrate percentage computation option is disable for habitat calculation (substrate classification method in .hab is not in percentage).</source>
         <translation>L&apos;option de calcul substrat pourcentage est désactivée pour le calcul d&apos;habitat (la méthode de classification du substrat dans le .hab n&apos;est pas de type pourcentage).</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="820"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="832"/>
         <source>, this .hab file has been deleted by the user.</source>
         <translation>, ce fichier.hab a été supprimé par l&apos;utilisateur.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="883"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="895"/>
         <source>No merged hydraulic files available.</source>
         <translation>Aucun fichier habitat (.hab) n&apos;est disponible.</translation>
     </message>
@@ -689,12 +689,12 @@
         <translation type="obsolete">Nettoyage de la barre de status</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="787"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="799"/>
         <source>The .habby project file does not exist.</source>
         <translation>Le fichier de projet .habby n&apos;existe pas.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="790"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="802"/>
         <source>The .habby project file is not well-formed.</source>
         <translation>Le fichier de projet .habby n&apos;est pas bien formé.</translation>
     </message>
@@ -723,7 +723,7 @@
         <translation type="obsolete">Le calcul d&apos;habitat est terminé (temps de calcul = </translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="693"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="705"/>
         <source>Create a .hab file before adding models.</source>
         <translation>Créez un fichier .hab avant d&apos;ajouter des modèles.</translation>
     </message>
@@ -743,14 +743,14 @@
         <translation type="obsolete">Les données de sorties peuveut être affichées et exportées dans l&apos;onglet &apos;Explorateur de données&apos;.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="861"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="873"/>
         <source> model options are Neglect and Neglect for hydraulic and substrate options. This calculation will not be performed.</source>
         <translation> les options du modèle sont &apos;Négliger&apos; et &apos;Négliger&apos; pour les options hydrauliques et substrat. Ce calcul ne sera pas effectué.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="905"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="917"/>
         <source>Warning: Nothing to compute !</source>
-        <translation type="unfinished">Warning: Rien à calculer !</translation>
+        <translation>Warning: Rien à calculer !</translation>
     </message>
     <message>
         <location filename="../src_GUI/calc_hab_GUI.py" line="532"/>
@@ -773,7 +773,7 @@
         <translation>Créer un doublon à partir de la séléction</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="544"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="552"/>
         <source>No models added (no selection).</source>
         <translation>Aucun modèle n&apos;a été ajouté (pas de sélection).</translation>
     </message>
@@ -783,14 +783,14 @@
         <translation type="obsolete">Warning: Trop d&apos;information pour l&apos;interface graphique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="614"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="624"/>
         <source>.hab data not adapted :
 not 2d data, not z node data or no shear_stress data.</source>
         <translation>Donnée du .hab non adaptée :
 pas de données 2D, pas de données z, pas de données de force tractrice.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/calc_hab_GUI.py" line="639"/>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="649"/>
         <source>.hab sub data is constant values. Computing habitat values with constant substrate data is not encouraged.</source>
         <translation>Les données de substrat du .hab sont de type constant. Le calcul d&apos;habitat avec des données de substrat constante n&apos;est pas conseillé.</translation>
     </message>
@@ -813,6 +813,16 @@ pas de données 2D, pas de données z, pas de données de force tractrice.</tran
         <location filename="../src_GUI/calc_hab_GUI.py" line="257"/>
         <source>substrate option</source>
         <translation>option substrat</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="612"/>
+        <source>default hydraulic option from biological model file.</source>
+        <translation>option hydraulique par défaut du  modèle biologique.</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/calc_hab_GUI.py" line="656"/>
+        <source>default substrate option from biological model file.</source>
+        <translation>option substrat par défaut du modèle biologique.</translation>
     </message>
 </context>
 <context>
@@ -857,22 +867,22 @@ pas de données 2D, pas de données z, pas de données de force tractrice.</tran
     <message>
         <location filename="../src_GUI/bio_model_explorer_GUI.py" line="174"/>
         <source>The biological user models have not been changed.</source>
-        <translation type="unfinished"></translation>
+        <translation>Les modèles d&apos;utilisateurs biologiques n&apos;ont pas été modifiés.</translation>
     </message>
     <message>
         <location filename="../src_GUI/bio_model_explorer_GUI.py" line="168"/>
         <source>Warning: </source>
-        <translation type="unfinished">Attention: </translation>
+        <translation>Attention: </translation>
     </message>
     <message>
         <location filename="../src_GUI/bio_model_explorer_GUI.py" line="168"/>
         <source>User biological models </source>
-        <translation type="unfinished"></translation>
+        <translation>Modèles biologiques utilisateur</translation>
     </message>
     <message>
         <location filename="../src_GUI/bio_model_explorer_GUI.py" line="169"/>
         <source>The biological user models have been changed.</source>
-        <translation type="unfinished"></translation>
+        <translation>Les modèle sbiologiques utilisateurs  ont été modifiés.</translation>
     </message>
 </context>
 <context>
@@ -918,12 +928,12 @@ pas de données 2D, pas de données z, pas de données de force tractrice.</tran
         <translation>Poisson</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="300"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="292"/>
         <source>Filters</source>
         <translation>Filtres</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="318"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="310"/>
         <source>Code alternative filter</source>
         <translation>Filtre code ONEMA</translation>
     </message>
@@ -935,33 +945,33 @@ pas de données 2D, pas de données z, pas de données de force tractrice.</tran
     <message>
         <location filename="../src_GUI/bio_model_explorer_GUI.py" line="278"/>
         <source>Crustacean</source>
-        <translation>Crustacé</translation>
+        <translation type="obsolete">Crustacé</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="294"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="286"/>
         <source>Refresh user biological database</source>
-        <translation type="unfinished"></translation>
+        <translation>Rafraîchir la base de données biologiques utilisateur</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="295"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="287"/>
         <source>Refresh user biological models database in </source>
-        <translation type="unfinished"></translation>
+        <translation>Rafraîchir la base de données biologiques utilisateur dans </translation>
     </message>
 </context>
 <context>
     <name>BioModelInfoSelection</name>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="783"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="770"/>
         <source>Available models</source>
         <translation>Modèles disponibles</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="812"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="799"/>
         <source>Selected models</source>
         <translation>Modèles sélectionnés</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="660"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="647"/>
         <source>Latin Name: </source>
         <translation>Nom Latin: </translation>
     </message>
@@ -971,7 +981,7 @@ pas de données 2D, pas de données z, pas de données de force tractrice.</tran
         <translation type="obsolete">Afficher la courbe de préférence</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="673"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="660"/>
         <source>Code alternative:</source>
         <translation>Code ONEMA:</translation>
     </message>
@@ -981,22 +991,22 @@ pas de données 2D, pas de données z, pas de données de force tractrice.</tran
         <translation type="obsolete">Montrer les conditions de mesure (HS)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="685"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="672"/>
         <source>Description:</source>
         <translation>Description:</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="698"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="685"/>
         <source>Validate selected models</source>
         <translation>Valider les modèles sélectionnés</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="705"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="692"/>
         <source>Close</source>
         <translation>Fermer</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="894"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="881"/>
         <source>no image file</source>
         <translation>pas de fichier d&apos;image</translation>
     </message>
@@ -1011,7 +1021,7 @@ pas de données 2D, pas de données z, pas de données de force tractrice.</tran
         <translation type="obsolete">Aucun poisson sélectionné pour créer des courbes de préférences.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="957"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="944"/>
         <source>No fish selected to hydrosignature.</source>
         <translation>Aucun modèle n&apos;a été sélectionné pour l&apos;hydrosignature.</translation>
     </message>
@@ -1028,17 +1038,17 @@ defined by either volume or area percentages on a depth and current velocity cro
 défini par des pourcentages de volume ou de surface sur une grille croisée de profondeur et de vitesse du courant.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="663"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="650"/>
         <source>Show habitat suitability indices</source>
         <translation>Afficher les courbes de préférences</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="664"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="651"/>
         <source>clic = selected stage ; SHIFT+clic = all stages</source>
         <translation>clic = stade sélectionnée ; SHIFT+clic = tout les stades</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="665"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="652"/>
         <source>Habitat Suitability Indices are curves used to quantify and 
 evaluate habitat quality for a specific species, based on 
 the known selection of particular habitat conditions during 
@@ -1049,17 +1059,17 @@ la sélection connue de conditions d&apos;habitat particulières pendant
 des périodes spécifiques du cycle de vie de l&apos;espèce (Bovee 1986).</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="676"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="663"/>
         <source>Show hydrosignature</source>
         <translation>Montrer l&apos;hydrosignature</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="677"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="664"/>
         <source>clic = all stages</source>
         <translation>clic = tout les stades</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="678"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="665"/>
         <source>A hydrosignature quantifies the hydraulic diversity 
 in any area/part of the aquatic space defined by either 
 volume or area percentages on a depth and current 
@@ -1070,17 +1080,17 @@ les pourcentages de volume ou de surface sur une hauteur d&apos;eau
 et la grille transversale des vitesses (Lecoarer 2007).</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="699"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="686"/>
         <source>Validate selected models to send them to your habitat calculation tab.</source>
         <translation>Validez les modèles sélectionnés pour les envoyer à votre onglet de calcul d&apos;habitat.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="718"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="705"/>
         <source>Habitat Suitability Index information</source>
         <translation>Information du modèle</translation>
     </message>
     <message>
-        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="928"/>
+        <location filename="../src_GUI/bio_model_explorer_GUI.py" line="915"/>
         <source>No fish selected to show Habitat Suitability Index</source>
         <translation>Pas de modèle sélectionné pour afficher la courbe de préférence</translation>
     </message>
@@ -1114,12 +1124,12 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Accueil</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2101"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2098"/>
         <source>Hydraulic</source>
         <translation>Hydraulique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2102"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2099"/>
         <source>Substrate</source>
         <translation>Substrat</translation>
     </message>
@@ -1134,17 +1144,17 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Biologie</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2112"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2109"/>
         <source>Research 1</source>
         <translation>Recherche 1</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2113"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2110"/>
         <source>Research 2</source>
         <translation>Recherche 2</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2103"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2100"/>
         <source>Habitat Calc.</source>
         <translation>Calc. Habitat</translation>
     </message>
@@ -1186,12 +1196,12 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Créer ou ouvrir un projet. &lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2104"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2101"/>
         <source>Data explorer</source>
         <translation>Explorateur de données</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2105"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2102"/>
         <source>Tools</source>
         <translation>Outils</translation>
     </message>
@@ -1211,7 +1221,7 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">FStress</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2117"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2114"/>
         <source>Project</source>
         <translation>Projet</translation>
     </message>
@@ -1252,17 +1262,17 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Créer ou ouvrer un projet.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2041"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2038"/>
         <source>HABBY says :</source>
         <translation>HABBY dit :</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2303"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2300"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2310"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2307"/>
         <source>Warning</source>
         <translation>Attention</translation>
     </message>
@@ -1272,12 +1282,12 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Attention: Le fichier journal n&apos;est pas indiqué dans le fichier .habby. Aucun journal écrit.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2411"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2408"/>
         <source>Error: </source>
         <translation>Erreur: </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2280"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2277"/>
         <source>Warning: The project file is not found. No restart file created.</source>
         <translation>Attention: Le fichier de projet n&apos;est pas trouvé. Pas de fichier restart créé.</translation>
     </message>
@@ -1287,22 +1297,22 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Attention: Le fichier python restart n&apos;est pas trouvé.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2350"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2347"/>
         <source>Warning: Restart CLI file not found. New created.</source>
         <translation>Attention: Le fichier restart CLI n&apos;est pas trouvé. Un nouveau a été créé.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2365"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2362"/>
         <source>Warning: Log file not found. New created.</source>
         <translation>Attention: Le fichier .log n&apos;est pas trouvé. Un nouveau a été créé.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2336"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2333"/>
         <source>Error: Restart python file not found. New created.</source>
         <translation>Erreur : Fichier restart python non trouvé. Un nouveau a été créé.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2411"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2408"/>
         <source>The project file is not found : </source>
         <translation>Le fichier du projet n&apos;a pas été trouvé : </translation>
     </message>
@@ -1352,12 +1362,12 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
     <message>
         <location filename="../src_GUI/about_GUI.py" line="65"/>
         <source>Current software</source>
-        <translation type="unfinished"></translation>
+        <translation>Logiciel actuel</translation>
     </message>
     <message>
         <location filename="../src_GUI/about_GUI.py" line="68"/>
         <source>Last on web</source>
-        <translation type="unfinished"></translation>
+        <translation>Dernière online</translation>
     </message>
 </context>
 <context>
@@ -1591,32 +1601,32 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Ouvrir le dossier</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1926"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1923"/>
         <source>HABBY- New Project</source>
         <translation>HABBY- Nouveau Projet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1892"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1889"/>
         <source>Project name: </source>
         <translation>Nom de projet: </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1894"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1891"/>
         <source>Projects folder: </source>
         <translation>Répertoire du projet: </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1897"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1894"/>
         <source>Change folder</source>
         <translation>Changer de répertoire</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1899"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1896"/>
         <source>Create project</source>
         <translation>Créer un projet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1903"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1900"/>
         <source>Project type</source>
         <translation>Type de projet</translation>
     </message>
@@ -1631,22 +1641,22 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Statistique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1938"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1935"/>
         <source>Select directory</source>
         <translation>Choisir un répertoire</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1905"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1902"/>
         <source>physical</source>
         <translation>physique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1905"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1902"/>
         <source>statistical</source>
         <translation>statistique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1905"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1902"/>
         <source>both</source>
         <translation>les deux</translation>
     </message>
@@ -1855,7 +1865,7 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
 <context>
     <name>EmptyTab</name>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="2473"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="2470"/>
         <source>I am a button</source>
         <translation>Je suis un bouton</translation>
     </message>
@@ -1923,7 +1933,7 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Le fichier hdf5 lié à ESTIMHAB n&apos;existe pas</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="707"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="705"/>
         <source>Open Directory</source>
         <translation>Ouvre le Dossier</translation>
     </message>
@@ -1933,12 +1943,12 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Exectuer ESTIMHAB</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="753"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="751"/>
         <source>Some data are empty or not float. Cannot run Estimhab</source>
         <translation>Il existe des données vides ou non-numériques. Il n&apos;est pas possible d&apos;executer ESTIMHAB</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="766"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="764"/>
         <source>No fish selected. Cannot run Estimhab.</source>
         <translation>Pas d&apos;espèce de poisson selectionnée. Il n&apos;est pas possible d&apos;executer ESTIMHAB.</translation>
     </message>
@@ -1953,12 +1963,12 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">ESTIMHAB a besoin des données de deux débits mesurés. Il n&apos;est pas possible d&apos;executer ESTIMHAB.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="781"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="779"/>
         <source>Estimhab needs two different measured height.</source>
         <translation>ESTIMHAB a besoin de deux hauteur mesurées différentes.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="784"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="782"/>
         <source>Estimhab needs two different measured width.</source>
         <translation>ESTIMHAB a besoin de deux largeur mesurées.</translation>
     </message>
@@ -1994,7 +2004,7 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
 </translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="769"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="767"/>
         <source>Minimum discharge bigger or equal to max discharge. Cannot run Estimhab.</source>
         <translation>Le débit minimum est plus grand ou égal au débit maximum. Estimhab ne peut pas être executé.</translation>
     </message>
@@ -2004,19 +2014,19 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Calcul Estimhab fait. Estimhab .hab, figures et fichiers textes créés.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="636"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="634"/>
         <source>The .habby project file </source>
         <translation>Le fichier de projet .habby </translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="633"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="631"/>
         <source> could not be open.
 </source>
         <translation> ne pouvait pas être ouvert.
 </translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="636"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="634"/>
         <source> is not well-formed.
 </source>
         <translation> n&apos;est pas bien formé.
@@ -2033,7 +2043,7 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Calcul de Estimhab fait. Figures et fichiers textes créés.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="778"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="776"/>
         <source>Estimhab needs two differents measured discharges.</source>
         <translation>Estimhab a besoin de deux débits mesurés différents.</translation>
     </message>
@@ -2043,7 +2053,7 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Le fichier .hab relatif à ESTIMHAB n&apos;existe pas.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="788"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="786"/>
         <source>Discharge, width, and height data are not coherent.</source>
         <translation>Les données de débit, de largeur et de hauteur ne sont pas cohérentes.</translation>
     </message>
@@ -2058,12 +2068,12 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Le support est trop grand. Estimhab ne peut pas être executé.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="408"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="406"/>
         <source>Available</source>
         <translation>Disponible</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="409"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="407"/>
         <source>Selected</source>
         <translation>Sélectionné</translation>
     </message>
@@ -2078,22 +2088,22 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Q2 [m3/sec]</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="428"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="426"/>
         <source>Width1 [m]</source>
         <translation>Largeur1 [m]</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="434"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="432"/>
         <source>Width2 [m]</source>
         <translation>Largeur2 [m]</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="440"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="438"/>
         <source>Height1 [m]</source>
         <translation>Hauteur1 [m]</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="445"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="443"/>
         <source>Height2 [m]</source>
         <translation>Hauteur2 [m]</translation>
     </message>
@@ -2103,7 +2113,7 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Qmedian/Q50 [m3/sec]</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="456"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="454"/>
         <source>Mean substrate size [m]</source>
         <translation>Taille moyenne du substrat [m]</translation>
     </message>
@@ -2128,7 +2138,7 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Calculer ESTIMHAB</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="510"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="508"/>
         <source>Hydraulic data input</source>
         <translation>Données hydrauliques d&apos;entrées</translation>
     </message>
@@ -2138,27 +2148,27 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Données hydrauliques souhaitées</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="539"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="537"/>
         <source>Biological models</source>
         <translation>Modèles biologiques</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="774"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="772"/>
         <source>Target discharge is not between Qmin and Qmax. Cannot run Estimhab.</source>
         <translation>Le débit cible n&apos;est pas compris entre Qmin et Qmax. Impossible d&apos;exécuter Estimhab.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="463"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="461"/>
         <source>Qmin [m&lt;sup&gt;3&lt;/sup&gt;/s]</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="469"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="467"/>
         <source>Qmax [m&lt;sup&gt;3&lt;/sup&gt;/s]</source>
         <translation>Qmax [m&lt;sup&gt;3&lt;/sup&gt;/s]</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="475"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="473"/>
         <source>Qtarget [m&lt;sup&gt;3&lt;/sup&gt;/s]</source>
         <translation>Qtarget [m&lt;sup&gt;3&lt;/sup&gt;/s]</translation>
     </message>
@@ -2213,17 +2223,17 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Lancer Estimhab</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="511"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="509"/>
         <source>Double click to reset the input data group.</source>
         <translation>Double-click pour remettre le groupe à zéro.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="527"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="525"/>
         <source>Desired hydraulic output data</source>
         <translation>Données hydraulique de sortie souhaitées</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="528"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="526"/>
         <source>Double click to reset the outpout data group.</source>
         <translation>Double-click pour remettre le groupe à zéro.</translation>
     </message>
@@ -2233,32 +2243,32 @@ et la grille transversale des vitesses (Lecoarer 2007).</translation>
         <translation type="obsolete">Le calcul d&apos;Estimhab est finit. Les figures et fichiers de sortie sont créés dans le répertoir de sortie du projet.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="636"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="634"/>
         <source>Warning: </source>
         <translation>Attention: </translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="501"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="499"/>
         <source>Run Estimhab</source>
         <translation>Lancer Estimhab</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="792"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="790"/>
         <source>Negative or zero data found. Could not run Estimhab.</source>
         <translation>Données négatives ou nulles trouvées. Impossible d&apos;exécuter Estimhab.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="795"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="793"/>
         <source>Substrate is too large. Could not run Estimhab.</source>
         <translation>Le substrat est trop grand. Impossible d&apos;exécuter Estimhab.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="798"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="796"/>
         <source># Computing: Estimhab...</source>
         <translation># Calcul: Estimhab...</translation>
     </message>
     <message>
-        <location filename="../src_GUI/estimhab_GUI.py" line="850"/>
+        <location filename="../src_GUI/estimhab_GUI.py" line="848"/>
         <source>Estimhab computation done. Figure and text files created in output project folder.</source>
         <translation>Calcul d&apos;estimation effectué. Fichiers de sortie créés dans le dossier du projet de sortie.</translation>
     </message>
@@ -2599,7 +2609,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
     <message>
         <location filename="../src_GUI/data_explorer_GUI.py" line="821"/>
         <source>Displaying a large number of interactive plots may crash HABBY. It is not possible to exceed a total number of plots greater than </source>
-        <translation type="unfinished"></translation>
+        <translation>L&apos;affichage d&apos;un grand nombre de graphiques interactifs peut faire planter HABBY. Il n&apos;est pas possible de dépasser un nombre total de graphique supérieur à </translation>
     </message>
 </context>
 <context>
@@ -3334,7 +3344,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
 <context>
     <name>HydrauTab</name>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="123"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="125"/>
         <source>Select a model</source>
         <translation>Sélectionnez un modèle</translation>
     </message>
@@ -3344,39 +3354,39 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">?</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="196"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="203"/>
         <source>Information on the hydraulic model</source>
         <translation>Information sur le modèle hydraulique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="210"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="217"/>
         <source>Choose a type of hydraulic model !         </source>
         <translation>Choisissez un type de modèle hydraulique !         </translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="180"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="187"/>
         <source>Result file (</source>
-        <translation type="unfinished">Fichier de résultat (</translation>
+        <translation>Fichier de résultat (</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="221"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="228"/>
         <source>Semi wet cut mesh enable : </source>
-        <translation type="unfinished"></translation>
+        <translation>Découpage de maille semie-mouillée activé</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="221"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="228"/>
         <source>Water depth value considered to be zero : </source>
-        <translation type="unfinished"></translation>
+        <translation>Valeur de hauteur d&apos;eau considérée comme nulle : </translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="227"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="234"/>
         <source>Semi wet cut mesh enable always disabled for 1D models</source>
-        <translation type="unfinished"></translation>
+        <translation>Découpage des mailles semie-mouillées toujours désactivé pour les modèles 1D</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="227"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="234"/>
         <source>No water depth value considered to be zero for 1D models</source>
-        <translation type="unfinished"></translation>
+        <translation>Aucune valeur de hauteur d&apos;eau considérée comme nulle pour les modèles 1D</translation>
     </message>
 </context>
 <context>
@@ -3901,7 +3911,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
     <message>
         <location filename="../src_GUI/interpolation_GUI.py" line="286"/>
         <source>Error: This file contain date unit. To be interpolated, file must contain discharge or timestep unit.</source>
-        <translation>Erreur: Ce fichier contient des unités de type date. Pour être interpolé, le fichier doit contenir des unités de débit ou de temps.</translation>
+        <translation type="obsolete">Erreur: Ce fichier contient des unités de type date. Pour être interpolé, le fichier doit contenir des unités de débit ou de temps.</translation>
     </message>
     <message>
         <location filename="../src_GUI/interpolation_GUI.py" line="328"/>
@@ -3909,72 +3919,72 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">L&apos;interpolation a besoin d&apos;au minimum 2 unités (temps ou débit). il y en a qu&apos;un seul dans ce fichier.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="347"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="348"/>
         <source>The sequence values must be specified (from, to and by).</source>
         <translation>Les valeurs de séquence doivent être spécifiées (min, max et par).</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="352"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="353"/>
         <source>The sequence values must be of numerical type.</source>
         <translation>Les valeurs de séquence doivent être de type numérique.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="357"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="358"/>
         <source>Max sequence value must be strictly greater than min sequence value.</source>
         <translation>La valeur maximale de la séquence doit être strictement supérieure à la valeur minimale de la séquence.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="362"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="363"/>
         <source>By sequence value must be strictly greater than 0.</source>
         <translation>La valeur de séquence &apos;par&apos; doit être strictement supérieure à 0.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="391"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="392"/>
         <source>No fish selected.</source>
         <translation>Pas de modèle sélectionné.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="395"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="396"/>
         <source>Select file</source>
         <translation>Sélectionner un fichier</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="432"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="433"/>
         <source>Interpolation not done.</source>
         <translation>Interpolation non effectuée.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="457"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="458"/>
         <source>Interpolation done. Interpolated values can now be view in graphic and export in text file.</source>
         <translation>Interpolation terminée. Les valeurs interpolées peuvent maintenant être visualisées sous forme graphique et exportées sous forme de fichier texte.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="480"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="481"/>
         <source>Empty text has been exported in &apos;output/text&apos; project folder. Open and fill it with the desired values and then import it in HABBY.</source>
         <translation>Le fichier texte vide a été exporté dans le dossier &apos;output/text&apos; du projet. Ouvrez-le et remplissez-le avec les valeurs souhaitées, puis importez-le dans HABBY.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="483"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="484"/>
         <source>The file has not been exported as it may be opened by another program.</source>
         <translation>Le fichier n&apos;a pas été exporté car il est peut être ouvert par un autre programme.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="545"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="546"/>
         <source>No .hab selected.</source>
         <translation>Pas de .hab sélectionné.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="501"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="502"/>
         <source>You cannot display more than 32 habitat values per graph. Current selected : </source>
         <translation>Vous ne pouvez pas afficher plus de 32 valeurs d&apos;habitat par figure. Actuellement sélectionnées : </translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="501"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="502"/>
         <source>Only the first 32 will be displayed.</source>
         <translation>Seulement les 32 premiers seront affichés.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/interpolation_GUI.py" line="501"/>
+        <location filename="../src_GUI/interpolation_GUI.py" line="502"/>
         <source>You have to re-compute interpolation with 32 selected habitat values at maximum. There is no limit for txt exports.</source>
         <translation>Il faut re-calculer l&apos;interpolation avec un maximum de 32 valeurs d&apos;habitat sélectionnées. il n&apos;y a pas de limite pour les exports txt.</translation>
     </message>
@@ -3982,6 +3992,11 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <location filename="../src_GUI/interpolation_GUI.py" line="137"/>
         <source>load and run</source>
         <translation>charger et lancer</translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/interpolation_GUI.py" line="287"/>
+        <source>Warning: This file contain date unit. To be interpolated, file must contain discharge or timestep unit.</source>
+        <translation>Attention : Ce fichier contient une unité de date. Pour être interpolé, le fichier doit contenir une unité de débit ou de pas de temps.</translation>
     </message>
 </context>
 <context>
@@ -4096,7 +4111,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Sortie</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1078"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1075"/>
         <source>Exit application</source>
         <translation>Sortir de l&apos;application</translation>
     </message>
@@ -4106,7 +4121,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Ouvrir un Projet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1088"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1085"/>
         <source>Open an exisiting project</source>
         <translation>Ouvrir un projet existant</translation>
     </message>
@@ -4116,7 +4131,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Nouveau projet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1357"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1354"/>
         <source>Create a new project</source>
         <translation>Créer un nouveau projet</translation>
     </message>
@@ -4146,7 +4161,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Effacer la fenêtre du log/registre</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1120"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1117"/>
         <source>Empty the log windows at the bottom of the main window. Do not erase the .log file.</source>
         <translation>Efface la fenêtre du registre (ou log) qui se trouve en bas de la fenêtre principale d&apos;HABBY. Cette commande n&apos;efface pas le fichier qui contient les infos sur le log.</translation>
     </message>
@@ -4156,7 +4171,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Ne pas sauver le registre (log)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1124"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1121"/>
         <source>The .log file will not be updated further.</source>
         <translation>The fichier &apos;log&apos; ne sera plus mis à jour.</translation>
     </message>
@@ -4166,7 +4181,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Sauver le Registre</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1127"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1124"/>
         <source>Events will be written to the .log file.</source>
         <translation>Les évenements seront écrit dans le fichier .log.</translation>
     </message>
@@ -4221,27 +4236,27 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Cache les options &quot;recherche&quot;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1144"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1141"/>
         <source>&amp;English</source>
         <translation>&amp;Anglais</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1145"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1142"/>
         <source>click here for English</source>
         <translation>Cliquez ici pour avoir la version anglaise d&apos;HABBY</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1147"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1144"/>
         <source>&amp;French</source>
         <translation>&amp;Français</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1148"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1145"/>
         <source>click here for French</source>
         <translation>Cliquez ici pour avoir la version française d&apos;HABBY</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1073"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1070"/>
         <source>Help</source>
         <translation>Aide</translation>
     </message>
@@ -4266,7 +4281,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Options</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1118"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1115"/>
         <source>Log</source>
         <translation>Journal de bord</translation>
     </message>
@@ -4281,17 +4296,17 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Options &quot;Recherche&quot;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1250"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1247"/>
         <source>Language</source>
         <translation>Langue</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="681"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="686"/>
         <source>Path to project</source>
         <translation>Chemin d&apos;accès au projet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="682"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="687"/>
         <source>The directory indicated in the project path does not exists. Project not saved.</source>
         <translation>Le répertoire indiqué dans le fichier projet n&apos;existe pas. Le projet n&apos;est pas sauvé.</translation>
     </message>
@@ -4356,12 +4371,12 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Registre effacé dans cette fenêtre &lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1827"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1824"/>
         <source>This log will not be saved anymore in the .log file. &lt;br&gt;</source>
         <translation>Le journal de bord ne sera plus sauvé dans le fichier log à partir de maintenant. &lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1827"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1824"/>
         <source>This log will not be saved anymore in the restart file. &lt;br&gt;</source>
         <translation>Le journal de bord ne sera plus sauvé dans le fichier restart à partir de maintenant. &lt;br&gt;</translation>
     </message>
@@ -4371,32 +4386,32 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Le registre sera sauvé dans le fichier &quot;log&quot; depuis maintenant. &lt;br&gt;Le registre sera sauvé dans le fichier &quot;restart&quot; depuis maintenant. &lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1845"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1842"/>
         <source>Log Info</source>
         <translation>Information du journal de bord</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1846"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1843"/>
         <source>Information related to the .log file are incomplete. Please check.</source>
         <translation>Les informations liées au fichier log sont incomplète. Il est nécessaire de corriger cela.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1761"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1758"/>
         <source>Save Hydrological Data</source>
         <translation>Sauver les données hydrauliques</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1762"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1759"/>
         <source>The project is not saved. Save the project in the General tab before saving data.</source>
         <translation>Le projet n&apos;est pas sauvé. Sauver le projet dans le tab &apos;Accueil&apos; avant de sauver des données.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1769"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1766"/>
         <source>Delete figure</source>
         <translation>Effacer les Images</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1770"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1767"/>
         <source>Are you sure that you want to delete all file in the folder: 
 </source>
         <translation>Etes-vous sûr de vouloir effacer tous les fichiers dans le dossier: 
@@ -4413,7 +4428,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Habby dit:</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1140"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1137"/>
         <source>Close the current project without opening a new one</source>
         <translation>Ferme le projet actuel sans en ouvrir un nouveau</translation>
     </message>
@@ -4438,7 +4453,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Aide pour les Développeurs</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1353"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1350"/>
         <source>Open an existing project</source>
         <translation>Ouvrir un projet existant</translation>
     </message>
@@ -4463,12 +4478,12 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Fermer toutes les figures</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="487"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="492"/>
         <source>Permission Error</source>
         <translation>Erreur de Permission</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="488"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="493"/>
         <source>You do not have the permission to write in this folder. Choose another folder. 
 </source>
         <translation>Vous n&apos;avez pas la permission pour écrire dans ce dossier. Choissiez un autre dossier. 
@@ -4490,32 +4505,32 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Ouverture fichier</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1607"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1604"/>
         <source>Research 1</source>
         <translation>Recherche 1</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1608"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1605"/>
         <source>Research 2</source>
         <translation>Recherche 2</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1150"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1147"/>
         <source>&amp;Spanish</source>
         <translation>&amp;Espagnol</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1151"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1148"/>
         <source>click here for Spanish</source>
         <translation>cliquez ici pour l&apos;espagnol</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1833"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1830"/>
         <source>This log will be saved in the .log file.&lt;br&gt; This log will be saved in the restart file. &lt;br&gt;</source>
         <translation>Le journal de bord est sauvé dans le fichier &quot;log&quot; jusqu&apos;à maintenant. &lt;br&gt;Le journal de bord est sauvé dans le fichier &quot;restart&quot; jusqu&apos;à maintenant. &lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1299"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1296"/>
         <source>HABBY </source>
         <translation>HABBY </translation>
     </message>
@@ -4530,7 +4545,7 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Le projet n&apos;est pas sauvé. Sauvez les projet dans l&apos;onglet de démarrage avant de sauver les données ESTIMHAB</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1072"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1069"/>
         <source>View</source>
         <translation>Vue</translation>
     </message>
@@ -4540,79 +4555,79 @@ NB : Il n&apos;y a pas de limite pour les exports en fichier.</translation>
         <translation type="obsolete">Préférences</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="302"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="303"/>
         <source>, </source>
         <translation>, </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="302"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="303"/>
         <source>Do you really want to leave HABBY ?
 All alive processes and figure windows will be closed.</source>
         <translation>Voulez-vous vraiment quitter HABBY ?
 Tous les processus vivants et les fenêtres de figures seront fermés.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1086"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1083"/>
         <source>Open</source>
         <translation>Ouvrir</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1082"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1079"/>
         <source>New</source>
         <translation>Nouveau</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1138"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1135"/>
         <source>Close</source>
         <translation>Fermer</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1119"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1116"/>
         <source>Clear log</source>
         <translation>Nettoyage</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1123"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1120"/>
         <source>Do not save log</source>
         <translation>Ne pas sauvegarder</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1126"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1123"/>
         <source>Save log</source>
         <translation>Sauvegarder</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1131"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1128"/>
         <source>Delete all figure files</source>
         <translation>Supprimer toutes les figures créées</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1132"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1129"/>
         <source>Figures files of current project will be deleted</source>
         <translation>Les fichiers de figures du projet en cours seront supprimés</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1134"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1131"/>
         <source>Close all figure windows</source>
         <translation>Fermer toutes les fenêtres de figure</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1369"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1366"/>
         <source>Close all open figure windows</source>
         <translation>Fermer toutes les fenêtres de figure ouverte</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1110"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1107"/>
         <source>Physical tabs</source>
         <translation>Onglet physique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1112"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1109"/>
         <source>Statistical tabs</source>
         <translation>Onglet statistique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1114"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1111"/>
         <source>Research tabs</source>
         <translation>Onglet recherche</translation>
     </message>
@@ -4627,22 +4642,22 @@ Tous les processus vivants et les fenêtres de figures seront fermés.</translat
         <translation type="obsolete">sombre</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1070"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1067"/>
         <source>Project</source>
         <translation>Projet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1071"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1068"/>
         <source>Settings</source>
         <translation>Réglages</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1109"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1106"/>
         <source>Tabs</source>
         <translation>Onglets</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1226"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1223"/>
         <source>Open recent</source>
         <translation>Ouvrir récent</translation>
     </message>
@@ -4657,12 +4672,12 @@ Tous les processus vivants et les fenêtres de figures seront fermés.</translat
         <translation type="obsolete">Thèmes</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1352"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1349"/>
         <source>Open project</source>
         <translation>Ouvrir un projet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1356"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1353"/>
         <source>New project</source>
         <translation>Nouveau projet</translation>
     </message>
@@ -4672,7 +4687,7 @@ Tous les processus vivants et les fenêtres de figures seront fermés.</translat
         <translation type="obsolete">Voir les fichiers du projet</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1368"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1365"/>
         <source>Close figure windows</source>
         <translation>Fermer les fenêtre de figure</translation>
     </message>
@@ -4682,27 +4697,27 @@ Tous les processus vivants et les fenêtres de figures seront fermés.</translat
         <translation type="obsolete">Arrêter le processus en cours</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1534"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1531"/>
         <source>Hydraulic</source>
         <translation>Hydraulique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1537"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1534"/>
         <source>Substrate</source>
         <translation>Substrat</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1540"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1537"/>
         <source>Habitat Calc.</source>
         <translation>Calc. habitat</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1543"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1540"/>
         <source>Data explorer</source>
         <translation>Explorateur de données</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1546"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1543"/>
         <source>Tools</source>
         <translation>Outils</translation>
     </message>
@@ -4717,12 +4732,12 @@ Tous les processus vivants et les fenêtres de figures seront fermés.</translat
         <translation type="obsolete">STATHAB</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1580"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1577"/>
         <source>FStress</source>
         <translation>FStress</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1219"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1216"/>
         <source>About</source>
         <translation>A propos</translation>
     </message>
@@ -4759,14 +4774,14 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
         <translation type="obsolete">Fichier(s) supprimé(s).</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="863"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="860"/>
         <source>Could not check if the project was open by another instance of HABBY (1) 
 </source>
         <translation>Impossible de vérifier si le projet était ouvert par une autre instance de HABBY (1) 
 </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="875"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="872"/>
         <source>Could not check if the project was open by another instance of HABBY (2) 
 </source>
         <translation>Impossible de vérifier si le projet était ouvert par une autre instance de HABBY (2) 
@@ -4785,14 +4800,14 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
 </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="922"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="919"/>
         <source>Could not check if the project was open by another instance of HABBY (3) 
 </source>
         <translation>Impossible de vérifier si le projet était ouvert par une autre instance d&apos;HABBY (3) 
 </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="686"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="691"/>
         <source>Project not saved.</source>
         <translation>Projet non sauvegardé.</translation>
     </message>
@@ -4814,7 +4829,7 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
         <translation type="obsolete">Projet enregistré ou ouvert avec succès.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="406"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="407"/>
         <source>File should be of type .habby
 </source>
         <translation>Le fichier doit être de type .habby
@@ -4840,7 +4855,7 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
         <translation type="obsolete">Impossible de tenir compte de la concomitance entre les projets en raison d&apos;un changement de chemin. Si vous avez une autre instance d&apos;HABBY ouverte, veuillez la fermer.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="452"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="453"/>
         <source>Project not created. Choose another project name.</source>
         <translation>Projet non créé. Choisissez un autre nom de projet.</translation>
     </message>
@@ -4878,7 +4893,7 @@ Voulez-vous l&apos;écraser ainsi que tous ses fichiers ?</translation>
 </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="830"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="460"/>
         <source>Old project and its files are opened by another programme.
 Close them and try again.</source>
         <translation>L&apos;ancien projet et ses fichiers sont ouverts par un autre programme.
@@ -4912,22 +4927,22 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Projet ouvert. &lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="824"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="829"/>
         <source>Create or open a project.</source>
         <translation>Créez ou ouvrez un projet.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="478"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="483"/>
         <source>Old project and its files are deleted.</source>
         <translation>L&apos;ancien projet et ses fichiers sont supprimés.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="516"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="521"/>
         <source>Project created.</source>
         <translation>Projet créé.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="639"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="644"/>
         <source>Project opened.</source>
         <translation>Projet ouvert.</translation>
     </message>
@@ -4937,12 +4952,12 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">clic = Voir les fichiers du projet HABBY courant / CTRL+clic == Voir les fichiers utilisateur AppData d&apos;HABBY / SHIFT+clic = Voir les fichiers d&apos;installation d&apos;HABBY</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1704"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1701"/>
         <source>File(s) deleted. &lt;br&gt;</source>
         <translation>Fichier(s) supprimé(s). &lt;br&gt;</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1742"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1739"/>
         <source>File renamed. &lt;br&gt;</source>
         <translation>Fichier renommé. &lt;br&gt;</translation>
     </message>
@@ -4952,12 +4967,12 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Un autre répertoire avec le nom </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="446"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="447"/>
         <source>Do you want to overwrite it and all its files ?</source>
         <translation>Vous voulez l&apos;écraser ainsi que tous ses fichiers ?</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="800"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="805"/>
         <source> project not found. It must have been moved or removed.</source>
         <translation> projet non trouvé. Il doit avoir été déplacé ou supprimé.</translation>
     </message>
@@ -4967,62 +4982,62 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Warning: Impossible de le supprimer </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="445"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="446"/>
         <source>Another folder with name </source>
         <translation>Un autre répertoire avec le nom </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="422"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="423"/>
         <source>physical</source>
         <translation>physique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="425"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="426"/>
         <source>statistical</source>
         <translation>statistique</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="428"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="429"/>
         <source>both</source>
         <translation>les deux</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1076"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1073"/>
         <source>Exit HABBY</source>
         <translation>Fermer HABBY</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1105"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1102"/>
         <source>Properties</source>
         <translation>Propriétés</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1130"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1127"/>
         <source>Figure management</source>
         <translation>Gestion des figures</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1185"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1182"/>
         <source>Toggle full screen mode</source>
         <translation>Basculer en mode plein écran</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1189"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1186"/>
         <source>Change theme</source>
         <translation>Changer de thème</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1785"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1782"/>
         <source>All figures are deleted.</source>
         <translation>Toute les figures sont supprimées.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="232"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="233"/>
         <source>Biological models database has been modified : </source>
         <translation>La base de données des modèles biologiques a été modifiée : </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="236"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="237"/>
         <source>Error: .habby file is corrupted : </source>
         <translation>Erreur: le fichier projet .habby est corrompu : </translation>
     </message>
@@ -5032,7 +5047,7 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Créer ou ouvrir un autre projet.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="529"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="534"/>
         <source>The selected project file does not exist.
 </source>
         <translation>Le fichier de projet sélectionné n&apos;existe pas.
@@ -5059,7 +5074,7 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Avoir de l&apos;aide pour développer ou utiliser le logiciel</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1206"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1203"/>
         <source>Report an issue</source>
         <translation>Signaler un problème</translation>
     </message>
@@ -5069,37 +5084,37 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Signaler un problème répétable</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1210"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1207"/>
         <source>HABBY official website</source>
         <translation>Site officiel d&apos;HABBY</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1211"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1208"/>
         <source>Open the HABBY official website</source>
         <translation>Ouvrir le site officiel d&apos;HABBY</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1215"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1212"/>
         <source>Check HABBY version</source>
         <translation>Recherche mise à jours</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1216"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1213"/>
         <source>Check current and last HABBY version</source>
         <translation>Comparer la version actuelle d&apos;HABBY avec la dernière</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1220"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1217"/>
         <source>Get software informations</source>
         <translation>Avoir les informations du logiciel</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1153"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1150"/>
         <source>&amp;Portuguese</source>
         <translation>&amp;Portugais</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1154"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1151"/>
         <source>click here for Portuguese</source>
         <translation>Cliquez ici pour Portugais</translation>
     </message>
@@ -5109,59 +5124,59 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Attention: Le projet courant est un vieux projet HABBY. Travailler avec ce dernier peut conduire à des plantages du logiciel. Il est conseillé de recréer un nouveau projet.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="434"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="435"/>
         <source>Projects folder error</source>
         <translation>Erreurde répertoire de projets</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="435"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="436"/>
         <source>Projects folder specify not exist. Please fix it before creating project. </source>
         <translation>Le répertoire de projets spécifié n&apos;existe pas. Veuillez en renseigner un valide. </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="880"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="877"/>
         <source>The same project is open in another instance of HABBY. This could results in fatal and unexpected error. It is strongly adivsed to close the other instance of HABBY. This message could also appear if HABBY was not closed properly. In this case, please close and re-open HABBY.
 </source>
         <translation>Le même projet est ouvert dans une autre instance d&apos;HABBY. Cela peut entraîner une erreur fatale et inattendue. Il est fortement conseillé de fermer l&apos;autre instance de HABBY. Ce message peut également apparaître si HABBY n&apos;a pas été fermé correctement. Dans ce cas, veuillez fermer et rouvrir le projet HABBY actuel.
 </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="909"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="906"/>
         <source>Warning: A new version of the HABBY software is available! It is strongly advised to update from </source>
         <translation>Attention : Une nouvelle version du logiciel HABBY est disponible ! Il est fortement conseillé de faire la mise à jour de la version </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="909"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="906"/>
         <source> to </source>
         <translation> à la version </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1194"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1191"/>
         <source>User guide</source>
         <translation>Guide utilisateur</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1195"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1192"/>
         <source>Open the user guide wiki page</source>
         <translation>Ouvre la page wiki du guide utilisateur</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1200"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1197"/>
         <source>Reference manual</source>
         <translation>Manuel de référence</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1201"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1198"/>
         <source>Open the Reference manual wiki page</source>
         <translation>Ouvre la page wiki du manuel de référence</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1207"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1204"/>
         <source>Report a repeatable problem on github page</source>
         <translation>Signaler un problème répétable sur la page github</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="922"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="919"/>
         <source>Warning: </source>
         <translation>Attention: </translation>
     </message>
@@ -5171,22 +5186,22 @@ Fermez-les et réessayez.</translation>
         <translation type="obsolete">Attention :</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1682"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1679"/>
         <source>Error: </source>
         <translation>Erreur: </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1675"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1672"/>
         <source>Could not remove </source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="800"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="805"/>
         <source>Warning:</source>
         <translation>Attention:</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1360"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1357"/>
         <source>Open project folder
 CTRL+clic = See user HABBY files
 SHIFT+clic = See HABBY installation files</source>
@@ -5195,49 +5210,49 @@ CTRL+clic = Ouvrir le répertoire utilisateur de HABBY
 SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1363"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1360"/>
         <source>Open project folder / CTRL+clic == See user HABBY files / SHIFT+clic = See HABBY installation files</source>
         <translation>Ouvrir le répertoire du projet / CTRL+clic == Ouvrir le répertoire utilisateur d&apos;HABBY / SHIFT+clic = Ouvrir le répertoire d&apos;installation d&apos;HABBY</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1571"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1568"/>
         <source>Estimhab</source>
         <translation>Estimhab</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1574"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1571"/>
         <source>Stathab</source>
         <translation>Stathab</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1577"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1574"/>
         <source>Stathab_steep</source>
         <translation>Stathab_steep</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="542"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="547"/>
         <source>Warning: The selected project path changed from </source>
-        <translation type="unfinished"></translation>
+        <translation>Attention : Le chemin du projet sélectionné a changé à :</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="633"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="638"/>
         <source>Warning: Current project is an old HABBY project produced by HABBY v</source>
-        <translation type="unfinished"></translation>
+        <translation>Attention : Le projet actuel est un ancien projet HABBY produit par HABBY </translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1156"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1153"/>
         <source>&amp;Italian</source>
-        <translation type="unfinished"></translation>
+        <translation>&amp;Italien</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1157"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1154"/>
         <source>click here for Italian</source>
-        <translation type="unfinished"></translation>
+        <translation>cliquez ici pour l&apos;italien</translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="1682"/>
+        <location filename="../src_GUI/main_window_GUI.py" line="1679"/>
         <source>Could not remove input project </source>
-        <translation type="unfinished"></translation>
+        <translation>Impossible de supprimer le projet d&apos;entrée </translation>
     </message>
 </context>
 <context>
@@ -5393,67 +5408,67 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
 <context>
     <name>ModelInfoGroup</name>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="298"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="302"/>
         <source>Result file</source>
         <translation>Fichier de résultat</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="502"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="612"/>
         <source>Select file(s)</source>
         <translation>Selection fichier(s)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="314"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="318"/>
         <source>Reach name</source>
         <translation>Nom de tronçon</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="318"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="322"/>
         <source>Unit name</source>
         <translation>Nom d&apos;unité</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="323"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="327"/>
         <source>Type</source>
         <translation>Type</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="350"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="402"/>
         <source>unknown</source>
         <translation>inconnu</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="327"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="331"/>
         <source>Number</source>
         <translation>Nombre</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="339"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="343"/>
         <source>Mesh data</source>
         <translation>Données aux mailles</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="344"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="348"/>
         <source>Node data</source>
         <translation>Données aux noeuds</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="349"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="401"/>
         <source>EPSG code</source>
         <translation>Code EPSG</translation>
     </message>
     <message>
         <location filename="../src_GUI/hydrau_GUI.py" line="355"/>
         <source>.hyd file name</source>
-        <translation>Nom de fichier .hyd</translation>
+        <translation type="obsolete">Nom de fichier .hyd</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="360"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="411"/>
         <source>Last file created</source>
         <translation>Dernier fichier créé</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="361"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="412"/>
         <source>no file</source>
         <translation>pas de fichier</translation>
     </message>
@@ -5463,12 +5478,12 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">Fichier de résultat (</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="466"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="576"/>
         <source>Create .hyd file</source>
         <translation>Créer un fichier .hyd</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="610"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="729"/>
         <source>Create </source>
         <translation>Créer </translation>
     </message>
@@ -5478,12 +5493,12 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete"> .</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="700"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="819"/>
         <source>No units selected for : </source>
         <translation>Aucune unité sélectionnée pour : </translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="707"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="826"/>
         <source>.hyd output filename is empty. Please specify it.</source>
         <translation>Le nom de fichier de sortie .hyd est vide. Veuillez le préciser.</translation>
     </message>
@@ -5493,40 +5508,110 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete"> fichier(s)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="608"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="727"/>
         <source> file </source>
         <translation> fichier </translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="610"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="729"/>
         <source> files </source>
         <translation> fichiers </translation>
     </message>
     <message>
-        <location filename="../src_GUI/hydrau_GUI.py" line="507"/>
+        <location filename="../src_GUI/hydrau_GUI.py" line="617"/>
         <source>Select directory</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydrau_GUI.py" line="354"/>
+        <source>Sub classification code</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydrau_GUI.py" line="355"/>
+        <source>LAMMI data substrate classification code</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydrau_GUI.py" line="358"/>
+        <source>8 EDF classes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydrau_GUI.py" line="361"/>
+        <source>8 Cemagref classes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydrau_GUI.py" line="367"/>
+        <source>Warning: lammi_sub_classification_code not recognized in user preferences.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydrau_GUI.py" line="378"/>
+        <source>Calculation method</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydrau_GUI.py" line="379"/>
+        <source>LAMMI hydraulic data calculation method</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydrau_GUI.py" line="380"/>
+        <source>Finite Element Method</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydrau_GUI.py" line="382"/>
+        <source>Vertical 1D hydraulic profile data set to node.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydrau_GUI.py" line="383"/>
+        <source>Finite Volume Method</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydrau_GUI.py" line="385"/>
+        <source>Vertical 1D hydraulic profile data set to mesh.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydrau_GUI.py" line="391"/>
+        <source>Warning: lammi_calculation_method not recognized in user preferences.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydrau_GUI.py" line="465"/>
+        <source>file name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/hydrau_GUI.py" line="463"/>
+        <source>Create .hab file</source>
+        <translation type="unfinished">Créer un fichier .hab</translation>
     </message>
 </context>
 <context>
     <name>MyProcess</name>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1000"/>
+        <location filename="../src/process_manager_mod.py" line="1003"/>
         <source>started</source>
         <translation>commencé</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1036"/>
+        <location filename="../src/process_manager_mod.py" line="1039"/>
         <source>stopped</source>
         <translation>arrêté</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1045"/>
+        <location filename="../src/process_manager_mod.py" line="1048"/>
         <source>not started</source>
         <translation>non commencé</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1085"/>
+        <location filename="../src/process_manager_mod.py" line="1088"/>
         <source>Warning: too many information for the GUI</source>
         <translation>Warning: Trop d&apos;information pour l&apos;interface graphique</translation>
     </message>
@@ -5536,22 +5621,22 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete"> stoppé par l&apos;utilisateur aprés </translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1043"/>
+        <location filename="../src/process_manager_mod.py" line="1046"/>
         <source> stopped (process time = </source>
         <translation> stoppé (temps de calcul = </translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1046"/>
+        <location filename="../src/process_manager_mod.py" line="1049"/>
         <source>not started.</source>
         <translation>non commencé </translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1050"/>
+        <location filename="../src/process_manager_mod.py" line="1053"/>
         <source> done (process time = </source>
         <translation> finit (temps de calcul = </translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="1056"/>
+        <location filename="../src/process_manager_mod.py" line="1059"/>
         <source> crashed (process time = </source>
         <translation> crash (temps de calcul = </translation>
     </message>
@@ -5649,30 +5734,30 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
     <message>
         <location filename="../src/process_manager_mod.py" line="298"/>
         <source>HSI = </source>
-        <translation>VH = </translation>
+        <translation type="obsolete">VH = </translation>
     </message>
     <message>
         <location filename="../src/process_manager_mod.py" line="298"/>
         <source>unknown area</source>
-        <translation>surface inconnue</translation>
+        <translation type="obsolete">surface inconnue</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="722"/>
+        <location filename="../src/process_manager_mod.py" line="725"/>
         <source>interpolated figure</source>
         <translation>figure interpolée</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="756"/>
+        <location filename="../src/process_manager_mod.py" line="759"/>
         <source>interpolated export</source>
         <translation>export interpolé</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="901"/>
+        <location filename="../src/process_manager_mod.py" line="904"/>
         <source>not started</source>
         <translation>non commencé</translation>
     </message>
     <message>
-        <location filename="../src/process_manager_mod.py" line="893"/>
+        <location filename="../src/process_manager_mod.py" line="896"/>
         <source>stopped</source>
         <translation>arrêté</translation>
     </message>
@@ -7180,7 +7265,7 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">Sauver le chemin d&apos;accès vers les images</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="540"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="538"/>
         <source>The project is not saved. Save the project in the General tab.</source>
         <translation>Le projet n&apos;est pas sauvé. Sauver le projet dans le tab &quot;Accueil&quot; avant de sauver des données .</translation>
     </message>
@@ -7200,7 +7285,7 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">Chargement de la donnée hydraulique terminé.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="539"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="537"/>
         <source>Save the path to the copied inputs</source>
         <translation>Sauver le chemin d&apos;accès vers les fichier copiés d&apos;entrée</translation>
     </message>
@@ -7232,7 +7317,7 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">Dernier fichier créé</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="450"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="448"/>
         <source>no file</source>
         <translation>pas de fichier</translation>
     </message>
@@ -7289,7 +7374,7 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">Le chemin vers la figure n&apos;a pas été trouvé.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="522"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="520"/>
         <source>The project is not saved. Save the project in the General tab before calling hdf5 files. 
 </source>
         <translation>Le projet n&apos;est pas sauvegardé. Enregistrez le projet dans l&apos;onglet &apos;Accueil&apos; avant d&apos;appeler les fichiers hdf5. 
@@ -7321,7 +7406,7 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">Nettoyage de la barre de status</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="453"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="451"/>
         <source>The project is not saved. Save the project in the General tab before saving hydraulic data. 
 </source>
         <translation>Le projet n&apos;est pas sauvegardé. Enregistrez le projet dans l&apos;onglet &apos;Accueil&apos; avant d&apos;enregistrer les données hydrauliques. 
@@ -7391,33 +7476,33 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
 <context>
     <name>SubstrateAndMerge</name>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="176"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="174"/>
         <source>Substrate mapping method from</source>
         <translation>Méthode de cartographie à partir de</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="178"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="176"/>
         <source>polygons
 (.shp, .gpkg)</source>
         <translation>polygones
 (.shp, .gpkg)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="179"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="177"/>
         <source>points
 (.txt, .shp, .gpkg)</source>
         <translation>points
 (.txt, .shp, .gpkg)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="180"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="178"/>
         <source>constant values
 (.txt)</source>
         <translation>valeurs constantes
 (.txt)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="201"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="199"/>
         <source>File (.shp, .gpkg)</source>
         <translation>Fichier (.shp, .gpkg)</translation>
     </message>
@@ -7427,57 +7512,57 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">...</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="254"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="252"/>
         <source>Classification code</source>
         <translation>Code de classification</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="261"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="259"/>
         <source>unknown</source>
         <translation>inconnu</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="257"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="255"/>
         <source>Classification method</source>
         <translation>Méthode de classification</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="237"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="235"/>
         <source>Default values</source>
         <translation>Valeurs par défaut</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="240"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="238"/>
         <source>EPSG code</source>
         <translation>Code EPSG</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="274"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="272"/>
         <source>.sub file name</source>
         <translation>nom de fichier .sub</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="224"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="222"/>
         <source>File (.txt, .shp, .gpkg)</source>
         <translation>Fichier (.txt, .shp, .gpkg)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="248"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="246"/>
         <source>File (.txt)</source>
         <translation>Fichier (.txt)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="377"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="375"/>
         <source>Constant values</source>
         <translation>Valeurs constantes</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="291"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="289"/>
         <source>Last file created</source>
         <translation>Dernier fichier créé</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="292"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="290"/>
         <source>no file</source>
         <translation>pas de fichier</translation>
     </message>
@@ -7492,106 +7577,106 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">Données substrat (.sub)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="287"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="285"/>
         <source>.hab file name</source>
         <translation>nom de fichier .hab</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="339"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="337"/>
         <source>Polygons</source>
         <translation>Polygones</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="358"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="356"/>
         <source>Points</source>
         <translation>Points</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="403"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="401"/>
         <source>Substrate data</source>
         <translation>Données de substrat</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="420"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="418"/>
         <source>Merging of hydraulic and substrate data</source>
         <translation>Fusion de l&apos;hydraulique et du substrat</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="620"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="618"/>
         <source>Select file</source>
         <translation>Sélectionner un fichier</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="645"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="643"/>
         <source>File type</source>
         <translation>Type de fichier</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="639"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="637"/>
         <source>The selected file has no extension. If you know this file, change its extension manually to  or </source>
         <translation>Le fichier sélectionné n&apos;a pas d&apos;extension. Si vous connaissez ce fichier, changez manuellement son extension en ou </translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="646"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="644"/>
         <source>Needed type for the file to be loaded:  ,</source>
         <translation>Type nécessaire pour le chargement du fichier :  ,</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="772"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="770"/>
         <source>No input file has been selected.</source>
         <translation>Aucun fichier d&apos;entrée n&apos;a été sélectionné.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="776"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="774"/>
         <source>.sub output filename is empty. Please specify it.</source>
         <translation>Le nom de fichier .sub de sortie est vide. Veuillez le préciser.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="848"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="846"/>
         <source># Load: Substrate data - text file</source>
         <translation># Charger le substrat (Texte)</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="887"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="885"/>
         <source>Error: no input .hyd file selected. Please specify it.</source>
         <translation>Error : aucun fichier .hyd d&apos;entrée sélectionné. Veuillez le préciser.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="892"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="890"/>
         <source>Error: no input .sub file selected. Please specify it.</source>
         <translation>Error : aucun fichier input .sub sélectionné. Veuillez le préciser.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="897"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="895"/>
         <source>Error: .hab filename output is empty. Please specify it.</source>
         <translation>Error : Le nom de fichier .hab est vide. Veuillez le préciser.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="905"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="903"/>
         <source>No hydrological file available 
 </source>
         <translation>Pas de fichier hydrologique disponible 
 </translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="911"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="909"/>
         <source>No substrate file available 
 </source>
         <translation>Pas de fichier de substrat disponible 
 </translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="316"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="314"/>
         <source>Create .sub file</source>
         <translation>Créer un fichier .sub</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="321"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="319"/>
         <source>Create .hab file</source>
         <translation>Créer un fichier .hab</translation>
     </message>
     <message>
-        <location filename="../src_GUI/sub_and_merge_GUI.py" line="273"/>
+        <location filename="../src_GUI/sub_and_merge_GUI.py" line="271"/>
         <source>.hyd file name</source>
         <translation>nom de fichier .hyd</translation>
     </message>
@@ -8444,7 +8529,7 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">Nom d&apos;utilisateur: </translation>
     </message>
     <message>
-        <location filename="../src_GUI/welcome_GUI.py" line="154"/>
+        <location filename="../src_GUI/welcome_GUI.py" line="156"/>
         <source>No example prepared yet.</source>
         <translation>Aucun exemple n&apos;a encore été préparé.</translation>
     </message>
@@ -8469,27 +8554,27 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">Un projet portant le même nom existe au nouvel emplacement. Projet non sauvegardé.</translation>
     </message>
     <message>
-        <location filename="../src_GUI/welcome_GUI.py" line="126"/>
+        <location filename="../src_GUI/welcome_GUI.py" line="128"/>
         <source>Current project</source>
         <translation>Projet courant</translation>
     </message>
     <message>
-        <location filename="../src_GUI/welcome_GUI.py" line="95"/>
+        <location filename="../src_GUI/welcome_GUI.py" line="97"/>
         <source>Name:</source>
         <translation>Nom:</translation>
     </message>
     <message>
-        <location filename="../src_GUI/welcome_GUI.py" line="97"/>
+        <location filename="../src_GUI/welcome_GUI.py" line="99"/>
         <source>Path:</source>
         <translation>Chemin:</translation>
     </message>
     <message>
-        <location filename="../src_GUI/welcome_GUI.py" line="99"/>
+        <location filename="../src_GUI/welcome_GUI.py" line="101"/>
         <source>User name:</source>
         <translation>Nom d&apos;utilisateur:</translation>
     </message>
     <message>
-        <location filename="../src_GUI/welcome_GUI.py" line="104"/>
+        <location filename="../src_GUI/welcome_GUI.py" line="106"/>
         <source>Description:</source>
         <translation>Description:</translation>
     </message>
@@ -8765,37 +8850,37 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
 <context>
     <name>export_manager_mod</name>
     <message>
-        <location filename="../src/export_manager_mod.py" line="99"/>
+        <location filename="../src/export_manager_mod.py" line="96"/>
         <source>Latin name:</source>
         <translation>Nom latin :</translation>
     </message>
     <message>
-        <location filename="../src/export_manager_mod.py" line="100"/>
+        <location filename="../src/export_manager_mod.py" line="97"/>
         <source>Common Name:</source>
         <translation>Nom commun :</translation>
     </message>
     <message>
-        <location filename="../src/export_manager_mod.py" line="101"/>
+        <location filename="../src/export_manager_mod.py" line="98"/>
         <source>Code biological model:</source>
         <translation>Code de modèle biologique:</translation>
     </message>
     <message>
-        <location filename="../src/export_manager_mod.py" line="102"/>
+        <location filename="../src/export_manager_mod.py" line="99"/>
         <source>ONEMA fish code:</source>
         <translation>Code ONEMA :</translation>
     </message>
     <message>
-        <location filename="../src/export_manager_mod.py" line="103"/>
+        <location filename="../src/export_manager_mod.py" line="100"/>
         <source>Stage chosen:</source>
         <translation>Stade choisi:</translation>
     </message>
     <message>
-        <location filename="../src/export_manager_mod.py" line="104"/>
+        <location filename="../src/export_manager_mod.py" line="101"/>
         <source>Description:</source>
         <translation>Description:</translation>
     </message>
     <message>
-        <location filename="../src/export_manager_mod.py" line="150"/>
+        <location filename="../src/export_manager_mod.py" line="147"/>
         <source>Habitat Suitability Index</source>
         <translation>Courbe de préférence</translation>
     </message>
@@ -8852,14 +8937,14 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">zut alors !</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1965"/>
+        <location filename="../src/hdf5_mod.py" line="1958"/>
         <source>The path to the text file is not found. Text files not created 
 </source>
         <translation>Le chemin d&apos;accès au fichier texte n&apos;est pas trouvé. Fichiers texte non créés 
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1987"/>
+        <location filename="../src/hdf5_mod.py" line="1974"/>
         <source>Could not modify text file as it is open in another program. 
 </source>
         <translation>Impossible de modifier le fichier texte car il est ouvert dans un autre programme. 
@@ -8871,24 +8956,24 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">Fermer le ou les .pdf pour mettre à jour les informations sur les poissons</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2081"/>
+        <location filename="../src/hdf5_mod.py" line="2063"/>
         <source>The file should be of hdf5 type (&apos;.hyd&apos;, &apos;.sub&apos;, &apos;.hab&apos;).</source>
         <translation>Le fichier doit être de type hdf5 (&apos;.hyd&apos;, &apos;.sub&apos;, &apos;.hab&apos;).</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2086"/>
+        <location filename="../src/hdf5_mod.py" line="2068"/>
         <source>The hdf5 file could not be loaded.
 </source>
         <translation>Le fichier hdf5 n&apos;a pas pu être chargé.
 </translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2112"/>
+        <location filename="../src/hdf5_mod.py" line="2094"/>
         <source>No path to the project given although a relative path was provided</source>
         <translation>Aucun chemin vers le projet n&apos;a été donné, bien qu&apos;un chemin relatif ait été fourni</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="2116"/>
+        <location filename="../src/hdf5_mod.py" line="2098"/>
         <source>hdf5 file could not be open. 
 </source>
         <translation>hdf5 n&apos;a pas pu être ouvert. 
@@ -9265,12 +9350,12 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">z</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1815"/>
+        <location filename="../src/hdf5_mod.py" line="1809"/>
         <source>detailled_mesh</source>
         <translation>maillage_detaille</translation>
     </message>
     <message>
-        <location filename="../src/hdf5_mod.py" line="1877"/>
+        <location filename="../src/hdf5_mod.py" line="1871"/>
         <source>detailled_point</source>
         <translation>point_detaille</translation>
     </message>
@@ -9323,7 +9408,7 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
 <context>
     <name>hydro_input_file_mod</name>
     <message>
-        <location filename="../src/hydraulic_results_manager_mod.py" line="243"/>
+        <location filename="../src/hydraulic_results_manager_mod.py" line="245"/>
         <source>indexHYDRAU.txt doesn&apos;t exist. It will be created in the &apos;input&apos; directory after the creation of the .hyd file. The latter will be filled in according to your choices.</source>
         <translation>indexHYDRAU.txt n&apos;existe pas. Il sera créé dans le répertoire &apos;input&apos; après la création du fichier .hyd. Ce dernier sera rempli en fonction de vos choix.</translation>
     </message>
@@ -9333,72 +9418,72 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">Données de substrat présentes dans le fichier d&apos;entrée ascii. Le chargement des données créera un .hab directement au lieu d&apos;un .hyd (comme le montre le bouton de chargement)</translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1507"/>
+        <location filename="../src/substrate_mod.py" line="1506"/>
         <source>The selected shapefile is not accompanied by its habby .txt file.</source>
         <translation>Le fichier shapefile sélectionné n&apos;est pas accompagné de son fichier .txt.</translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1624"/>
+        <location filename="../src/substrate_mod.py" line="1623"/>
         <source>The classification code in .txt file is not recognized : </source>
         <translation>Le code de classification du fichier .txt n&apos;est pas reconnu : </translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1629"/>
+        <location filename="../src/substrate_mod.py" line="1628"/>
         <source>The name &apos;substrate_classification_code=&apos; is not found in .txt file.</source>
         <translation>Le nom &apos;substrate_classification_code=&apos; n&apos;est pas trouvé dans le fichier.txt.</translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1637"/>
+        <location filename="../src/substrate_mod.py" line="1636"/>
         <source>The classification method in .txt file is not recognized : </source>
         <translation>La méthode de classification dans le fichier.txt n&apos;est pas reconnue : </translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1643"/>
+        <location filename="../src/substrate_mod.py" line="1642"/>
         <source>The name &apos;substrate_classification_method=&apos; is not found in .txt file.</source>
         <translation>Le nom &apos;substrat_classification_method=&apos; n&apos;est pas trouvé dans le fichier.txt.</translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1575"/>
+        <location filename="../src/substrate_mod.py" line="1574"/>
         <source>Default values can&apos;t be converted to integer : </source>
         <translation>Les valeurs par défaut ne peuvent pas être converties en nombre entier : </translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1581"/>
+        <location filename="../src/substrate_mod.py" line="1580"/>
         <source>The name &apos;default_values=&apos; is not found in .txt file.</source>
         <translation>Le nom &apos;default_values=&apos; n&apos;est pas trouvé dans le fichier.txt.</translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1441"/>
+        <location filename="../src/substrate_mod.py" line="1440"/>
         <source>The selected file don&apos;t exist.</source>
         <translation>Le fichier sélectionné n&apos;existe pas.</translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1447"/>
+        <location filename="../src/substrate_mod.py" line="1446"/>
         <source>This text file is not a valid point substrate.</source>
         <translation>Ce fichier texte n&apos;est pas un fichier de susbtrat de type point.</translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1456"/>
+        <location filename="../src/substrate_mod.py" line="1455"/>
         <source>The name &apos;EPSG=&apos; is not found in .txt file.</source>
         <translation>Le nom &apos;EPSG=&apos; n&apos;est pas trouvé dans le fichier.txt.</translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1606"/>
+        <location filename="../src/substrate_mod.py" line="1605"/>
         <source>The selected text file don&apos;t exist.</source>
         <translation>Le fichier texte sélectionné n&apos;existe pas.</translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1655"/>
+        <location filename="../src/substrate_mod.py" line="1654"/>
         <source>Constant values can&apos;t be converted to integer : </source>
         <translation>Les valeurs constantes ne peuvent pas être converties en nombre entier : </translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1660"/>
+        <location filename="../src/substrate_mod.py" line="1659"/>
         <source>The name &apos;constant_values=&apos; is not found in .txt file.</source>
         <translation>Le nom &apos;constant_values=&apos; n&apos;est pas trouvé dans le fichier.txt.</translation>
     </message>
     <message>
-        <location filename="../src/substrate_mod.py" line="1616"/>
+        <location filename="../src/substrate_mod.py" line="1615"/>
         <source>Can&apos;t read content file.</source>
         <translation>Impossibilité de lire le contenu du fichier.</translation>
     </message>
@@ -9408,7 +9493,7 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
     <message>
         <location filename="../src/plot_mod.py" line="488"/>
         <source>Habitat Value and Weighted Usable Area - Computational Step : </source>
-        <translation>Valeur d&apos;habitat et Surface Pondérée Utile - Unité : </translation>
+        <translation type="obsolete">Valeur d&apos;habitat et Surface Pondérée Utile - Unité : </translation>
     </message>
     <message>
         <location filename="../src/plot_mod.py" line="1442"/>
@@ -9418,7 +9503,7 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
     <message>
         <location filename="../src/plot_mod.py" line="580"/>
         <source>Weighted Usable Area - </source>
-        <translation>Surface Pondérée Utile - </translation>
+        <translation type="obsolete">Surface Pondérée Utile - </translation>
     </message>
     <message>
         <location filename="../src/plot_mod.py" line="488"/>
@@ -9438,7 +9523,7 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
     <message>
         <location filename="../src/plot_mod.py" line="759"/>
         <source>WUA [m$^2$]</source>
-        <translation>SPU [m$^2$]</translation>
+        <translation type="obsolete">SPU [m$^2$]</translation>
     </message>
     <message>
         <location filename="../src/plot_mod.py" line="1517"/>
@@ -9483,10 +9568,10 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
     <message>
         <location filename="../src/plot_mod.py" line="781"/>
         <source>Habitat Value interpolated</source>
-        <translation>Valeur d&apos;habitat interpolée</translation>
+        <translation type="obsolete">Valeur d&apos;habitat interpolée</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="820"/>
+        <location filename="../src/plot_mod.py" line="813"/>
         <source>Units</source>
         <translation>Unités</translation>
     </message>
@@ -9501,7 +9586,7 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">unités [</translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="822"/>
+        <location filename="../src/plot_mod.py" line="815"/>
         <source>Chronicle [</source>
         <translation>Chronique [</translation>
     </message>
@@ -9578,7 +9663,7 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
     <message>
         <location filename="../src/plot_mod.py" line="529"/>
         <source>Habitat value</source>
-        <translation>Valeur d&apos;habitat</translation>
+        <translation type="obsolete">Valeur d&apos;habitat</translation>
     </message>
     <message>
         <location filename="../src/plot_mod.py" line="508"/>
@@ -9588,17 +9673,17 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
     <message>
         <location filename="../src/plot_mod.py" line="812"/>
         <source>Unknown area</source>
-        <translation>Surface inconnue</translation>
+        <translation type="obsolete">Surface inconnue</translation>
     </message>
     <message>
         <location filename="../src/plot_mod.py" line="602"/>
         <source>Habitat Value</source>
-        <translation>Valeur d&apos;habitat</translation>
+        <translation type="obsolete">Valeur d&apos;habitat</translation>
     </message>
     <message>
         <location filename="../src/plot_mod.py" line="760"/>
         <source>Weighted Usable Area interpolated - </source>
-        <translation>Surface pondérée utile interpolée - </translation>
+        <translation type="obsolete">Surface pondérée utile interpolée - </translation>
     </message>
     <message>
         <location filename="../src/plot_mod.py" line="912"/>
@@ -9838,22 +9923,22 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
     <message>
         <location filename="../src/plot_mod.py" line="811"/>
         <source>UA [%]</source>
-        <translation>SI [%]</translation>
+        <translation type="obsolete">SI [%]</translation>
     </message>
     <message>
         <location filename="../src/plot_mod.py" line="601"/>
         <source>HSI (WUA/A) []</source>
-        <translation>VH (SPU/A) []</translation>
+        <translation type="obsolete">VH (SPU/A) []</translation>
     </message>
     <message>
         <location filename="../src/plot_mod.py" line="780"/>
         <source>HSI []</source>
-        <translation>VH []</translation>
+        <translation type="obsolete">VH []</translation>
     </message>
     <message>
         <location filename="../src/plot_mod.py" line="655"/>
         <source>HSI</source>
-        <translation>VH</translation>
+        <translation type="obsolete">VH</translation>
     </message>
     <message>
         <location filename="../src/plot_mod.py" line="160"/>
@@ -9863,10 +9948,10 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
     <message>
         <location filename="../src/plot_mod.py" line="734"/>
         <source>Habitat Value and Weighted Usable Area interpolated - Unit : </source>
-        <translation>VH et SPU interpolées - Unité : </translation>
+        <translation type="obsolete">VH et SPU interpolées - Unité : </translation>
     </message>
     <message>
-        <location filename="../src/plot_mod.py" line="827"/>
+        <location filename="../src/plot_mod.py" line="820"/>
         <source>Desired </source>
         <translation>Souhaité(e) </translation>
     </message>
@@ -10065,12 +10150,12 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <translation type="obsolete">L&apos;extension du fichier Telemac n&apos;est pas .res ou .slf ou .srf</translation>
     </message>
     <message>
-        <location filename="../src/telemac_mod.py" line="225"/>
+        <location filename="../src/telemac_mod.py" line="223"/>
         <source>Cannot read </source>
         <translation>Ne sait pas lire </translation>
     </message>
     <message>
-        <location filename="../src/telemac_mod.py" line="205"/>
+        <location filename="../src/telemac_mod.py" line="203"/>
         <source> characters from your binary file. Maybe it is the wrong file format ?</source>
         <translation> charactères de votre fichier binaire. Peut-être est-ce le mauvais format de fichier ?</translation>
     </message>
