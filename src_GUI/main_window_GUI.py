@@ -2152,6 +2152,11 @@ class CentralW(QWidget):
                 if hasattr(self.tools_tab.hs_tab, 'visual_group'):
                     if hasattr(self.tools_tab.hs_tab.visual_group, 'process_manager'):
                         self.tools_tab.hs_tab.visual_group.process_manager.stop_by_user()
+            # mesh_manager_tab
+            if hasattr(self.tools_tab, 'mesh_manager_tab'):
+                if hasattr(self.tools_tab.mesh_manager_tab, 'computing_group'):
+                    if hasattr(self.tools_tab.mesh_manager_tab.computing_group, 'process_manager'):
+                        self.tools_tab.mesh_manager_tab.computing_group.process_manager.stop_by_user()
             # hrr_tab
             if hasattr(self.tools_tab, 'hrr_tab'):
                 if hasattr(self.tools_tab.hrr_tab, 'computing_group'):
@@ -2199,6 +2204,11 @@ class CentralW(QWidget):
                 if hasattr(self.tools_tab.hs_tab, 'visual_group'):
                     if hasattr(self.tools_tab.hs_tab.visual_group, 'process_manager'):
                         self.tools_tab.hs_tab.visual_group.process_manager.stop_by_user()
+            # mesh_manager_tab
+            if hasattr(self.tools_tab, 'mesh_manager_tab'):
+                if hasattr(self.tools_tab.mesh_manager_tab, 'computing_group'):
+                    if hasattr(self.tools_tab.mesh_manager_tab.computing_group, 'process_manager'):
+                        self.tools_tab.mesh_manager_tab.computing_group.process_manager.stop_by_user()
             # hrr_tab
             if hasattr(self.tools_tab, 'hrr_tab'):
                 if hasattr(self.tools_tab.hrr_tab, 'computing_group'):
@@ -2236,6 +2246,7 @@ class CentralW(QWidget):
             # connect signals to update the drop-down menu in the substrate tab when a new hydro hdf5 is created
             self.hydro_tab.model_group.drop_hydro.connect(self.update_combobox_filenames)
             self.tools_tab.hs_tab.computing_group.send_refresh_filenames.connect(self.update_combobox_filenames)
+            self.tools_tab.mesh_manager_tab.computing_group.send_refresh_filenames.connect(self.update_combobox_filenames)
             self.tools_tab.hrr_tab.computing_group.send_refresh_filenames.connect(self.update_combobox_filenames)
             self.hydro_tab.model_group.drop_merge.connect(self.update_combobox_filenames)
             self.substrate_tab.sub_and_merge.drop_hydro.connect(self.update_combobox_filenames)

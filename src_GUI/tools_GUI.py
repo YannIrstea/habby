@@ -24,6 +24,7 @@ from src import hdf5_mod
 from src_GUI.interpolation_GUI import InterpolationTab
 from src_GUI.hydrosignature_GUI import HsTab
 from src_GUI.hrr_GUI import HrrTab
+from src_GUI.mesh_manager_GUI import MeshManagerTab
 from src_GUI.new_tool_tab_to_create_GUI import OtherToolToCreateTab
 
 
@@ -60,7 +61,7 @@ class ToolsTab(QScrollArea):
         tools_frame.setFrameShape(QFrame.NoFrame)
         tools_frame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        self.sub_tabwidget = QTabWidget(self)
+        self.tools_tabwidget = QTabWidget(self)
 
         # interpolation group
         self.interpolation_tab = InterpolationTab(self.path_prj, self.name_prj, self.send_log)
@@ -69,30 +70,39 @@ class ToolsTab(QScrollArea):
         self.hs_tab = HsTab(self.path_prj, self.name_prj, self.send_log)
 
         # hrr_tab
+        self.mesh_manager_tab = MeshManagerTab(self.path_prj, self.name_prj, self.send_log)
+
+        # hrr_tab
         self.hrr_tab = HrrTab(self.path_prj, self.name_prj, self.send_log)
 
         # other tool
         self.newtool_tab = OtherToolToCreateTab(self.path_prj, self.name_prj, self.send_log)
 
-        self.sub_tabwidget.insertTab(1, self.interpolation_tab, self.tr("Interpolation"))
-        self.sub_tabwidget.insertTab(2, self.hs_tab, self.tr("Hydrosignature"))
-        self.sub_tabwidget.insertTab(3, self.hrr_tab, self.tr("HRR"))
-        self.sub_tabwidget.insertTab(4, self.newtool_tab, self.tr("New tools coming soon"))
+        self.tools_tabwidget.insertTab(1, self.interpolation_tab, self.interpolation_tab.tab_title)
+        # self.tools_tabwidget.setTabToolTip(1, self.interpolation_tab.tooltip_str)
+        self.tools_tabwidget.insertTab(2, self.hs_tab, self.hs_tab.tab_title)
+        # self.tools_tabwidget.setTabToolTip(2, self.hs_tab.tooltip_str)
+        self.tools_tabwidget.insertTab(3, self.mesh_manager_tab, self.mesh_manager_tab.tab_title)
+        # self.tools_tabwidget.setTabToolTip(3, self.mesh_manager_tab.tooltip_str)
+        self.tools_tabwidget.insertTab(4, self.hrr_tab, self.hrr_tab.tab_title)
+        # self.tools_tabwidget.setTabToolTip(4, self.hrr_tab.tooltip_str)
+        self.tools_tabwidget.insertTab(5, self.newtool_tab, self.newtool_tab.tab_title)
+        # self.tools_tabwidget.setTabToolTip(5, self.newtool_tab.tooltip_str)
 
         # vertical layout
         self.setWidget(tools_frame)
         global_layout = QVBoxLayout()
         global_layout.setAlignment(Qt.AlignTop)
         tools_frame.setLayout(global_layout)
-        global_layout.addWidget(self.sub_tabwidget)
+        global_layout.addWidget(self.tools_tabwidget)
 
         # refresh habi filenames
         self.refresh_gui()
 
     def refresh_gui(self):
-        for tab_num in range(self.sub_tabwidget.count()):
-            self.sub_tabwidget.widget(tab_num).refresh_gui()
+        for tab_num in range(self.tools_tabwidget.count()):
+            self.tools_tabwidget.widget(tab_num).refresh_gui()
 
     def kill_process(self):
-        for tab_num in range(self.sub_tabwidget.count()):
-            self.sub_tabwidget.widget(tab_num).kill_process()
+        for tab_num in range(self.tools_tabwidget.count()):
+            self.tools_tabwidget.widget(tab_num).kill_process()

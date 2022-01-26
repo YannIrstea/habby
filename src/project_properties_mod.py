@@ -67,7 +67,7 @@ def create_default_project_properties_dict(all_export_enabled=False):
     project_properties['path_3d'] = os.path.join('output', '3D')
     project_properties['HS_input_class'] = dict(path="",
                                                  file="")
-
+    project_properties['mesh_manager_file'] = ""
     project_properties['min_height_hyd'] = 0.001  # node mesh minimum water height consider like dry
     project_properties['cut_mesh_partialy_dry'] = True  # cut of not mesh partialy wet
     project_properties['erase_id'] = True  # erase file (hdf5, outputs) if exist. if not set date/hour in filename
