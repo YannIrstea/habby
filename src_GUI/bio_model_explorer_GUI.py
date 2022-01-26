@@ -620,12 +620,8 @@ class BioModelInfoSelection(QScrollArea):
         self.available_aquatic_animal_listwidget.setObjectName("available_aquatic_animal")
         self.available_aquatic_animal_listwidget.itemSelectionChanged.connect(lambda: self.show_info_fish("available"))
         self.available_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.available_aquatic_animal_listwidget.setDragDropMode(QAbstractItemView.DragDrop)
-        self.available_aquatic_animal_listwidget.setDefaultDropAction(Qt.MoveAction)
-        self.available_aquatic_animal_listwidget.setAcceptDrops(True)
+        self.available_aquatic_animal_listwidget.setDragDropMode(QAbstractItemView.DragOnly)
         self.available_aquatic_animal_listwidget.setSortingEnabled(True)
-        self.available_aquatic_animal_listwidget.model().rowsInserted.connect(self.count_models_listwidgets)
-        self.available_aquatic_animal_listwidget.model().rowsRemoved.connect(self.count_models_listwidgets)
 
         # arrow available to selected
         self.arrow = QLabel()
@@ -636,10 +632,11 @@ class BioModelInfoSelection(QScrollArea):
         self.selected_aquatic_animal_listwidget.setObjectName("selected_aquatic_animal")
         self.selected_aquatic_animal_listwidget.itemSelectionChanged.connect(lambda: self.show_info_fish("selected"))
         self.selected_aquatic_animal_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.selected_aquatic_animal_listwidget.setDragDropMode(QAbstractItemView.DragDrop)
+        self.selected_aquatic_animal_listwidget.setDragDropMode(QAbstractItemView.DropOnly)
         self.selected_aquatic_animal_listwidget.setDefaultDropAction(Qt.MoveAction)
         self.selected_aquatic_animal_listwidget.setAcceptDrops(True)
         self.selected_aquatic_animal_listwidget.setSortingEnabled(True)
+        self.selected_aquatic_animal_listwidget.itemDoubleClicked.connect(self.remove_fish)
         self.selected_aquatic_animal_listwidget.model().rowsInserted.connect(self.count_models_listwidgets)
         self.selected_aquatic_animal_listwidget.model().rowsRemoved.connect(self.count_models_listwidgets)
 
@@ -779,24 +776,9 @@ class BioModelInfoSelection(QScrollArea):
         The function is used to remove fish species (or inverterbates species)
         """
         # remove it from available
-        item = self.selected_aquatic_animal_listwidget.takeItem(self.selected_aquatic_animal_listwidget.currentRow())
-        # remove it from list
-        self.selected_aquatic_animal_list.pop(self.selected_aquatic_animal_list.index(item.text()))
+        self.selected_aquatic_animal_listwidget.takeItem(self.selected_aquatic_animal_listwidget.currentRow())
 
-        # clear selection
-        self.selected_aquatic_animal_listwidget.clearSelection()
-
-        # create normal font
-        font = QFont()
-        font.setBold(False)
-
-        # identify which one and remove bold
-        for item_index in range(self.available_aquatic_animal_listwidget.count()):
-            item_loop = self.available_aquatic_animal_listwidget.item(item_index)
-            if item_loop.text() == item.text():
-                item_loop.setFont(font)
-        # change qlabel
-        self.selected_aquatic_animal_label.setText(self.tr("Selected models") + " (" + str(len(self.selected_aquatic_animal_list)) + ")")
+        self.count_models_listwidgets()
 
     def show_info_fish(self, listwidget_source):
         """
