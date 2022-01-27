@@ -39,7 +39,6 @@ class MeshManagerTab(QScrollArea):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.send_log = send_log
-        self.msg2 = QMessageBox()
         self.init_iu()
 
     def init_iu(self):
@@ -91,6 +90,7 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.project_properties = load_project_properties(self.path_prj)
         self.setTitle(title)
         self.init_ui()
+        self.msg2 = QMessageBox()
         self.mesh_manager_file = self.read_attribute_xml("mesh_manager_file")
         self.read_mesh_manager_file(self.mesh_manager_file)
         # process_manager
@@ -155,6 +155,8 @@ class ComputingGroup(QGroupBoxCollapsible):
                     item_name = QListWidgetItem()
                     item_name.setText(name)
                     self.file_selection_listwidget.addItem(item_name)
+                    if name in selected_file_names:
+                        item_name.setSelected(True)
                     if True:  #TODO : sort files (hdf5 attributes available for HRR) .hyd, one whole profile for all units, ...
                         pass
                     else:
@@ -275,6 +277,23 @@ class ComputingGroup(QGroupBoxCollapsible):
             mesh_manager_description = self.mesh_manager_description
             mesh_manager_description["hdf5_name_list"] = [selection_el.text() for selection_el in
                               self.file_selection_listwidget.selectedItems()]
+
+            # for hdf5_file in mesh_manager_description["hdf5_name_list"]:
+            #     hdf5_1 = Hdf5Management(self.path_prj, hdf5_file, new=False, edit=False)
+            #     hdf5_1.load_hdf5(whole_profil=False)
+            #     if hdf5_1.data_2d.hvum.hdf5_and_computable_list.habs():
+            #         self.msg2.setIcon(QMessageBox.Warning)
+            #         self.msg2.setWindowTitle(self.tr("HSI data in ") + hdf5_1.filename[:-4] + "_MM" + hdf5_1.extension + ".")
+            #         self.msg2.setText(self.tr("If computing, existing HSI data will be removed in ") + hdf5_1.filename[:-4] + "_MM" + hdf5_1.extension + ".\n"+
+            #                           self.tr("Do you really want to continue computing ?"))
+            #         self.msg2.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+            #         res = self.msg2.exec_()
+            #
+            #         # cancel
+            #         if res == QMessageBox.No:
+            #             return
+            #         if res == QMessageBox.Yes:
+            #             break
 
             self.progress_layout.process_manager.set_mesh_manager(self.path_prj,
                                                                   mesh_manager_description,

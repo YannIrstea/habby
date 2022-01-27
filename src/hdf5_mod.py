@@ -183,8 +183,9 @@ class Hdf5Management:
                             print("Error:", self.filename, "is corrupted. Can't locate attribute: 'hs_input_class'.")
 
     def close_file(self):
-        self.file_object.close()
-        self.file_object = None
+        if self.file_object is not None:
+            self.file_object.close()
+            self.file_object = None
 
     def save_xml(self, model_type, input_file_path):
         """
@@ -233,7 +234,7 @@ class Hdf5Management:
                     self.file_object.attrs[attribute_name] = str(attribute_value)
             elif attribute_name == "unit_index":
                 pass
-            elif attribute_name == "hyd_unit_correspondence":
+            elif attribute_name in {"hyd_unit_correspondence", "mm_mesh_manager_data"}:
                 self.file_object.attrs[attribute_name] = str(attribute_value)
             elif attribute_name == "reach_list":
                 self.file_object.attrs[attribute_name] = attribute_value
@@ -974,16 +975,21 @@ class Hdf5Management:
         # save XML
         self.save_xml("HABITAT", "")
 
+        if self.data_2d.hvum.hdf5_and_computable_list.habs():
+            self.add_fish_hab(self.data_2d.hvum.hdf5_and_computable_list.habs(), from_mm=True)
+            self.export_osi_wua_txt()  # export_osi_wua_txt
+
         # close file
         self.close_file()
 
-    def add_fish_hab(self, animal_variable_list):
+    def add_fish_hab(self, animal_variable_list, from_mm=False):
         """
         Add habitat computation in an existing .hab file.
         """
-        self.create_or_open_file()
-        # add variables
-        self.data_2d.hvum.hdf5_and_computable_list.extend(animal_variable_list)
+        if not from_mm:
+            self.create_or_open_file()
+            # add variables
+            self.data_2d.hvum.hdf5_and_computable_list.extend(animal_variable_list)
 
         # data_2d
         data_group = self.file_object['data_2d']
@@ -997,9 +1003,13 @@ class Hdf5Management:
                 mesh_group = unit_group["mesh"]
                 mesh_hv_data_group = mesh_group["hv_data"]
 
+                if from_mm:
+                    hab_list = self.data_2d.hvum.hdf5_and_computable_list.meshs().habs()
+                else:
+                    hab_list = self.data_2d.hvum.hdf5_and_computable_list.meshs().to_compute().habs()
+
                 # HSI by celle for each fish
-                for animal_num, animal in enumerate(
-                        self.data_2d.hvum.hdf5_and_computable_list.meshs().to_compute().habs()):
+                for animal_num, animal in enumerate(hab_list):
                     # create
                     if animal.name in mesh_hv_data_group:
                         del mesh_hv_data_group[animal.name]
