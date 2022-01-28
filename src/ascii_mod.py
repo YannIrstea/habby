@@ -17,10 +17,9 @@ https://github.com/YannIrstea/habby
 import os
 import numpy as np
 
+import src.manage_grid_mod
 from src import manage_grid_mod
-from src import mesh_management_mod
 from src.dev_tools_mod import isstranumber
-from src.variable_unit_mod import HydraulicVariableUnitManagement
 from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
 from src.user_preferences_mod import user_preferences
 
@@ -731,7 +730,7 @@ def reduce_quadrangles_to_triangles(ikle, nodes, nbunit, bsub, sub):
                                                                      case="before reduce quadrangles to triangles")
             # always obtain the sames ikle3new,xynew,znew only hnew,vnew are differents
             ikle3new, xynew, znew, hnew, vnew = \
-                mesh_management_mod.quadrangles_to_triangles(ikle4, nodes[:, 0:2],
+                src.manage_grid_mod.quadrangles_to_triangles(ikle4, nodes[:, 0:2],
                                                              nodes[:, 2], nodes[:, 2 + unit_number * 2 + 1],
                                                              nodes[:, 2 + unit_number * 2 + 2])
             if unit_number == 0:

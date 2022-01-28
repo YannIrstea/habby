@@ -114,16 +114,12 @@ class Data2d(list):
                 yMin.append(min(self[reach_number][unit_number]["node"]["xy"][:, 1]))
                 yMax.append(max(self[reach_number][unit_number]["node"]["xy"][:, 1]))
                 # data min/max
-                for variable in self.hvum.hdf5_and_computable_list:
+                for variable in self.hvum.hdf5_and_computable_list.no_habs():
                     if variable.hdf5:
-                        if min(self[reach_number][unit_number][variable.position]["data"][
-                                   variable.name]) < variable.min:
-                            variable.min = min(
-                                self[reach_number][unit_number][variable.position]["data"][variable.name])
-                        if max(self[reach_number][unit_number][variable.position]["data"][
-                                   variable.name]) > variable.max:
-                            variable.max = max(
-                                self[reach_number][unit_number][variable.position]["data"][variable.name])
+                        if min(self[reach_number][unit_number][variable.position]["data"][variable.name]) < variable.min:
+                            variable.min = min(self[reach_number][unit_number][variable.position]["data"][variable.name])
+                        if max(self[reach_number][unit_number][variable.position]["data"][variable.name]) > variable.max:
+                            variable.max = max(self[reach_number][unit_number][variable.position]["data"][variable.name])
 
         # get extent
         xMin = min(xMin)
