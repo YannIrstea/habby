@@ -150,8 +150,8 @@ def get_biomodels_informations_for_database(path_xml):
             if pref_element:
                 hvum.h.original_unit = pref_element[0].findall(".//HeightOfWaterValues")[0].attrib["Unit"]
                 hvum_stage.software_detected_list.append(hvum.h)
-                h_data = [list(map(float, pref_element[0].findall(".//HeightOfWaterValues")[0].text.split(" "))),
-                        list(map(float, pref_element[0].findall(".//SuitabilityIndex")[0].text.split(" ")))]
+                h_data = [list(map(float, pref_element[0].findall(".//HeightOfWaterValues")[0].text.split())),
+                        list(map(float, pref_element[0].findall(".//SuitabilityIndex")[0].text.split()))]
                 h_not_valid = check_if_data_model_has_error(h_data[0], "HeightOfWaterValues", increasing=True)
                 hv_not_valid = check_if_data_model_has_error(h_data[1], "SuitabilityIndex", increasing=False)
                 if len(h_data[0]) != len(h_data[1]):
@@ -162,8 +162,8 @@ def get_biomodels_informations_for_database(path_xml):
             if pref_element:
                 hvum.v.original_unit = pref_element[0].findall(".//VelocityValues")[0].attrib["Unit"]
                 hvum_stage.software_detected_list.append(hvum.v)
-                v_data = [list(map(float, pref_element[0].findall(".//VelocityValues")[0].text.split(" "))),
-                        list(map(float, pref_element[0].findall(".//SuitabilityIndex")[0].text.split(" ")))]
+                v_data = [list(map(float, pref_element[0].findall(".//VelocityValues")[0].text.split())),
+                        list(map(float, pref_element[0].findall(".//SuitabilityIndex")[0].text.split()))]
                 v_not_valid = check_if_data_model_has_error(v_data[0], "VelocityValues", increasing=True)
                 hv_not_valid = check_if_data_model_has_error(v_data[1], "SuitabilityIndex", increasing=False)
                 if len(v_data[0]) != len(v_data[1]):
@@ -175,8 +175,8 @@ def get_biomodels_informations_for_database(path_xml):
                 hvum.shear_stress.original_unit = pref_element[0].findall(".//MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues")[0].attrib["Unit"]
                 hvum_stage.software_detected_list.append(hvum.shear_stress)
                 shearstress_data = [list(map(float, pref_element[0].findall(".//MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues")[0].text.split(" "))),
-                                  list(map(float, pref_element[0].findall(".//HemisphereNumber")[0].text.split(" "))),
-                                  list(map(float, pref_element[0].findall(".//SuitabilityIndex")[0].text.split(" ")))]
+                                  list(map(float, pref_element[0].findall(".//HemisphereNumber")[0].text.split())),
+                                  list(map(float, pref_element[0].findall(".//SuitabilityIndex")[0].text.split()))]
                 shearstress_not_valid = all((check_if_data_model_has_error(shearstress_data[0], "MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues", increasing=True),
                                          check_if_data_model_has_error(shearstress_data[1], "HemisphereNumber", increasing=True)))
                 hv_not_valid = check_if_data_model_has_error(shearstress_data[2], "SuitabilityIndex", increasing=False)
@@ -397,22 +397,22 @@ def read_pref(xmlfile):
                 if information_model_dict["hydraulic_type"][hab_index] == 'HEM':
                     # data = list of 3 elements (shear_stress, HEM, pref)
                     data_el = model_el_list[hab_index].getchildren()[0]
-                    model_var.data = [list(map(float, data_el.text.split(" "))),
-                                      list(map(float, model_el_list[hab_index].getchildren()[1].text.split(" "))),
-                                        list(map(float, model_el_list[hab_index].getchildren()[2].text.split(" ")))]
+                    model_var.data = [list(map(float, data_el.text.split())),
+                                      list(map(float, model_el_list[hab_index].getchildren()[1].text.split())),
+                                        list(map(float, model_el_list[hab_index].getchildren()[2].text.split()))]
                 else:
                     # data = list of 2 elements (data, pref)
                     data_el = model_el_list[hab_index].getchildren()[0]
                     if model_var.sub:
-                        model_var.data = [list(map(float, [element[1:] for element in data_el.text.split(" ")])),
-                                          list(map(float, model_el_list[hab_index].getchildren()[1].text.split(" ")))]
+                        model_var.data = [list(map(float, [element[1:] for element in data_el.text.split()])),
+                                          list(map(float, model_el_list[hab_index].getchildren()[1].text.split()))]
                     else:
-                        model_var.data = [list(map(float, data_el.text.split(" "))),
-                                            list(map(float, model_el_list[hab_index].getchildren()[1].text.split(" ")))]
+                        model_var.data = [list(map(float, data_el.text.split())),
+                                            list(map(float, model_el_list[hab_index].getchildren()[1].text.split()))]
             elif information_model_dict["model_type"] == "bivariate suitability index models":
                 # data = list of values
                 data_el = model_el_list[hab_index]
-                model_var.data = list(map(float, data_el.text.split(" ")))
+                model_var.data = list(map(float, data_el.text.split()))
             else:
                 print('Error: model_type not recogized: ' + information_model_dict["model_type"] + " in "
                       + xml_name + '.\n')

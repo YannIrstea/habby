@@ -64,15 +64,15 @@ def calculate_deltaz3(iwp,locawp, countcontactwp,sortwp1, sortwp2,  rwp1, rwp2,t
         return np.nan
 
 
-def hrr(hydrosignature_description, progress_value, q=[], print_cmd=False, project_properties={}):
+def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properties={}):
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
     # progress
     progress_value.value = 10
 
-    # deltatlist = hydrosignature_description["deltatlist"]
+    # deltatlist = hrr_description["deltatlist"]
     deltatlist = [0,3.6*3600,2.5*3600,1.8*3600]  # TODO: change it
-    input_filename_1 = hydrosignature_description["hdf5_name"]
+    input_filename_1 = hrr_description["hdf5_name"]
     path_prj = project_properties["path_prj"]
 
     # load file
@@ -257,15 +257,13 @@ def hrr(hydrosignature_description, progress_value, q=[], print_cmd=False, proje
             #TODO datamesh3
 
             #remove_duplicate_points
-            # don't do xy3b, indices2, indices3 = np.unique... because indices2 haven't got the good size
-            xy3b, indices2 = np.unique(xy3, axis=0, return_inverse=True)
+            xy3b, indices3, indices2 = np.unique(xy3, axis=0, return_index=True, return_inverse=True)
             if len(xy3b)<len(xy3):
                 tin3= indices2[tin3]
-                xy3b,indices3 = np.unique(xy3, axis=0, return_index=True)
                 datanode3= datanode3[indices3]
 
-            unit_list[reach_number][unit_counter_3] = q1+'>'+q2
-            new_data_2d[reach_number][unit_counter_3].unit_name = q1+'>'+q2
+            unit_list[reach_number][unit_counter_3] = q1+'-'+q2
+            new_data_2d[reach_number][unit_counter_3].unit_name = q1+'-'+q2
             new_data_2d[reach_number][unit_counter_3]["mesh"]["tin"] = tin3
             new_data_2d[reach_number][unit_counter_3]["mesh"]["data"] = pd.DataFrame()  # TODO: datamesh3 (à l'origine iwhole,isplikt et peut être des choses en volume fini) il faut refaire un pandas data mesh with pandas_array.iloc
             new_data_2d[reach_number][unit_counter_3]["mesh"]["i_whole_profile"] = i_whole_profile3
@@ -316,11 +314,11 @@ def hrr(hydrosignature_description, progress_value, q=[], print_cmd=False, proje
 
 if __name__ == '__main__':
     # set working directory to "C:\habby_dev\habby"
-    path_prj = r"C:\Users\Quent\Documents\HABBY_projects\DefaultProj" # C:\Users\yann.lecoarer\Documents\HABBY_projects\DefaultProj
-
+    # path_prj = r"C:\Users\Quent\Documents\HABBY_projects\DefaultProj" # C:\Users\yann.lecoarer\Documents\HABBY_projects\DefaultProj
+    path_prj = r"C:\Users\yann.lecoarer\Documents\HABBY_projects\DefaultProj"
     project_properties = load_project_properties(path_prj)
     hrr_description_dict = dict(deltatlist=[0, 3.6 * 3600, 2.5 * 3600, 1.8 * 3600],
-                           hdf5_name="a1_a2_a3_a4.hyd")
+                           hdf5_name="d1_d2_d3_d4.hyd")
     # class MyProcess
     progress_value = Value("d", 0.0)
     q = Queue()
