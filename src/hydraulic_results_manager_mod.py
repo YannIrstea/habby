@@ -148,12 +148,10 @@ class HydraulicSimulationResultsBase:
 
                 # mesh
                 data_2d[reach_number][unit_number]["mesh"][self.hvum.tin.name] = self.hvum.tin.data[reach_number][unit_number]
-                data_2d[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name] = np.column_stack([
-                                    np.arange(0, self.hvum.tin.data[reach_number][unit_number].shape[0], dtype=self.hvum.i_whole_profile.dtype),
-                                    np.repeat(0, self.hvum.tin.data[reach_number][unit_number].shape[0]).astype(self.hvum.i_split.dtype)])
+                data_2d[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name] = np.arange(0, self.hvum.tin.data[reach_number][unit_number].shape[0], dtype=self.hvum.i_whole_profile.dtype)
                 data_2d[reach_number][unit_number]["mesh"]["data"] = pd.DataFrame()
                 # i_split
-                data_2d[reach_number][unit_number]["mesh"]["data"][self.hvum.i_split.name] = data_2d[reach_number][unit_number]["mesh"]["i_whole_profile"][:, 1]
+                data_2d[reach_number][unit_number]["mesh"]["data"][self.hvum.i_split.name] = np.repeat(0, self.hvum.tin.data[reach_number][unit_number].shape[0]).astype(self.hvum.i_split.dtype)
                 for mesh_variable in mesh_list:
                     try:
                         data_2d[reach_number][unit_number]["mesh"]["data"][mesh_variable.name] = mesh_variable.data[reach_number][unit_number]
