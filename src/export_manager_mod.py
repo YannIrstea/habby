@@ -260,6 +260,8 @@ def export_mesh_layer_to_gpkg(filename_path, layer_name, epsg_code, unit_data, w
     layer.CreateField(ogr.FieldDefn('ID', ogr.OFTInteger))  # Add one attribute
 
     if not whole_profile:
+        # i_whole_profile
+        layer.CreateField(ogr.FieldDefn("i_whole_profile", ogr.OFTInteger))
         # create fields (no width no precision to be specified with GPKG)
         for mesh_variable in unit_data.hvum.all_final_variable_list.meshs():
             layer.CreateField(ogr.FieldDefn(mesh_variable.name_gui, OGRTypes_dict[mesh_variable.dtype]))
@@ -295,6 +297,9 @@ def export_mesh_layer_to_gpkg(filename_path, layer_name, epsg_code, unit_data, w
         feat = ogr.Feature(defn)
         feat.SetField('ID', mesh_num)
         if not whole_profile:
+            # i_whole_profile
+            data_field = unit_data["mesh"]["i_whole_profile"][mesh_num].item()
+            feat.SetField("i_whole_profile", data_field)
             # variables
             for mesh_variable in mesh_variable_list:
                 # convert NumPy values to a native Python type
