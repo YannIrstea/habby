@@ -292,7 +292,7 @@ class Data2d(list):
             unit_to_remove_list = []
             # for each unit
             for unit_number in range(len(self[reach_number])):
-                # is_duplicates_mesh_or_point
+                # is_duplicates_mesh_or_point : only in xy are removed (in xyz only warning print)
                 if self[reach_number][unit_number].is_duplicates_mesh_or_point(case="at reading",
                                                                                mesh=True,
                                                                                node=True):
@@ -526,8 +526,8 @@ class Data2d(list):
                                     continue
                                 jpn += 2
 
-                    iklekeep = ikle[
-                        mikle_keep, ...]  # only the original entirely wetted meshes and meshes we can't split( overwetted ones )
+                    # only the original entirely wetted meshes and meshes we can't split( overwetted ones )
+                    iklekeep = ikle[mikle_keep, ...]
                     ind_whole = ind_whole[mikle_keep, ...]
                     ind_whole = np.append(ind_whole, np.asarray(ind_whole2, dtype=self.hvum.tin.dtype), axis=0)
                     i_split = np.repeat(0, ind_whole.shape[0]).astype(self.hvum.i_split.dtype)
@@ -623,10 +623,9 @@ class Data2d(list):
                 # mesh data
                 if not self[reach_number][unit_number]["mesh"]["data"].empty:
                     self[reach_number][unit_number]["mesh"]["data"] = \
-                    self[reach_number][unit_number]["mesh"]["data"].iloc[
-                        ind_whole]
+                    self[reach_number][unit_number]["mesh"]["data"].iloc[ind_whole]
                 self[reach_number][unit_number]["mesh"][self.hvum.tin.name] = iklekeep
-                self[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name] = ind_whole
+                self[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name] = self[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name][ind_whole][:, 0]
                 self[reach_number][unit_number]["mesh"]["data"][self.hvum.i_split.name] = i_split  # i_split
                 if not self.hvum.i_split.name in self.hvum.hdf5_and_computable_list.names():
                     self.hvum.i_split.position = "mesh"
@@ -1145,8 +1144,7 @@ class Unit(dict):
             self["mesh"][self.hvum.tin.name] = self["mesh"][self.hvum.tin.name][~index_to_remove]
 
             # update i_whole_profile
-            self["mesh"][self.hvum.i_whole_profile.name] = self["mesh"][self.hvum.i_whole_profile.name][
-                ~index_to_remove]
+            self["mesh"][self.hvum.i_whole_profile.name] = self["mesh"][self.hvum.i_whole_profile.name][~index_to_remove]
 
             # update mesh data
             self["mesh"]["data"] = self["mesh"]["data"][~index_to_remove]
