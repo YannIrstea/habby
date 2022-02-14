@@ -179,10 +179,17 @@ def export_mesh_txt(name, hvum, unit_data_mesh, delta_unit):
     unit_data_mesh["data"]["node1"] = unit_data_mesh["tin"][:, 0]
     unit_data_mesh["data"]["node2"] = unit_data_mesh["tin"][:, 1]
     unit_data_mesh["data"]["node3"] = unit_data_mesh["tin"][:, 2]
+    unit_data_mesh["data"]["i_whole_profile"] = unit_data_mesh["i_whole_profile"]
 
     # conca and write header and units
-    unit_list_str = "[" + ']\t['.join(hvum.all_final_variable_list.meshs().units()) + "]\t[]\t[]\t[]"
-    unit_list = unit_list_str.split("\t")
+    unit_list = []
+    for variable in unit_data_mesh["data"].columns.to_list():
+        if "node" in variable or variable == "i_whole_profile":
+            unit_list.append("[]")
+        else:
+            variable_unit = hvum.all_final_variable_list.get_from_name(variable).unit
+            unit_list.append("[" + variable_unit + "]")
+
     DataFrame(unit_list).T.to_csv(name,
                                   mode="w",
                                   sep="\t",
