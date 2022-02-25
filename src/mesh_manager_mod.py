@@ -38,29 +38,47 @@ def mesh_manager_from_file(filename):
     mesh_manager_description["reach_index"] = []
     mesh_manager_description["unit_index"] = []
     hvcstr = f.readlines()
-    for line in hvcstr:
+    strheader=''
+    imesh_manager_description=-1
+    for iline,line in enumerate(hvcstr):
         line = line.rstrip("\n").split()
-        mesh_manager_description["header"] = line[0]
-        if "cell_index" in mesh_manager_description["header"]:
-            reach_unit_index = eval(line[1])
-            mesh_manager_description["reach_index"].append(reach_unit_index[0])
-            mesh_manager_description["unit_index"].append(reach_unit_index[1])
+        if len(line) !=0:
+            if isinstance(line[0],str) and not line[0].isnumeric() :
+                mesh_manager_description["header"] = line[0].lower()
+                if strheader=='':
+                    strheader=mesh_manager_description["header"]
+                else:
+                    if strheader!=mesh_manager_description["header"]:
+                        return None, 'the mesh_manager_description header is not constant keep on '+strheader
+                if "cell_index" in mesh_manager_description["header"]:
+                    reach_unit_index = eval(line[1])
+                    mesh_manager_description["reach_index"].append(reach_unit_index[0])
+                    mesh_manager_description["unit_index"].append(reach_unit_index[1])
 
-        if reach_unit_index:
-            start_index = 2
-        else:
-            start_index = 1
-        line_mesh_manager_data = []
-        for item in line[start_index:]:
-            if item == "":
-                continue
-            try:
-                line_mesh_manager_data.append(int(item))
+                if reach_unit_index: #eliminate or keep cell_index
+                    start_index = 2
+                else: #eliminate or keep hydraulic_class
+                    start_index = 1
+            else:
+                if strheader == '':
+                    return None, 'a mesh_manager_description header is compulsory at the beginning of the file'
+                start_index=0
+            line_mesh_manager_data = []
+            for item in line[start_index:]:
+                if item == "":
+                    continue
+                try:
+                    line_mesh_manager_data.append(int(item))
 
-            except ValueError:
-                warnings_list.append("Error: can't convert " + str(item) + " to integer.")
-                return None, warnings_list
-        mesh_manager_description["mesh_manager_data"].append(line_mesh_manager_data)
+                except ValueError:
+                    warnings_list.append("Error: can't convert " + str(item) + " to integer.")
+                    return None, warnings_list
+            if start_index==0:
+                mesh_manager_description["mesh_manager_data"][imesh_manager_description].extend(line_mesh_manager_data)
+            else:
+                imesh_manager_description +=1
+                mesh_manager_description["mesh_manager_data"].append(line_mesh_manager_data)
+
 
     # check_hs_class_validity
     valid = check_mesh_manager_data_validity(mesh_manager_description)
