@@ -577,7 +577,6 @@ class MyProcessManager(QThread):
                                    q=q)
             self.process_list.append(my_process)
 
-
     # hs plot
     def load_data_and_append_hs_plot_process(self):
         for name_hdf5 in self.names_hdf5:

@@ -92,6 +92,7 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.init_ui()
         self.msg2 = QMessageBox()
         self.mesh_manager_file = self.read_attribute_xml("mesh_manager_file")
+        self.mesh_manager_description = None
         self.read_mesh_manager_file(self.mesh_manager_file)
         # process_manager
         self.process_manager = MyProcessManager("mesh_manager")
@@ -177,7 +178,7 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.progress_layout.progress_bar.setValue(0.0)
         self.progress_layout.progress_label.setText(
             "{0:.0f}/{1:.0f}".format(0.0, len(selection)))
-        if selection:
+        if selection and self.mesh_manager_filename_label.text():
             self.progress_layout.run_stop_button.setEnabled(True)
         else:
             self.progress_layout.run_stop_button.setEnabled(False)
@@ -273,7 +274,7 @@ class ComputingGroup(QGroupBoxCollapsible):
             save_project_properties(self.path_prj, self.project_properties)  # save_project_properties
 
     def compute(self):
-        if len(self.file_selection_listwidget.selectedItems()) > 0:
+        if len(self.file_selection_listwidget.selectedItems()) > 0 and self.mesh_manager_description is not None:
             mesh_manager_description = self.mesh_manager_description
             mesh_manager_description["hdf5_name_list"] = [selection_el.text() for selection_el in
                               self.file_selection_listwidget.selectedItems()]
@@ -301,6 +302,8 @@ class ComputingGroup(QGroupBoxCollapsible):
 
             # start thread
             self.progress_layout.start_process()
+        else:
+            self.send_log.emit(self.tr("Error: Can't run mesh manager. Select a 2D file and read a mesh manager file."))
 
     def stop_compute(self):
         # stop_by_user
