@@ -224,7 +224,7 @@ class UserPreferences(AppDataFolders):
                     biological_models_dict["path_xml"].append(xml_filename)
                     biological_models_dict["path_img"].append(information_model_dict["path_img"])
                 elif type(information_model_dict) == str:
-                    self.diff_list = information_model_dict
+                    self.diff_list = self.diff_list + "\n" + information_model_dict
 
         # sort by latin name
         self.biological_models_dict = sort_homogoeneous_dict_list_by_on_key(biological_models_dict,

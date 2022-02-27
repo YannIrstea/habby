@@ -267,6 +267,10 @@ def get_biomodels_informations_for_database(path_xml):
         shear_presence = hvum.shear_stress.name in detect_name_list
         sub_presence = hvum.sub_coarser.name in detect_name_list or hvum.sub_dom.name in detect_name_list or hvum.sub_percentage.name in detect_name_list
 
+        # model not recognized
+        if not detect_name_list:
+            return "Error: Suitability model type not recognized in " + path_xml
+
         # always hv_presence
         if hv_not_valid:
             return hv_not_valid
