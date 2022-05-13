@@ -32,6 +32,8 @@ def analyse_whole_profile(i_whole_profile1,i_whole_profile2):
     return sortwp1,sortwp2,iwholedone,rwp1,rwp2
 
 def calculate_deltaz3(iwp,locawp, countcontactwp,sortwp1, sortwp2,  rwp1, rwp2,tin1,tin2,zsurf1,zsurf2,level=4, minimum_surrounding_mesh=4):
+    if countcontactwp[iwp]==0:
+        return np.nan
     a = set(locawp[iwp][:countcontactwp[iwp]]) | {iwp}
     aa = set(locawp[iwp][:countcontactwp[iwp]])
     for ilevel in range(level):
@@ -48,12 +50,13 @@ def calculate_deltaz3(iwp,locawp, countcontactwp,sortwp1, sortwp2,  rwp1, rwp2,t
         zsurf2kept=[]
         for iwpk in surroundingmesh:
             if iwpk<rwp2.shape[0] and rwp2[iwpk][1]==1 and rwp1[iwpk][1]==1:
-                zsurf1k=zsurf1[tin1[sortwp1[rwp1[iwpk][0]][1]]]
-                zsurf2k=zsurf2[tin2[sortwp2[rwp2[iwpk][0]][1]]]
+                zsurf1k=zsurf1[sortwp1[rwp1[iwpk][0]][1]] # zsurf1[tin1[sortwp1[rwp1[iwpk][0]][1]]]
+                zsurf2k=zsurf2[sortwp2[rwp2[iwpk][0]][1]] # zsurf2[tin2[sortwp2[rwp2[iwpk][0]][1]]]
                 if zsurf2k<zsurf1k:
                     meshkept.append(iwpk)
                     zsurf1kept.append(zsurf1k)
                     zsurf2kept.append(zsurf2k)
+        #Todo moyenne ou autre ???
         if len(meshkept)!=0:#minimum value of local deltaz to cope with hydraulic aberrations
             index_min2 = min(range(len(zsurf2kept)), key=zsurf2kept.__getitem__)
             deltaz=zsurf1k[index_min2]-zsurf2k[index_min2]
