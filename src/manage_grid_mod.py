@@ -2198,8 +2198,13 @@ def get_triangular_grid(ikle, coord_c, xy, h, v, z):
 
 
 def connectivity_mesh_table(tin):
-    # AIM finding  for each mesh the 3 neighbour meshes (ie sharing a segment)
-    # 1 getteing the list of segment by couple of node index (sorted in order to be able to find dupilcate) 3rd column= origin mesh index
+    '''
+    AIM finding  for each mesh/triangle the 3 neighbour meshes (ie sharing a segment)
+    :param tin: a np array of 3 columns, for each line/triangle the 3 index nodes defining the triangle
+    :return: loca the np array of 3 columns for each line/triangle the 3 index of neighbour triangles (-1 if not)
+    countcontact for each line/triangle the number of neighbouring triangles maximum (3)
+    '''
+    #1 getteing the list of segment by couple of node index (sorted in order to be able to find dupilcate) 3rd column= origin mesh index
     aindex = np.arange(len(tin))
     segment = np.r_[np.c_[np.sort(np.array(tin[:, 0:2], copy=True)), aindex], np.c_[
         np.sort(np.array(tin[:, 1:], copy=True)), aindex], np.c_[np.sort(np.array(tin[:, [0, 2]], copy=True)), aindex]]
