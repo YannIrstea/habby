@@ -49,15 +49,7 @@ def export_report(xmlfile, project_properties, qt_tr, progress_value, delta_anim
     information_model_dict = read_pref(xmlfile)
 
     if information_model_dict["model_type"] != "bivariate suitability index models":
-        if "HV" in information_model_dict["hydraulic_type_available"][0]:
-            # plot
-            fig, axe_curve = plot_suitability_curve(None,
-                                   information_model_dict,
-                                   None,
-                                    project_properties,
-                                   True,
-                                   qt_tr)
-        else:
+        if "HEM" in information_model_dict["hydraulic_type_available"][0]:
             # plot
             fig, axe_curve = plot_suitability_curve_hem(None,
                                                         information_model_dict,
@@ -65,6 +57,14 @@ def export_report(xmlfile, project_properties, qt_tr, progress_value, delta_anim
                                                         project_properties,
                                                         True,
                                                         qt_tr)
+        else:
+            # plot
+            fig, axe_curve = plot_suitability_curve(None,
+                                   information_model_dict,
+                                   None,
+                                    project_properties,
+                                   True,
+                                   qt_tr)
     else:
         fig, axe_curve = plot_suitability_curve_bivariate(None,
                                                           information_model_dict,

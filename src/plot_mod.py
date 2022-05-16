@@ -83,83 +83,98 @@ def plot_suitability_curve(state, information_model_dict, selected_fish_stage, p
     # one stage
     if selected_fish_stage is not None:
         stage_index = information_model_dict["stage_and_size"].index(selected_fish_stage)
-        stade = [selected_fish_stage]
+        stage = [selected_fish_stage]
         sub_var_list = information_model_dict["hab_variable_list"][stage_index].variable_list.subs()
         # preplot
         fig, ax = plt.subplots(len(information_model_dict["hab_variable_list"][stage_index].variable_list), 1)
-        if len(information_model_dict["hab_variable_list"][stage_index].variable_list.no_subs()) == 1:
+        if len(information_model_dict["hab_variable_list"][stage_index].variable_list) == 1:
             ax = [ax]
-        plt.get_current_fig_manager().set_window_title(title_plot + name_fish + " - " + stade[0] + " - " + code_fish)
+        plt.get_current_fig_manager().set_window_title(title_plot + name_fish + " - " + stage[0] + " - " + code_fish)
 
-        for index_var, hyd_var in enumerate(
-                information_model_dict["hab_variable_list"][stage_index].variable_list.no_subs()):
-            # height
-            ax[index_var].plot(hyd_var.data[0],
-                               hyd_var.data[1],
-                               color="blue",
-                               marker=mar)
-            ax[index_var].set_xlabel(hyd_var.name_gui + " [" + hyd_var.unit + "]")
-            ax[index_var].set_ylabel('Suitability Index []')
-            ax[index_var].set_ylim([-0.1, 1.1])
-
-        # sub
-        if sub_var_list:
-            ax[2].bar(sub_var_list[0].data[0],
-                      sub_var_list[0].data[1],
-                      facecolor='c',
-                      align='center')
-            ax[2].set_xlabel(sub_var_list[0].name_gui + ' [' + sub_var_list[0].unit + ']')
-            ax[2].set_ylabel('Suitability Index []')
-            ax[2].set_ylim([-0.1, 1.1])
-            ax[2].set_xlim([0.4, len(sub_var_list[0].data[0]) + 0.6])
+        for index_model_var, model_var in enumerate(information_model_dict["hab_variable_list"][stage_index].variable_list):
+            if not model_var.sub:
+                ax[index_model_var].plot(model_var.data[0],
+                                   model_var.data[1],
+                                   color="blue",
+                                   marker=mar)
+                ax[index_model_var].set_xlabel(model_var.name_gui + " [" + model_var.unit + "]")
+                ax[index_model_var].set_ylabel('Suitability Index []')
+                ax[index_model_var].set_ylim([-0.1, 1.1])
+            else:
+                ax[index_model_var].bar(sub_var_list[0].data[0],
+                          sub_var_list[0].data[1],
+                          facecolor='c',
+                          align='center')
+                ax[index_model_var].set_xlabel(sub_var_list[0].name_gui + ' [' + sub_var_list[0].unit + ']')
+                ax[index_model_var].set_ylabel('Suitability Index []')
+                ax[index_model_var].set_ylim([-0.1, 1.1])
+                ax[index_model_var].set_xlim([0.4, len(sub_var_list[0].data[0]) + 0.6])
 
     # multi stage
     else:
+        stage_nb = len(information_model_dict["stage_and_size"])
+        model_var_len_max = 0
+        for stage_index, stage_var in enumerate(information_model_dict["hab_variable_list"]):
+            if model_var_len_max < len(information_model_dict["hab_variable_list"][stage_index].variable_list):
+                model_var_len_max = len(information_model_dict["hab_variable_list"][stage_index].variable_list)
+
         # preplot
-        fig, ax = plt.subplots(len(information_model_dict["hab_variable_list"][0].variable_list),
-                               len(information_model_dict["stage_and_size"]),
+        fig, ax = plt.subplots(model_var_len_max,
+                               stage_nb,
                                sharey='row')
         if ax.ndim == 1:
-            ax = np.reshape(ax, (len(information_model_dict["hab_variable_list"][0].variable_list),
-                                 len(information_model_dict["stage_and_size"])))
+            ax = np.reshape(ax, (model_var_len_max,
+                                 stage_nb))
 
         plt.get_current_fig_manager().set_window_title(title_plot + name_fish + " - " + code_fish)
 
         # get min and max limits to improve plot readability between stages (value save to the last stage)
-        variable_list_copy = copy(information_model_dict["hab_variable_list"][0].variable_list)
-        for index_model_var, model_var in enumerate(variable_list_copy):
-            for stage_index, stage_var in enumerate(information_model_dict["hab_variable_list"]):
+        for stage_index, stage_var in enumerate(information_model_dict["hab_variable_list"]):
+            set_same_limits = False
+            for index_model_var, model_var in enumerate(information_model_dict["hab_variable_list"][stage_index].variable_list):
+                for stage_var_2 in information_model_dict["hab_variable_list"]:
+                    if model_var in stage_var_2.variable_list:
+                        set_same_limits = True
                 current_min = min(model_var.data[0])
                 current_max = max(model_var.data[0])
                 if stage_index == 0:
-                    model_var.min = current_min
-                    model_var.max = current_max
-                if current_min < model_var.min:
-                    model_var.min = current_min
-                if current_max > model_var.max:
-                    model_var.max = current_max
+                    information_model_dict["hab_variable_list"][stage_index].min = current_min
+                    information_model_dict["hab_variable_list"][stage_index].max = current_max
+                elif set_same_limits:
+                    if current_min < model_var.min:
+                        information_model_dict["hab_variable_list"][stage_index].min = current_min
+                    if current_max > model_var.max:
+                        information_model_dict["hab_variable_list"][stage_index].max = current_max
 
         # plot
-        for stage_index, stage_var in enumerate(information_model_dict["hab_variable_list"]):
-            for index_model_var, model_var in enumerate(
-                    information_model_dict["hab_variable_list"][stage_index].variable_list):
-                if not model_var.sub:
-                    ax[index_model_var, stage_index].plot(model_var.data[0], model_var.data[1],
-                                                          '-b', marker=mar)
-                    ax[index_model_var, stage_index].set_xlim(
-                        [variable_list_copy[index_model_var].min - 0.1,
-                         variable_list_copy[index_model_var].max + 0.1])
+        for index_model_var in range(model_var_len_max):
+            for stage_index in range(stage_nb):
+                stage_var = information_model_dict["hab_variable_list"][stage_index]
+                try:
+                    model_var = stage_var.variable_list[index_model_var]
+                except IndexError:
+                    model_var = None
+                if model_var is not None:
+                    if not model_var.sub:
+                        ax[index_model_var, stage_index].plot(model_var.data[0], model_var.data[1],
+                                                              '-b', marker=mar)
+                        ax[index_model_var, stage_index].set_xlim(
+                            [information_model_dict["hab_variable_list"][index_model_var].min - 0.1,
+                             information_model_dict["hab_variable_list"][index_model_var].max + 0.1])
+                    else:
+                        ax[index_model_var, stage_index].bar(model_var.data[0], model_var.data[1],
+                                                             facecolor='c', align='center')
+                        ax[index_model_var, stage_index].set_xlim(
+                            [information_model_dict["hab_variable_list"][index_model_var].min - 1,
+                             information_model_dict["hab_variable_list"][index_model_var].max + 1])
+
+                    ax[index_model_var, stage_index].set_xlabel(model_var.name_gui + " [" + model_var.unit + "]")
+
+                    ax[index_model_var, stage_index].set_ylabel('Suitability Index []' + "\n" + stage_var.stage)
+                    ax[index_model_var, stage_index].set_ylim([-0.1, 1.1])
+
                 else:
-                    ax[index_model_var, stage_index].bar(model_var.data[0], model_var.data[1],
-                                                         facecolor='c', align='center')
-                    ax[index_model_var, stage_index].set_xlim(
-                        [variable_list_copy[index_model_var].min - 1,
-                         variable_list_copy[index_model_var].max + 1])
-
-                ax[index_model_var, stage_index].set_xlabel(model_var.name_gui + " [" + model_var.unit + "]")
-
-                ax[index_model_var, stage_index].set_ylabel('Suitability Index []' + "\n" + stage_var.stage)
-                ax[index_model_var, stage_index].set_ylim([-0.1, 1.1])
+                    ax[index_model_var, stage_index].axis('off')
 
     # all cases
     plt.tight_layout()

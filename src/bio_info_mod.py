@@ -274,6 +274,7 @@ def get_biomodels_informations_for_database(path_xml):
         # always hv_presence
         if hv_not_valid:
             return hv_not_valid
+
         # model data is valid ?
         for presence, not_valid in zip([height_presence, velocity_presence, shear_presence, sub_presence],
                                     [h_not_valid, v_not_valid, shearstress_not_valid, sub_not_valid]):
@@ -394,28 +395,29 @@ def read_pref(xmlfile):
         return failload
 
     for hab_index, hab_var in enumerate(information_model_dict["hab_variable_list"]):  # each stage
-        for model_var in hab_var.variable_list:
+        for model_var_index, model_var in enumerate(hab_var.variable_list):
             attr = model_var.software_attributes_list[0]
-            model_el_list = root.findall(".//" + attr)
+            stage_el = root.findall(".//Stage")[hab_index]
+            model_el = stage_el.findall(".//" + attr)[0]
             if information_model_dict["model_type"] == "univariate suitability index curves":
                 if information_model_dict["hydraulic_type"][hab_index] == 'HEM':
                     # data = list of 3 elements (shear_stress, HEM, pref)
-                    data_el = model_el_list[hab_index].getchildren()[0]
+                    data_el = model_el.getchildren()[0]
                     model_var.data = [list(map(float, data_el.text.split())),
-                                      list(map(float, model_el_list[hab_index].getchildren()[1].text.split())),
-                                        list(map(float, model_el_list[hab_index].getchildren()[2].text.split()))]
+                                      list(map(float, model_el.getchildren()[1].text.split())),
+                                        list(map(float, model_el.getchildren()[2].text.split()))]
                 else:
                     # data = list of 2 elements (data, pref)
-                    data_el = model_el_list[hab_index].getchildren()[0]
+                    data_el = model_el.getchildren()[0]
                     if model_var.sub:
                         model_var.data = [list(map(float, [element[1:] for element in data_el.text.split()])),
-                                          list(map(float, model_el_list[hab_index].getchildren()[1].text.split()))]
+                                          list(map(float, model_el.getchildren()[1].text.split()))]
                     else:
                         model_var.data = [list(map(float, data_el.text.split())),
-                                            list(map(float, model_el_list[hab_index].getchildren()[1].text.split()))]
+                                            list(map(float, model_el.getchildren()[1].text.split()))]
             elif information_model_dict["model_type"] == "bivariate suitability index models":
                 # data = list of values
-                data_el = model_el_list[hab_index]
+                data_el = model_el
                 model_var.data = list(map(float, data_el.text.split()))
             else:
                 print('Error: model_type not recogized: ' + information_model_dict["model_type"] + " in "
