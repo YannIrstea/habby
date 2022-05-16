@@ -118,63 +118,47 @@ def plot_suitability_curve(state, information_model_dict, selected_fish_stage, p
             if model_var_len_max < len(information_model_dict["hab_variable_list"][stage_index].variable_list):
                 model_var_len_max = len(information_model_dict["hab_variable_list"][stage_index].variable_list)
 
-        # preplot
+        # preplot sharey and sharex to improve plot readability between stages
         fig, ax = plt.subplots(model_var_len_max,
                                stage_nb,
-                               sharey='row')
+                               sharey='row',
+                               sharex='row')
         if ax.ndim == 1:
-            ax = np.reshape(ax, (model_var_len_max,
-                                 stage_nb))
+            ax = np.reshape(ax, (model_var_len_max, stage_nb))
 
         plt.get_current_fig_manager().set_window_title(title_plot + name_fish + " - " + code_fish)
-
-        # get min and max limits to improve plot readability between stages (value save to the last stage)
-        for stage_index, stage_var in enumerate(information_model_dict["hab_variable_list"]):
-            set_same_limits = False
-            for index_model_var, model_var in enumerate(information_model_dict["hab_variable_list"][stage_index].variable_list):
-                for stage_var_2 in information_model_dict["hab_variable_list"]:
-                    if model_var in stage_var_2.variable_list:
-                        set_same_limits = True
-                current_min = min(model_var.data[0])
-                current_max = max(model_var.data[0])
-                if stage_index == 0:
-                    information_model_dict["hab_variable_list"][stage_index].min = current_min
-                    information_model_dict["hab_variable_list"][stage_index].max = current_max
-                elif set_same_limits:
-                    if current_min < model_var.min:
-                        information_model_dict["hab_variable_list"][stage_index].min = current_min
-                    if current_max > model_var.max:
-                        information_model_dict["hab_variable_list"][stage_index].max = current_max
 
         # plot
         for index_model_var in range(model_var_len_max):
             for stage_index in range(stage_nb):
                 stage_var = information_model_dict["hab_variable_list"][stage_index]
+                if len(stage_var.variable_list) < model_var_len_max:
+                    row_offset = True
+                else:
+                    row_offset = False
                 try:
                     model_var = stage_var.variable_list[index_model_var]
                 except IndexError:
                     model_var = None
-                if model_var is not None:
-                    if not model_var.sub:
-                        ax[index_model_var, stage_index].plot(model_var.data[0], model_var.data[1],
-                                                              '-b', marker=mar)
-                        ax[index_model_var, stage_index].set_xlim(
-                            [information_model_dict["hab_variable_list"][index_model_var].min - 0.1,
-                             information_model_dict["hab_variable_list"][index_model_var].max + 0.1])
-                    else:
-                        ax[index_model_var, stage_index].bar(model_var.data[0], model_var.data[1],
-                                                             facecolor='c', align='center')
-                        ax[index_model_var, stage_index].set_xlim(
-                            [information_model_dict["hab_variable_list"][index_model_var].min - 1,
-                             information_model_dict["hab_variable_list"][index_model_var].max + 1])
-
-                    ax[index_model_var, stage_index].set_xlabel(model_var.name_gui + " [" + model_var.unit + "]")
-
-                    ax[index_model_var, stage_index].set_ylabel('Suitability Index []' + "\n" + stage_var.stage)
-                    ax[index_model_var, stage_index].set_ylim([-0.1, 1.1])
-
+                if row_offset:
+                    row_position = index_model_var + 1
+                    if row_position >= model_var_len_max:
+                        row_position = index_model_var - 1
                 else:
-                    ax[index_model_var, stage_index].axis('off')
+                    row_position = index_model_var
+                if model_var is not None:
+                    if model_var.sub:
+                        ax[row_position, stage_index].bar(model_var.data[0], model_var.data[1],
+                                                             facecolor='c', align='center')
+                    else:
+                        ax[row_position, stage_index].plot(model_var.data[0], model_var.data[1],
+                                                              '-b', marker=mar)
+
+                    ax[row_position, stage_index].set_xlabel(model_var.name_gui + " [" + model_var.unit + "]")
+                    ax[row_position, stage_index].set_ylabel('Suitability Index []' + "\n" + stage_var.stage)
+                    ax[row_position, stage_index].set_ylim([-0.1, 1.1])
+                else:
+                    ax[row_position, stage_index].axis('off')
 
     # all cases
     plt.tight_layout()
