@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BiologicalModel>
+    <CdBiologicalModel>AWA01</CdBiologicalModel>
+    <Country>Réunion</Country>
+    <MadeBy>OCEA Consult</MadeBy>
+    <Fish>
+       <CdAppelTaxon SchemeAgencyID="SANDRE">27347</CdAppelTaxon>
+       <LatinName>Awaous commersoni</LatinName>
+       <ComNames>
+          <ComName Language="French">Loche des sables</ComName>
+          <ComName Language="English">Goby</ComName>
+          <ComName Language="CréoleRéunion">Cabot</ComName>
+       </ComNames>
+       <CdAlternative OrgCdAlternative="Irstea Lyon">AWA</CdAlternative>
+    </Fish>
+    <General>
+       <CreationYear>2020</CreationYear>
+       <Description Language="French">
+          <![CDATA[
+          Origine:
+          Origines : Données issues du projet PHACAR (Office de l’Eau Réunion. OCEA Consult’. INRAE de Lyon. FDAAPPMA974. 2018-2020). Données récoltées sur 21 stations réparties sur neuf bassins versants de La Réunion : Rivières des Galets. Saint-Jean. Marsouins. Mât. Pluies. Remparts. Riches. Sainte-Suzanne et Saint-Etienne. Inventaires menés lors de deux campagnes d’inventaires. une première en étiage (août-septembre 2018) et une seconde en fin de saison humide (avril-mai 2019). Deux méthodologies ont été utilisées : les Echantillonnages Ponctuels d’Abondance (2 140 EPA) et les Echantillonnages Ponctuels par Observation (661 EPO). soient 2 801 points inventoriés au total.  
+          Traitement de base de données et calculs de préférences faits par OCEA Consult’ et INRAE Lyon. 
+          Référence : Faivre et al. (2021. in prep)
+          Hauteur d'eau : de l’ensemble : moyenne : 0.43 m. minimale : 0.01 m. maximale : 2.50 m ; EPA : moyenne : 0.30 m. minimale : 0.01 m. maximale : 1.12 m ; EPO : moyenne : 0.30 m. minimale : 0.01 m. maximale : 1.12 m
+          Vitesse (valeur absolue) : de l'ensemble : moyenne : 0.23 m/s. minimale : 0.00 m/s. maximale : 1.9 m/s ; EPA : moyenne : 0.25 m/s. minimale : 0.00 m/s. maximale : 1.9 m/s ; EPO : moyenne : 0.20 m/s. minimale : 0.00 m/s. maximale : 1.7 m/s
+          Distance à la berge (position relative : 0 proche de la berge. et 1 au centre du chenal) : Pour l'ensemble : moyenne : 0.42. minimale : 0.00. maximale : 1 ; EPA : moyenne : 0.43. minimale : 0. maximale : 1 ; EPO : moyenne : 0.40. minimale : 0.01. maximale : 1
+          Granulométries (d’après Wentworth. dans Malavoi et Souchon. 2002). Evaluation au sein des douze modalités (mesures dans le grand axe. en mm). transformées en variables continues : 18 : Argiles <0.0039. 15 : Limons compris entre 0.0039-0.0625. 12 : SF : compris entre 0.0625-0.5. 10 : SG compris entre 0.5-2. 8 : GF compris entre 2-8. 6 : GG compris entre 8-16. 5 : CF compris entre 16-32. 4 : CG compris entre 32-64. 3 : PF compris entre 64-128. 2 : PG compris entre 128-256. 1 : Blocs compris entre 256-1024. 20 : Dalle >1024.
+          Malavoi. J. R.. & Souchon. Y. (2002). Description standardisée des principaux faciès d’écoulement observables en rivière : clé de détermination qualitative et mesures physiques. Bulletin Français de La Pêche et de La Pisciculture. 357–372. https://doi.org/10.1051/kmae:2002040
+          Granulométrie dominante : pour l'ensemble : moyenne : 6. minimale : 1. maximale : 20 ; EPA : moyenne : 6. minimale : 1. maximale : 20 ; EPO : moyenne : 6. minimale : 1. maximale : 20
+          Granulométrie accessoire : pour l'ensemble : moyenne : 6. minimale : 1. maximale : 20 ; EPA : moyenne : 6. minimale : 1. maximale : 20 ; EPO : moyenne : 6. minimale : 1. maximale : 20
+          Granulométrie la plus grosse : pour l'ensemble : moyenne : 6. minimale : 1. maximale : 20 ; EPA : moyenne : 5. minimale : 1. maximale : 20 ; EPO : moyenne : 6. minimale : 1. maximale : 20
+          Remarque: Les vitesses comprises entre 1.1 et 2 m/s ont été corrigées par expertise
+          Points où les loches ont été prélevées:216 EPA et 158 EPO. 593 poissons.
+           ]]>
+       </Description>
+       <Description Language="English">
+          <![CDATA[
+          Origine:
+          Origins: Data from PHACAR project (Office de l'Eau Réunion. OCEA Consult '. INRAE de Lyon. FDAAPPMA974. 2018-2020). Data collected in 21 sites from nine watersheds of Reunion: Galets. Saint-Jean. Marsouins. Mât. Pluies. Remparts. Roches. Sainte-Suzanne and Saint Etienne. Surveys sampled during low (August-September 2018) and medium (April-May 2019) flow conditions. Two sampling protocols were used: Point Abundance Samples by Electrofishing (2.140 PASE) and Snorkelling Point Abundance (661 SPA). ie a total of 2.801 points sampled.
+          Database processing and preference analysis made by OCEA Consult’ and INRAE Lyon.
+          Reference: Faivre et al. (2021. in prep)
+          Height of water: Overall : average : 0.43 m. minimal : 0.01 m. maximum : 2.50 m ; PASE : average : 0.30 m. minimal : 0.01 m. maximum : 1.12 m ; SPA : average : 0.30 m. minimal : 0.01 m. maximum : 1.12 m
+          Velocity (absolute value) : Overall : average : 0.23 m/s. minimal : 0.00 m/s. maximum : 1.9 m/s ;PASE : average : 0.25 m/s. minimal : 0.00 m/s. maximum : 1.9 m/s ; SPA : average : 0.20 m/s. minimal : 0.00 m/s. maximum : 1.7 m/s
+          Bank distance (relative position : 0 near the berge. and 1 channel center) : Overall: average : 0.42. minimal : 0.00. maximum : 1 ; PASE : average : 0.43. minimal : 0. maximum : 1 ; SPA : average : 0.40. minimal : 0.01. maximum : 1
+          Substratum grain size (from Wentworth. in Malavoi et Souchon. 2002). Evaluation within the twelve modalities (measurements in the major axis. in mm). transformed into continuous variables : 18 : Clays <0.0039. 15 : Silt between 0.0039-0.0625. 12 : SF : between 0.0625-0.5. 10 : SG between 0.5-2. 8 : GF included between 2-8. 6 : GG between 8-16. 5 : CF between 16-32. 4 : CG between 32-64. 3 : PF between 64-128. 2 : PG between 128-256. 1 : Blocks between 256-1024. 20 : Slab> 1024.
+          Malavoi. J. R.. & Souchon. Y. (2002). Description standardisée des principaux faciès d’écoulement observables en rivière : clé de détermination qualitative et mesures physiques. Bulletin Français de La Pêche et de La Pisciculture. 357–372. https://doi.org/10.1051/kmae:2002040
+          Dominant Substratum grain size : Overall : average : 6. minimal : 1. maximum : 20 ; PASE : average : 6. minimal : 1. maximum : 20 ; SPA : average : 6. minimal : 1. maximum : 20
+          Additional Substratum grain size: Overall : average : 6. minimal : 1. maximum : 20 ; PASE : average : 6. minimal : 1. maximum : 20 ; SPA : average : 6. minimal : 1. maximum : 20
+          Biggest Substratum grain size :Overall : average : 6. minimal : 1. maximum : 20 ; PASE : average : 5. minimal : 1. maximum : 20 ; SPA : average : 6. minimal : 1. maximum : 20
+          Note: Velocities between 1.1 et 2 m/s were corrected by expertise
+          Points where gobies were sampled:216 PASE and 158 SPA. 593 fishes.
+           ]]>
+       </Description>
+       <Image>AWA01.png</Image>
+    </General>
+    <ModelType Type="univariate suitability index curves">
+       <Stages>
+          <Stage Type="all_stages">
+             <SuitabilityVelocity>
+                <VelocityValues Unit="MeterPerSecond" UnitSymbol="m/s">0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2</VelocityValues>
+                <SuitabilityIndex>1.000 0.638 0.429 0.307 0.234 0.188 0.160 0.143 0.133 0.129 0.129 0.129 0.129 0.129 0.129 0.129 0.129 0.129 0.129 0.129 0.129</SuitabilityIndex>
+             </SuitabilityVelocity>
+             <SuitabilitySubstrate>
+                <SubstrateValues ClassificationName="Code Sandre (Malavoi et Souchon 1989)" Variables="Dominant">s1 s2 s3 s4 s5 s6 s7 s8 s9 s10 s11 s12</SubstrateValues>
+                <SuitabilityIndex>0.676 0.877 0.999 0.975 0.848 0.642 0.527 0.413 0.311 0.227 0.163 0.163</SuitabilityIndex>
+             </SuitabilitySubstrate>
+          </Stage>
+       </Stages>
+    </ModelType>
+</BiologicalModel>

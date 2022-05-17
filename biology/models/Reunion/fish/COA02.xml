@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BiologicalModel>
+    <CdBiologicalModel>COA02</CdBiologicalModel>
+    <Country>Réunion</Country>
+    <MadeBy>OCEA Consult</MadeBy>
+    <Fish>
+       <CdAppelTaxon SchemeAgencyID="SANDRE">3243</CdAppelTaxon>
+       <LatinName>Cotylopus acutipinnis</LatinName>
+       <ComNames>
+          <ComName Language="French">Cabot bouche-ronde</ComName>
+          <ComName Language="English">Goby</ComName>
+          <ComName Language="CréoleRéunion">Cabot bouche-ronde</ComName>
+       </ComNames>
+       <CdAlternative OrgCdAlternative="Irstea Lyon">COA</CdAlternative>
+    </Fish>
+    <General>
+       <CreationYear>2020</CreationYear>
+       <Description Language="French">
+          <![CDATA[
+          Origine:
+          Origines : Données issues du projet PHACAR (Office de l’Eau Réunion. OCEA Consult’. INRAE de Lyon. FDAAPPMA974. 2018-2020). Données récoltées sur 21 stations réparties sur neuf bassins versants de La Réunion : Rivières des Galets. Saint-Jean. Marsouins. Mât. Pluies. Remparts. Riches. Sainte-Suzanne et Saint-Etienne. Inventaires menés lors de deux campagnes d’inventaires. une première en étiage (août-septembre 2018) et une seconde en fin de saison humide (avril-mai 2019). Deux méthodologies ont été utilisées : les Echantillonnages Ponctuels d’Abondance (2 140 EPA) et les Echantillonnages Ponctuels par Observation (661 EPO). soient 2 801 points inventoriés au total.  
+          Traitement de base de données et calculs de préférences faits par OCEA Consult’ et INRAE Lyon. 
+          Référence: Faivre et al. (2022, in prep)
+          Contraintes au fond (FST) : de l'ensemble : moyenne : 4, minimale : 0, maximale : 18 ; EPA : moyenne : 4, minimale : 0, maximale : 18 ; EPO : moyenne : 3, minimale : 0, maximale : 17
+          Remarque: Courbes construites sur une gamme de valeur d'habitat allant de l'hémisphère 0 à 18. L’hémisphère 19 a été attribuée par expertise
+          Points où les cabots ont été prélevés:323 EPA. 402 poissons.
+           ]]>
+       </Description>
+       <Description Language="English">
+          <![CDATA[
+          Origine:
+          Origins: Data from PHACAR project (Office de l'Eau Réunion. OCEA Consult '. INRAE de Lyon. FDAAPPMA974. 2018-2020). Data collected in 21 sites from nine watersheds of Reunion: Galets. Saint-Jean. Marsouins. Mât. Pluies. Remparts. Roches. Sainte-Suzanne and Saint Etienne. Surveys sampled during low (August-September 2018) and medium (April-May 2019) flow conditions. Two sampling protocols were used: Point Abundance Samples by Electrofishing (2.140 PASE) and Snorkelling Point Abundance (661 SPA). ie a total of 2.801 points sampled.
+          Database processing and preference analysis made by OCEA Consult’ and INRAE Lyon.
+          Reference: Faivre et al. (2022, in prep)
+          Hemisphere “Fliesswasserstammtisch-hemispheres” (HFST) : Overall : average : 4, minimal : 0, maximum : 18 ; PASE : average : 4, minimal : 0, maximum : 18 ; SPA : average : 3, minimal : 0, maximum : 17
+          Note: Curves constructed from a range of habitat values going from hemisphere 0 to 18.Hemisphere 19 was assigned by expertise
+          Points where gobies were sampled:323 PASE. 402 fishes.
+           ]]>
+       </Description>
+       <Image>COA01.png</Image>
+    </General>
+    <ModelType Type="univariate suitability index curves">
+       <Stages>
+          <Stage Type="all_stages">
+             <SuitabilityShearStress>
+                <MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues Unit="pascal" UnitSymbol="Pa">0.0771 0.0828 0.0945 0.118 0.141 0.166 0.218 0.272 0.393 0.529 0.682 0.826 1.09 1.59 2.27 3.17 4.48 6.34 8.95 12.7</MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues>
+                <HemisphereNumber Unit="HFST" UnitSymbol="HFST">0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19</HemisphereNumber>
+                <SuitabilityIndex>0.174 0.251 0.356 0.485 0.623 0.756 0.869 0.952 0.996 1.000 0.968 0.906 0.825 0.732 0.637 0.545 0.460 0.386 0.322 0.269</SuitabilityIndex>
+             </SuitabilityShearStress>
+          </Stage>
+       </Stages>
+    </ModelType>
+</BiologicalModel>

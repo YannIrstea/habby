@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BiologicalModel>
+    <CdBiologicalModel>MAA01</CdBiologicalModel>
+    <Country>Réunion</Country>
+    <MadeBy>OCEA Consult</MadeBy>
+    <Invertebrate>
+       <CdAppelTaxon SchemeAgencyID="SANDRE">3291</CdAppelTaxon>
+       <LatinName>Macrobrachium australe</LatinName>
+       <ComNames>
+          <ComName Language="French">Chevrette australe</ComName>
+          <ComName Language="English">Koua river prawn</ComName>
+          <ComName Language="CréoleRéunion">Chevrette grand bras</ComName>
+       </ComNames>
+       <CdAlternative OrgCdAlternative="Irstea Lyon">MAA</CdAlternative>
+    </Invertebrate>
+    <General>
+       <CreationYear>2020</CreationYear>
+       <Description Language="French">
+          <![CDATA[
+          Origine:
+          Origines : Données issues du projet PHACAR (Office de l’Eau Réunion. OCEA Consult’. INRAE de Lyon. FDAAPPMA974. 2018-2020). Données récoltées sur 21 stations réparties sur neuf bassins versants de La Réunion : Rivières des Galets. Saint-Jean. Marsouins. Mât. Pluies. Remparts. Riches. Sainte-Suzanne et Saint-Etienne. Inventaires menés lors de deux campagnes d’inventaires. une première en étiage (août-septembre 2018) et une seconde en fin de saison humide (avril-mai 2019). Deux méthodologies ont été utilisées : les Echantillonnages Ponctuels d’Abondance (2 140 EPA) et les Echantillonnages Ponctuels par Observation (661 EPO). soient 2 801 points inventoriés au total.  
+          Traitement de base de données et calculs de préférences faits par OCEA Consult’ et INRAE Lyon. 
+          Référence : Faivre et al. (2021. in prep)
+          Hauteur d'eau : de l’ensemble : moyenne : 0.43 m. minimale : 0.01 m. maximale : 2.50 m ; EPA : moyenne : 0.30 m. minimale : 0.01 m. maximale : 1.12 m ; EPO : moyenne : 0.30 m. minimale : 0.01 m. maximale : 1.12 m
+          Vitesse (valeur absolue) : de l'ensemble : moyenne : 0.23 m/s. minimale : 0.00 m/s. maximale : 1.9 m/s ; EPA : moyenne : 0.25 m/s. minimale : 0.00 m/s. maximale : 1.9 m/s ; EPO : moyenne : 0.20 m/s. minimale : 0.00 m/s. maximale : 1.7 m/s
+          Distance à la berge (position relative : 0 proche de la berge. et 1 au centre du chenal) : Pour l'ensemble : moyenne : 0.42. minimale : 0.00. maximale : 1 ; EPA : moyenne : 0.43. minimale : 0. maximale : 1 ; EPO : moyenne : 0.40. minimale : 0.01. maximale : 1
+          Granulométries (d’après Wentworth. dans Malavoi et Souchon. 2002). Evaluation au sein des douze modalités (mesures dans le grand axe. en mm). transformées en variables continues : 18 : Argiles <0.0039. 15 : Limons compris entre 0.0039-0.0625. 12 : SF : compris entre 0.0625-0.5. 10 : SG compris entre 0.5-2. 8 : GF compris entre 2-8. 6 : GG compris entre 8-16. 5 : CF compris entre 16-32. 4 : CG compris entre 32-64. 3 : PF compris entre 64-128. 2 : PG compris entre 128-256. 1 : Blocs compris entre 256-1024. 20 : Dalle >1024.
+          Malavoi. J. R.. & Souchon. Y. (2002). Description standardisée des principaux faciès d’écoulement observables en rivière : clé de détermination qualitative et mesures physiques. Bulletin Français de La Pêche et de La Pisciculture. 357–372. https://doi.org/10.1051/kmae:2002040
+          Granulométrie dominante : pour l'ensemble : moyenne : 6. minimale : 1. maximale : 20 ; EPA : moyenne : 6. minimale : 1. maximale : 20 ; EPO : moyenne : 6. minimale : 1. maximale : 20
+          Granulométrie accessoire : pour l'ensemble : moyenne : 6. minimale : 1. maximale : 20 ; EPA : moyenne : 6. minimale : 1. maximale : 20 ; EPO : moyenne : 6. minimale : 1. maximale : 20
+          Granulométrie la plus grosse : pour l'ensemble : moyenne : 6. minimale : 1. maximale : 20 ; EPA : moyenne : 5. minimale : 1. maximale : 20 ; EPO : moyenne : 6. minimale : 1. maximale : 20
+          Remarque: Les vitesses comprises entre 1.1 et 2 m/s pour "tous stades", entre 0.8 et 2 m/s pour "juvénile", les distances à la berge comprises entre 0.5 et 1 pour "tous stades", entre 0.7 et 1 pour "adulte" et "juvénile" ont été corrigées par expertise
+          Juvénile: sujets non encore reproductifs (< 30 mm)
+          Adulte: sujets en âge ou non de se reproduire (>30 mm) 
+          Points où les chevrettes ont été prélevées:618 EPA et 42 EPO. 2241 chevrettes.
+           ]]>
+       </Description>
+       <Description Language="English">
+          <![CDATA[
+          Origine:
+          Origins: Data from PHACAR project (Office de l'Eau Réunion. OCEA Consult '. INRAE de Lyon. FDAAPPMA974. 2018-2020). Data collected in 21 sites from nine watersheds of Reunion: Galets. Saint-Jean. Marsouins. Mât. Pluies. Remparts. Roches. Sainte-Suzanne and Saint Etienne. Surveys sampled during low (August-September 2018) and medium (April-May 2019) flow conditions. Two sampling protocols were used: Point Abundance Samples by Electrofishing (2.140 PASE) and Snorkelling Point Abundance (661 SPA). ie a total of 2.801 points sampled.
+          Database processing and preference analysis made by OCEA Consult’ and INRAE Lyon.
+          Reference: Faivre et al. (2021. in prep)
+          Height of water: Overall : average : 0.43 m. minimal : 0.01 m. maximum : 2.50 m ; PASE : average : 0.30 m. minimal : 0.01 m. maximum : 1.12 m ; SPA : average : 0.30 m. minimal : 0.01 m. maximum : 1.12 m
+          Velocity (absolute value) : Overall : average : 0.23 m/s. minimal : 0.00 m/s. maximum : 1.9 m/s ;PASE : average : 0.25 m/s. minimal : 0.00 m/s. maximum : 1.9 m/s ; SPA : average : 0.20 m/s. minimal : 0.00 m/s. maximum : 1.7 m/s
+          Bank distance (relative position : 0 near the berge. and 1 channel center) : Overall: average : 0.42. minimal : 0.00. maximum : 1 ; PASE : average : 0.43. minimal : 0. maximum : 1 ; SPA : average : 0.40. minimal : 0.01. maximum : 1
+          Substratum grain size (from Wentworth. in Malavoi et Souchon. 2002). Evaluation within the twelve modalities (measurements in the major axis. in mm). transformed into continuous variables : 18 : Clays <0.0039. 15 : Silt between 0.0039-0.0625. 12 : SF : between 0.0625-0.5. 10 : SG between 0.5-2. 8 : GF included between 2-8. 6 : GG between 8-16. 5 : CF between 16-32. 4 : CG between 32-64. 3 : PF between 64-128. 2 : PG between 128-256. 1 : Blocks between 256-1024. 20 : Slab> 1024.
+          Malavoi. J. R.. & Souchon. Y. (2002). Description standardisée des principaux faciès d’écoulement observables en rivière : clé de détermination qualitative et mesures physiques. Bulletin Français de La Pêche et de La Pisciculture. 357–372. https://doi.org/10.1051/kmae:2002040
+          Dominant Substratum grain size : Overall : average : 6. minimal : 1. maximum : 20 ; PASE : average : 6. minimal : 1. maximum : 20 ; SPA : average : 6. minimal : 1. maximum : 20
+          Additional Substratum grain size: Overall : average : 6. minimal : 1. maximum : 20 ; PASE : average : 6. minimal : 1. maximum : 20 ; SPA : average : 6. minimal : 1. maximum : 20
+          Biggest Substratum grain size :Overall : average : 6. minimal : 1. maximum : 20 ; PASE : average : 5. minimal : 1. maximum : 20 ; SPA : average : 6. minimal : 1. maximum : 20
+          Note: Velocities between 1.1 and 2 m/s for "all_stages", between 0.8 et 2 m/s for "juvenile", bank distances between 0.5 and 1 for "all stages", between 0.7 and 1 for "adult" and "juvenile" were corrected by expertise
+          Juvenile: non reprodcutive individuals (<30 mm)
+          Adult:: reproductive or not reproductive ages individuals(>30 mm) 
+          Points where prawns were sampled:618 PASE and 42 SPA. 2241 prawns.
+           ]]>
+       </Description>
+       <Image>MAA01.png</Image>
+    </General>
+    <ModelType Type="univariate suitability index curves">
+       <Stages>
+          <Stage Type="all_stages">
+             <SuitabilityVelocity>
+                <VelocityValues Unit="MeterPerSecond" UnitSymbol="m/s">0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2</VelocityValues>
+                <SuitabilityIndex>1.000 0.692 0.494 0.369 0.287 0.232 0.195 0.169 0.151 0.139 0.132 0.127 0.126 0.126 0.129 0.133 0.139 0.147 0.155 0.165 0.175</SuitabilityIndex>
+             </SuitabilityVelocity>
+             <SuitabilityHeightOfWater>
+                <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100 105 110 115 120 125 130 135 140 145 150 155 160 165 170 175 180 185 190 195 200 205 210 215 220 225 230 235 240 245 250</HeightOfWaterValues>
+                <SuitabilityIndex>1.000 0.826 0.682 0.564 0.467 0.387 0.321 0.267 0.222 0.185 0.154 0.129 0.108 0.090 0.076 0.063 0.053 0.045 0.037 0.031 0.026 0.022 0.019 0.016 0.013 0.011 0.009 0.008 0.007 0.006 0.005 0.004 0.003 0.003 0.002 0.002 0.002 0.001 0.001 0.001 0.001 0.001 0.001 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000</SuitabilityIndex>
+             </SuitabilityHeightOfWater>
+          </Stage>
+          <Stage Type="adult">
+             <SuitabilityVelocity>
+                <VelocityValues Unit="MeterPerSecond" UnitSymbol="m/s">0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2</VelocityValues>
+                <SuitabilityIndex>1.000 0.720 0.531 0.405 0.318 0.257 0.214 0.182 0.159 0.141 0.128 0.118 0.111 0.105 0.101 0.098 0.096 0.094 0.093 0.092 0.091</SuitabilityIndex>
+             </SuitabilityVelocity>
+             <SuitabilityHeightOfWater>
+                <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 5 10 15 20 25 30 35 40 45 50 55 60 65 70 75 80 85 90 95 100 105 110 115 120 125 130 135 140 145 150 155 160 165 170 175 180 185 190 195 200 205 210 215 220 225 230 235 240 245 250</HeightOfWaterValues>
+                <SuitabilityIndex>1.000 0.860 0.740 0.637 0.549 0.473 0.408 0.352 0.304 0.262 0.227 0.196 0.169 0.147 0.127 0.110 0.095 0.083 0.072 0.062 0.054 0.047 0.040 0.035 0.030 0.026 0.023 0.020 0.017 0.015 0.013 0.011 0.010 0.008 0.007 0.006 0.005 0.005 0.004 0.004 0.003 0.003 0.002 0.002 0.002 0.002 0.001 0.001 0.001 0.001 0.001</SuitabilityIndex>
+             </SuitabilityHeightOfWater>
+          </Stage>
+          <Stage Type="juvenile">
+             <SuitabilityVelocity>
+                <VelocityValues Unit="MeterPerSecond" UnitSymbol="m/s">0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2</VelocityValues>
+                <SuitabilityIndex>0.994 0.767 0.613 0.511 0.443 0.398 0.370 0.355 0.350 0.340 0.330 0.320 0.310 0.300 0.290 0.280 0.270 0.260 0.250 0.240 0.230</SuitabilityIndex>
+             </SuitabilityVelocity>
+          </Stage>
+       </Stages>
+    </ModelType>
+</BiologicalModel>
