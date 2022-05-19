@@ -286,12 +286,12 @@ class StathabW(estimhab_GUI.StatModUseful):
                 model_dict = get_biomodels_informations_for_database(user_preferences.biological_models_dict["path_xml"][index_fish])
                 hydraulic_type_available = model_dict["hydraulic_type_available"][model_dict["stage_and_size"].index(stage)]
 
-                if "HV" in hydraulic_type_available:
+                if ("HV"  in hydraulic_type_available) or ("V"  in hydraulic_type_available) or ("H"  in hydraulic_type_available):
                     # add it to selected
                     self.selected_aquatic_animal_qtablewidget.addItem(item_str)
                     self.fish_selected.append(item_str)
                 else:
-                    self.send_log.emit('Warning: ' + item_str + " don't have height and velocity in biological model (not usable with Stathab).")
+                    self.send_log.emit('Warning: ' + item_str + " has neither height nor velocity in biological model (not usable with Stathab).")
         self.save_xml()
 
     def change_riv_type(self):

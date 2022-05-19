@@ -539,9 +539,15 @@ class Stathab:
             pref_v = np.zeros((nb_models, len(v_born)))
             for index_habmodel in range(nb_models):
                 if dict_pref_stahab['bmono'][index_habmodel]:
-                    pref_h[index_habmodel, :] = np.interp(h_born, dict_pref_stahab['h_data'][index_habmodel],
+                    if dict_pref_stahab['h_data'][index_habmodel]==[]:
+                        pref_h[index_habmodel, :] = np.ones((len(h_born)))
+                    else:
+                        pref_h[index_habmodel, :] = np.interp(h_born, dict_pref_stahab['h_data'][index_habmodel],
                                                           dict_pref_stahab['h_pref_data'][index_habmodel])
-                    pref_v[index_habmodel, :] = np.interp(v_born, dict_pref_stahab['v_data'][index_habmodel],
+                    if dict_pref_stahab['v_data'][index_habmodel] == []:
+                        pref_v[index_habmodel, :] = np.ones((len(v_born)))
+                    else:
+                        pref_v[index_habmodel, :] = np.interp(v_born, dict_pref_stahab['v_data'][index_habmodel],
                                                           dict_pref_stahab['v_pref_data'][index_habmodel])
                 else:
                     # TODO bivariate for stathab
@@ -727,10 +733,16 @@ class Stathab:
                 for index_habmodel in range(nb_models):
                     # to be checked
                     if dict_pref_stahab['bmono'][index_habmodel]:
-                        pref_h = np.interp(h_born, dict_pref_stahab['h_data'][index_habmodel],
-                                           dict_pref_stahab['h_pref_data'][index_habmodel])
-                        pref_v = np.interp(v_born, dict_pref_stahab['v_data'][index_habmodel],
-                                           dict_pref_stahab['v_pref_data'][index_habmodel])
+                        if dict_pref_stahab['h_data'][index_habmodel] == []:
+                            pref_h= np.ones((len(h_born)))
+                        else:
+                            pref_h = np.interp(h_born, dict_pref_stahab['h_data'][index_habmodel],
+                                               dict_pref_stahab['h_pref_data'][index_habmodel])
+                        if dict_pref_stahab['v_data'][index_habmodel] == []:
+                            pref_v = np.ones((len(v_born)))
+                        else:
+                            pref_v = np.interp(v_born, dict_pref_stahab['v_data'][index_habmodel],
+                                               dict_pref_stahab['v_pref_data'][index_habmodel])
                     else:
                         # TODO bivariate for StathabSteep
                         pref_h = np.zeros((len(h_born)))
@@ -889,19 +901,28 @@ class Stathab:
             hab_var = information_model_dict["hab_variable_list"][stage_index]
             dict_pref_stahab['code_bio_model'].append(code_bio_model)
             dict_pref_stahab['stage'].append(stage)
+            hydraulic_type_available=information_model_dict["hydraulic_type_available"][stage_index]
             # copy_or_not_user_pref_curve_to_input_folder
             copy_or_not_user_pref_curve_to_input_folder(hab_var, project_properties)
             # get data
             if hab_var.model_type == "univariate suitability index curves":
                 dict_pref_stahab['bmono'].append(True)
-                dict_pref_stahab['h_data'].append(
-                    hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data[0])
-                dict_pref_stahab['h_pref_data'].append(
-                    hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data[1])
-                dict_pref_stahab['v_data'].append(
-                    hab_var.variable_list[hab_var.variable_list.names().index(hvum.v.name)].data[0])
-                dict_pref_stahab['v_pref_data'].append(
-                    hab_var.variable_list[hab_var.variable_list.names().index(hvum.v.name)].data[1])
+                if ("HV"  in hydraulic_type_available) or ("H"  in hydraulic_type_available):
+                    dict_pref_stahab['h_data'].append(
+                        hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data[0])
+                    dict_pref_stahab['h_pref_data'].append(
+                        hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data[1])
+                else:
+                    dict_pref_stahab['h_data'].append([])
+                    dict_pref_stahab['h_pref_data'].append([])
+                if ("HV" in hydraulic_type_available) or ("V" in hydraulic_type_available) :
+                    dict_pref_stahab['v_data'].append(
+                        hab_var.variable_list[hab_var.variable_list.names().index(hvum.v.name)].data[0])
+                    dict_pref_stahab['v_pref_data'].append(
+                        hab_var.variable_list[hab_var.variable_list.names().index(hvum.v.name)].data[1])
+                else:
+                    dict_pref_stahab['v_data'].append([])
+                    dict_pref_stahab['v_pref_data'].append([])
                 dict_pref_stahab['hv_pref_data'].append([])
             if hab_var.model_type == "bivariate suitability index models":
                 dict_pref_stahab['bmono'].append(False)
