@@ -106,13 +106,23 @@ class Stathab:
         self.data_ii = []
 
         # read the txt files reach by reach
+        # when loading file, python is always case-sensitive because Windows is.
+        # so let's insist on this.
+        all_file = os.listdir(path)
         for r in range(0, nb_reach):
-
             for ef in end_file_reach:
+                file_found = False
+                filename = os.path.join(path, self.name_reach[r] + ef)
+                for f in range(0, len(all_file)):
+                    if os.path.basename(filename.lower()) == all_file[f].lower():
+                        file_found = True
+                        filename = os.path.join(path, all_file[f])
+                if not file_found:
+                    print('Error: The file called ' + filename + ' was not found.\n')
+                    return
                 # open rivself.qwh.txt
                 if ef[-7:-4] == 'qhw':
-                    filename = os.path.join(path, self.name_reach[r] + ef)
-                    qwh_r = load_float_stathab(filename, True)
+                    qwh_r = load_float_stathab(filename, True,1,(0,1,2))
                     if np.array_equal(qwh_r, [-99]):  # if failed
                         return
                     else:
@@ -125,11 +135,15 @@ class Stathab:
                         print('Error: The file called ' + filename + ' is not in the right format. Minimum two rows '
                                                                      'needed. \n')
                         return
+                    qhw_r2=check_stahab_files(filename,['Q[m3/s]','H[m]','W[m]'],[])
+                    if np.array_equal(qhw_r2, [-99]):  # if failed
+                        return
+
+
 
                 # open rivdeb.txt
-                if ef[-7:-4] == 'deb':
-                    filename = os.path.join(path, self.name_reach[r] + ef)
-                    qlist_r = load_float_stathab(filename, True)
+                elif ef[-7:-4] == 'deb':
+                    qlist_r = load_float_stathab(filename, True,1,0)
                     if np.array_equal(qlist_r, [-99]):
                         return
                     else:
@@ -139,9 +153,8 @@ class Stathab:
                         return
 
                 # open riv dis
-                if ef[-7:-4] == 'dis':
-                    filename = os.path.join(path, self.name_reach[r] + ef)
-                    dis_r = load_float_stathab(filename, True)
+                elif ef[-7:-4] == 'dis':
+                    dis_r = load_float_stathab(filename, True,0,1)
                     if np.array_equal(dis_r, [-99]):  # if failed
                         return
                     if len(dis_r) < 4:
@@ -156,9 +169,8 @@ class Stathab:
                         self.qhmoy.append(dis_r[:2])
 
                 # open rivgra.txt
-                if ef[-7:-4] == 'gra':
-                    filename = os.path.join(path, self.name_reach[r] + ef)
-                    dist_granulo_r = load_float_stathab(filename, True)
+                elif ef[-7:-4] == 'gra':
+                    dist_granulo_r = load_float_stathab(filename, True,1,1)
                     if np.array_equal(dist_granulo_r, [-99]):  # if failed
                         return
                     if len(dist_granulo_r) != 12:
@@ -168,10 +180,9 @@ class Stathab:
                     else:
                         self.dist_gran.append(dist_granulo_r)
 
-                # open data_ii.txt (only for tropical rivers)
-                if ef[-6:-4] == 'ii':
-                    filename = os.path.join(path, self.name_reach[r] + ef)
-                    data_ii_r = load_float_stathab(filename, False)
+                # open data_ii.txt (only for tropical rivers; stahb_steep)
+                elif ef[-6:-4] == 'ii':
+                    data_ii_r = load_float_stathab(filename, False,0,1)
                     if np.array_equal(data_ii_r, [-99]):  # if failed
                         return
                     if len(data_ii_r) != 3:
@@ -186,7 +197,7 @@ class Stathab:
             if name_file_allreach[b] != 'Pref.txt':
                 filename = name_file_allreach[b]
                 filename = os.path.join(path, filename)
-                born = load_float_stathab(filename, False)
+                born = load_float_stathab(filename, False,1,0)
                 if np.array_equal(born, [-99]):
                     return
                 if len(born) < 2:
@@ -195,16 +206,6 @@ class Stathab:
                     return
                 else:
                     self.lim_all.append(born)
-
-        # usually not chosen fish if using the txt files
-        self.fish_chosen = ['all_fish']
-        # but try anyway to find fish
-        filename = os.path.join(path, 'fish.txt')
-        if os.path.isfile(filename):
-            with open(filename, 'rt') as f:
-                data = f.read()
-            self.fish_chosen = data.split('\n')
-
         self.load_ok = True
 
     def load_stathab_from_hdf5(self):
@@ -1476,7 +1477,7 @@ class Stathab:
         plt.show()
 
 
-def load_float_stathab(filename, check_neg):
+def load_float_stathab(filename, check_neg,hskiprows=1,husecols =1):
     """
     A function to load float with extra checks
 
@@ -1487,61 +1488,70 @@ def load_float_stathab(filename, check_neg):
 
     myfloatdata = [-99]
     still_val_err = True  # if False at the end, the file could be loaded
-    if os.path.isfile(filename):
-        try:
-            myfloatdata = np.loadtxt(filename)
-            still_val_err = False
-        except ValueError:
-            pass
-        try:  # because some people add an header to the files in the csv
-            myfloatdata = np.loadtxt(filename, skiprows=1, delimiter=";")
-            still_val_err = False
-        except ValueError:
-            pass
-        try:  # because there are csv files without header
-            myfloatdata = np.loadtxt(filename, delimiter=';')
-            still_val_err = False
-        except ValueError:
-            pass
-        if still_val_err:
-            print('Error: The file called ' + filename + ' could not be read.(2)\n')
-            return [-99]
-    else:  # when loading file, python is always case-sensitive because Windows is.
-        # so let's insist on this.
-        path_here = os.path.dirname(filename)
-        all_file = os.listdir(path_here)
-        file_found = False
-        for f in range(0, len(all_file)):
-            if os.path.basename(filename.lower()) == all_file[f].lower():
-                file_found = True
-                filename = os.path.join(path_here, all_file[f])
-                try:
-                    myfloatdata = np.loadtxt(filename)
-                    still_val_err = False
-                except ValueError:
-                    pass
-                try:  # because some people add an header to the files in the csv
-                    myfloatdata = np.loadtxt(filename, skiprows=1, delimiter=";")
-                    still_val_err = False
-                except ValueError:
-                    pass
-                try:  # because ther are csv files without header
-                    myfloatdata = np.loadtxt(filename, delimiter=';')
-                    still_val_err = False
-                except ValueError:
-                    pass
-                if still_val_err:
-                    print('Error: The file called ' + filename + ' could not be read.(2)\n')
-                    return [-99]
-        if not file_found:
-            print('Error: The file called ' + filename + ' was not found.\n')
-            return [-99]
+    # try:
+    #     myfloatdata = np.loadtxt(filename)
+    #     still_val_err = False
+    # except ValueError:
+    #     pass
+    try:  # because some people add an header to the files in the csv
+        myfloatdata = np.loadtxt(filename, skiprows=hskiprows,usecols=husecols, delimiter=";")
+        still_val_err = False
+    except ValueError:
+        pass
+    # try:  # because there are csv files without header
+    #     myfloatdata = np.loadtxt(filename, delimiter=';')
+    #     still_val_err = False
+    # except ValueError:
+    #     pass
+    if still_val_err:
+        print('Error: The file called ' + filename + ' could not be read.(2)\n')
+        return [-99]
+
 
     if check_neg:
         if np.sum(np.sign(myfloatdata)) < 0:  # if there is negative value
             print('Error: Negative values found in ' + filename + '.\n')
             return [-99]
     return myfloatdata
+
+def check_stahab_files(filename,lchkcolhead,lchklines):
+    filemantisse,file_extension=os.path.splitext(filename)
+    nbcol,nblines=len(lchkcolhead), len(lchklines)
+    myfloatdata = []
+    inblines=0
+    with open(filename, 'rt') as fi:
+        lines = fi.readlines()
+        for iline, line in enumerate(lines):
+            if '\n' in line:
+                line = line[:-1]
+            if iline == 0 and nbcol !=0:
+                if file_extension.lower=='.csv)':
+                    col=line.split(';')
+                else:
+                    col = line.split()
+                if len(col) !=nbcol:
+                    print('Error: the first line information' + ' '.join(lchkcolhead) + ' has not been  found correctly in ' + filename + '.\n')
+                    return [-99]
+                for i in range(nbcol):
+                    if lchkcolhead[i].lower() !=col[i].lower():
+                        print('Error: the first line information' + lchkcolhead[i] + ' has not been  found correctly in ' + filename + '.\n')
+                        return [-99]
+            else:
+                if inblines>nblines-1:
+                    if line.split() !='':
+                        print('Error: Too much lines and values found in ' + filename + ' ' + line +'.\n')
+                        return [-99]
+                if nblines !=0:
+                    if line[:len(inblines)].lower() != lchklines[inblines].lower():
+                        print('Error: the line information' + lchklines[inblines]+ 'has not been  found in ' + filename + '.\n')
+                        return [-99]
+                    inblines+=1
+                myfloatdata.append(line)
+        myfloatdata2=np.array(myfloatdata)
+        return myfloatdata2
+
+
+
 
 
 def load_pref(filepref, path):
