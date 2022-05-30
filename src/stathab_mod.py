@@ -92,7 +92,7 @@ class Stathab:
         """
         self.load_ok = False
         # self.name_reach
-        self.name_reach = load_namereach(path )
+        self.name_reach = load_namereach(path)
         if self.name_reach == [-99]:
             return
         nb_reach = len(self.name_reach)
@@ -120,92 +120,76 @@ class Stathab:
                 if not file_found:
                     print('Error: The file called ' + filename + ' was not found.\n')
                     return
+
                 # open rivself.qwh.txt
                 if ef[-7:-4] == 'qhw':
-                    qwh_r = load_float_stathab(filename, True,1,(0,1,2))
+                    qwh_r = check_stahab_files(filename, True, ['Q[m3/s]', 'H[m]', 'W[m]'], [])
                     if np.array_equal(qwh_r, [-99]):  # if failed
                         return
-                    else:
-                        self.qwh.append(qwh_r)
-                    if len(qwh_r[0]) != 3:
-                        print('Error: The file called ' + filename + ' is not in the right format. Three columns '
-                                                                     'needed. \n')
-                        return
-                    if len(qwh_r) < 2:
-                        print('Error: The file called ' + filename + ' is not in the right format. Minimum two rows '
-                                                                     'needed. \n')
-                        return
-                    qhw_r2=check_stahab_files(filename,['Q[m3/s]','H[m]','W[m]'],[])
-                    if np.array_equal(qhw_r2, [-99]):  # if failed
-                        return
-
-
+                    self.qwh.append(qwh_r)
 
                 # open rivdeb.txt
                 elif ef[-7:-4] == 'deb':
-                    qlist_r = load_float_stathab(filename, True,1,0)
+                    qlist_r = check_stahab_files(filename, True, ['Q[m3/s]'], [])
                     if np.array_equal(qlist_r, [-99]):
                         return
-                    else:
-                        self.qlist.append(qlist_r)
+                    self.qlist.append(qlist_r)
                     if len(qlist_r) < 2:
                         print('Error: two discharges minimum are needed in ' + filename + '\n')
                         return
 
                 # open riv dis
                 elif ef[-7:-4] == 'dis':
-                    dis_r = load_float_stathab(filename, True,0,1)
+                    ldisl = ['Q[m3/s]', 'H[m]']
+                    for i in range(20):
+                        ldisl.append('frequency(' + str(i) + '*H/4<h<' + str(i + 1) + '*H/4)')
+                    dis_r = check_stahab_files(filename, True, [], ldisl)
                     if np.array_equal(dis_r, [-99]):  # if failed
                         return
-                    if len(dis_r) < 4:
-                        print('Error: The file called ' + filename + ' is not in the right format. At least four '
-                                                                     'values needed. \n')
-                        return
-                    else:
-                        # 0 = the discharge, 1 = the mean depth
-                        if len(dis_r[2:]) != 20:
-                            print('Warning: the number of class found is not 20 \n')
-                        self.disthmes.append(dis_r[2:])
-                        self.qhmoy.append(dis_r[:2])
+                    self.disthmes.append(dis_r[2:])
+                    self.qhmoy.append(dis_r[:2])
 
                 # open rivgra.txt
                 elif ef[-7:-4] == 'gra':
-                    dist_granulo_r = load_float_stathab(filename, True,1,1)
+                    lgral = ['organic-matter', 'silt:<0,0625[mm]', 'fine-sand:<0,5[mm]', 'coarse-sand:<2[mm]',
+                             'fine-gravel:<8[mm]', 'coarse-gravel:<16[mm]', 'fine-pebbles:<32[mm]',
+                             'coarse-pebbles:<64[mm]', 'fine-cobbles:<128[mm]', 'coarse-cobbles:<256[mm]',
+                             'boulders:<1024[mm]', 'rocks:>=1024[mm]']
+                    dist_granulo_r = check_stahab_files(filename, True,
+                                                        ['substrate_classification_code', 'frequency[]'],
+                                                        lgral)
                     if np.array_equal(dist_granulo_r, [-99]):  # if failed
                         return
-                    if len(dist_granulo_r) != 12:
-                        print('Error: The file called ' + filename +
-                              ' is not in the right format. 12 roughness classes are needed.\n')
-                        return
-                    else:
-                        self.dist_gran.append(dist_granulo_r)
+                    self.dist_gran.append(dist_granulo_r)
 
                 # open data_ii.txt (only for tropical rivers; stahb_steep)
                 elif ef[-6:-4] == 'ii':
-                    data_ii_r = load_float_stathab(filename, False,0,1)
+                    data_ii_r = check_stahab_files(filename, False, [],
+                                                   ['reach_slope[%]', 'total_waterfalls_height[m]', 'reach_length[m]'])
                     if np.array_equal(data_ii_r, [-99]):  # if failed
-                        return
-                    if len(data_ii_r) != 3:
-                        print(
-                            'Error: The file called ' + filename + ' is not in the right format.  Three values needed.\n')
                         return
                     self.data_ii.append(data_ii_r)
 
         # open the files with the limits of class
-        self.lim_all = []
+        self.lim_all = [[], []]
+        lbornl = [['H[m]'], ['V[m/s]']]
+        bok = 0
         for b in range(0, len(name_file_allreach)):
-            if name_file_allreach[b] != 'Pref.txt':
-                filename = name_file_allreach[b]
-                filename = os.path.join(path, filename)
-                born = load_float_stathab(filename, False,1,0)
+            if name_file_allreach[b].lower() in ('bornh.txt', 'bornh.csv'):
+                bok = 1
+            if name_file_allreach[b].lower() in ('bornv.txt', 'bornv.csv'):
+                bok = 2
+            if bok != 0:
+                filename = os.path.join(path, name_file_allreach[b])
+                born = check_stahab_files(filename, True, lbornl[bok - 1], [])
                 if np.array_equal(born, [-99]):
                     return
                 if len(born) < 2:
                     print('Error: The file called ' + filename + ' is not in the right format.  '
                                                                  'At least two values needed. \n')
                     return
-                else:
-                    self.lim_all.append(born)
+                self.lim_all[bok - 1] = born
+                bok = 0
         self.load_ok = True
 
     def load_stathab_from_hdf5(self):
@@ -1477,80 +1461,94 @@ class Stathab:
         plt.show()
 
 
-def load_float_stathab(filename, check_neg,hskiprows=1,husecols =1):
-    """
-    A function to load float with extra checks
-
-    :param filename: the file to load with the path
-    :param check_neg: if true negative value are not allowed in the data
-    :return: data if ok, -99 if failed
-    """
-
-    myfloatdata = [-99]
-    still_val_err = True  # if False at the end, the file could be loaded
-    # try:
-    #     myfloatdata = np.loadtxt(filename)
-    #     still_val_err = False
-    # except ValueError:
-    #     pass
-    try:  # because some people add an header to the files in the csv
-        myfloatdata = np.loadtxt(filename, skiprows=hskiprows,usecols=husecols, delimiter=";")
-        still_val_err = False
-    except ValueError:
-        pass
-    # try:  # because there are csv files without header
-    #     myfloatdata = np.loadtxt(filename, delimiter=';')
-    #     still_val_err = False
-    # except ValueError:
-    #     pass
-    if still_val_err:
-        print('Error: The file called ' + filename + ' could not be read.(2)\n')
-        return [-99]
-
-
-    if check_neg:
-        if np.sum(np.sign(myfloatdata)) < 0:  # if there is negative value
-            print('Error: Negative values found in ' + filename + '.\n')
-            return [-99]
-    return myfloatdata
-
-def check_stahab_files(filename,lchkcolhead,lchklines):
-    filemantisse,file_extension=os.path.splitext(filename)
-    nbcol,nblines=len(lchkcolhead), len(lchklines)
+def check_stahab_files(filename,check_neg,lchkcolhead,lchklines):
+    '''
+    A function to load and check stahab and stahab_steep files and extract list of floats
+    :param filename:  the file to load with the path
+    :param check_neg: if true negatives values are not allowed in the data
+    :param lchkcolhead: a list of string for column names
+    :param lchklines: a list of string for lines names
+    :return: data in a list of np.array if ok, [-99] if failed
+    '''
+    filemantisse, file_extension = os.path.splitext(filename)
+    nbcol, nblines = len(lchkcolhead), len(lchklines)
     myfloatdata = []
-    inblines=0
+    inblines = 0
     with open(filename, 'rt') as fi:
         lines = fi.readlines()
         for iline, line in enumerate(lines):
             if '\n' in line:
                 line = line[:-1]
-            if iline == 0 and nbcol !=0:
-                if file_extension.lower=='.csv)':
-                    col=line.split(';')
-                else:
-                    col = line.split()
-                if len(col) !=nbcol:
-                    print('Error: the first line information' + ' '.join(lchkcolhead) + ' has not been  found correctly in ' + filename + '.\n')
+            if file_extension.lower == '.csv' or ';' in line:
+                col = line.split(';')
+            else:
+                col = line.split()
+            if iline == 0 and nbcol != 0:
+                if len(col) != nbcol:
+                    print('Error: the first line information ' + ' '.join(
+                        lchkcolhead) + ' has not been  found correctly in ' + filename + '.\n')
                     return [-99]
                 for i in range(nbcol):
-                    if lchkcolhead[i].lower() !=col[i].lower():
-                        print('Error: the first line information' + lchkcolhead[i] + ' has not been  found correctly in ' + filename + '.\n')
+                    if lchkcolhead[i].lower() != col[i].lower():
+                        print('Error: the first line information ' + lchkcolhead[
+                            i] + ' has not been  found correctly in ' + filename + '.\n')
                         return [-99]
             else:
-                if inblines>nblines-1:
-                    if line.split() !='':
-                        print('Error: Too much lines and values found in ' + filename + ' ' + line +'.\n')
-                        return [-99]
-                if nblines !=0:
-                    if line[:len(inblines)].lower() != lchklines[inblines].lower():
-                        print('Error: the line information' + lchklines[inblines]+ 'has not been  found in ' + filename + '.\n')
-                        return [-99]
-                    inblines+=1
-                myfloatdata.append(line)
-        myfloatdata2=np.array(myfloatdata)
-        return myfloatdata2
+                if line.split() != '':
+                    if nblines != 0:
+                        if inblines > nblines - 1:
+                            print('Error: Too much lines and values found in ' + filename + ' ' + line + '.\n')
+                            return [-99]
+                        if col[0].lower().replace(" ", "") != lchklines[
+                            inblines].lower():  # to accept for csv the string with spaces frequency(0*H/4 < h < 1*H/4)
+                            print('Error: the line information ' + lchklines[
+                                inblines] + ' has not been  found in ' + filename + '.\n')
+                            return [-99]
+                        inblines += 1
+                        if len(col) != 2:
+                            print('Error: the line ' + lchklines[
+                                inblines] + ' has not 2 informations in ' + filename + '.\n')
+                            return [-99]
+                        if is_number(col[1]):
+                            myfloatdata.append(float(col[1]))
+                        else:
+                            print('Error: the line ' + lchklines[
+                                inblines] + ' the second information is not numeric ' + filename + '.\n')
+                            return [-99]
+                    else:
+                        if nbcol != 0:
+                            if len(col) != nbcol:
+                                print('Error: the line ' + lchklines[
+                                    inblines] + ' the number of informations is not correct ' + filename + '.\n')
+                                return [-99]
+                        for i, icol in enumerate(col):
+                            if is_number(col[i]):
+                                col[i] = float(col[i])
+                            else:
+                                print('Error: the line ' + lchklines[
+                                    inblines] + ' at least one information is not numeric ' + filename + '.\n')
+                                return [-99]
+                            if check_neg and col[i] < 0:  # if there is negative value
+                                print('Error: the line ' + lchklines[
+                                    inblines] + ' egative values found in ' + filename + '.\n')
+                                return [-99]
+                        myfloatdata.append(col)
+        myfloatdata2 = np.array(myfloatdata)
+        try:
+            if myfloatdata2.shape[1] == 1:
+                myfloatdata2 = myfloatdata2.reshape((myfloatdata2.shape[0],))
+        except:
+            pass
+    return myfloatdata2
 
-
+def is_number(n):
+    try:
+        float(n)  # Type-casting the string to `float`.
+        # If string is not a valid `float`,
+        # it'll raise `ValueError` exception
+    except ValueError:
+        return False
+    return True
 
 
 
