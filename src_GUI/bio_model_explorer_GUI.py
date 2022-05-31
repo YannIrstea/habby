@@ -17,7 +17,7 @@ https://github.com/YannIrstea/habby
 import os
 import re
 import numpy as np
-from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QSize
+from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QSize, QCoreApplication
 from PyQt5.QtGui import QPixmap, QIcon, QFont
 from PyQt5.QtWidgets import QPushButton, QLabel, QGroupBox, QVBoxLayout, QListWidget, QHBoxLayout, QGridLayout, \
     QMessageBox, QTabWidget, QApplication, QStatusBar,\
@@ -641,8 +641,26 @@ class BioModelInfoSelection(QScrollArea):
         self.selected_aquatic_animal_listwidget.model().rowsRemoved.connect(self.count_models_listwidgets)
 
         # latin_name
-        latin_name_title_label = QLabel(self.tr('Latin Name: '))
+        latin_name_title_label = QLabel(self.tr('Latin name: '))
         self.latin_name_label = QLabel("")
+        # com_name
+        com_name_title_label = QLabel(self.tr('Common name: '))
+        self.com_name_label = QLabel("")
+        # code_alternative
+        code_alternative_title_label = QLabel(self.tr('Code alternative:'))
+        self.code_alternative_label = QLabel("")
+        # code_bio
+        code_bio_title_label = QLabel(self.tr('Code biological model: '))
+        self.code_bio_label = QLabel("")
+        # country
+        country_title_label = QLabel(self.tr('Country: '))
+        self.country_label = QLabel("")
+        # made_by
+        made_by_title_label = QLabel(self.tr('Made by: '))
+        self.made_by_label = QLabel("")
+        # model_type
+        model_type_title_label = QLabel(self.tr('Model type: '))
+        self.model_type_label = QLabel("")
         # show_curve
         self.show_curve_pushbutton = QPushButton(self.tr("Show habitat suitability indices"))
         self.show_curve_pushbutton.setStatusTip(self.tr("clic = selected stage ; SHIFT+clic = all stages"))
@@ -653,9 +671,7 @@ class BioModelInfoSelection(QScrollArea):
         self.show_curve_pushbutton.clicked.connect(self.show_pref)
         self.show_curve_pushbutton.setObjectName("show_curve_pushbutton")
         self.show_curve_pushbutton.setEnabled(False)
-        # code_alternative
-        code_alternative_title_label = QLabel(self.tr('Code alternative:'))
-        self.code_alternative_label = QLabel("")
+
         # hydrosignature
         self.hydrosignature_pushbutton = QPushButton(self.tr("Show hydrosignature"))
         self.hydrosignature_pushbutton.setStatusTip(self.tr("clic = all stages"))
@@ -665,10 +681,19 @@ class BioModelInfoSelection(QScrollArea):
                                                           "velocity cross grid (Lecoarer 2007)."))
         self.hydrosignature_pushbutton.clicked.connect(self.show_hydrosignature)
         self.hydrosignature_pushbutton.setEnabled(False)
+
+        # open xml file
+        self.open_file_pushbutton = QPushButton(self.tr("Open file"))
+        self.open_file_pushbutton.setStatusTip(self.tr("clic = all stages"))
+        self.open_file_pushbutton.setToolTip(self.tr("Open the file with your favorite software."))
+        self.open_file_pushbutton.clicked.connect(self.open_file)
+        self.open_file_pushbutton.setEnabled(False)
+
         # description
         description_title_label = QLabel(self.tr('Description:'))
         description_title_label.setAlignment(Qt.AlignTop)
         self.description_textedit = QTextEdit(self)  # where the log is show
+        self.description_textedit.setAlignment(Qt.AlignLeft)
         self.description_textedit.setFrameShape(QFrame.NoFrame)
         self.description_textedit.setReadOnly(True)
         # image fish
@@ -704,12 +729,23 @@ class BioModelInfoSelection(QScrollArea):
         self.information_curve_layout.addWidget(latin_name_title_label, 0, 0)
         self.information_curve_layout.addWidget(self.latin_name_label, 0, 1)
         self.information_curve_layout.addWidget(self.show_curve_pushbutton, 0, 2)
-        self.information_curve_layout.addWidget(code_alternative_title_label, 1, 0)
-        self.information_curve_layout.addWidget(self.code_alternative_label, 1, 1)
+        self.information_curve_layout.addWidget(com_name_title_label, 1, 0)
+        self.information_curve_layout.addWidget(self.com_name_label, 1, 1)
         self.information_curve_layout.addWidget(self.hydrosignature_pushbutton, 1, 2)
-        self.information_curve_layout.addWidget(description_title_label, 2, 0)
-        self.information_curve_layout.addWidget(self.description_textedit, 2, 1)
-        self.information_curve_layout.addWidget(self.animal_picture_label, 2, 2)
+        self.information_curve_layout.addWidget(code_alternative_title_label, 2, 0)
+        self.information_curve_layout.addWidget(self.code_alternative_label, 2, 1)
+        self.information_curve_layout.addWidget(self.open_file_pushbutton, 2, 2)
+        self.information_curve_layout.addWidget(code_bio_title_label, 3, 0)
+        self.information_curve_layout.addWidget(self.code_bio_label, 3, 1)
+        self.information_curve_layout.addWidget(country_title_label, 4, 0)
+        self.information_curve_layout.addWidget(self.country_label, 4, 1)
+        self.information_curve_layout.addWidget(self.animal_picture_label, 4, 2, 5, 1)
+        self.information_curve_layout.addWidget(made_by_title_label, 5, 0)
+        self.information_curve_layout.addWidget(self.made_by_label, 5, 1)
+        self.information_curve_layout.addWidget(model_type_title_label, 6, 0)
+        self.information_curve_layout.addWidget(self.model_type_label, 6, 1)
+        self.information_curve_layout.addWidget(description_title_label, 7, 0)
+        self.information_curve_layout.addWidget(self.description_textedit, 7, 1)
 
         # valid_close_layout
         valid_close_layout = QHBoxLayout()
@@ -792,89 +828,107 @@ class BioModelInfoSelection(QScrollArea):
 
         # get the file
         selection = listwidget.selectedItems()
-        if len(selection) == 1:
-            i1 = listwidget.currentItem()  # show the info concerning the one selected fish
-        else:
-            self.latin_name_label.setText("")
-            self.code_alternative_label.setText("")
-            self.description_textedit.setText("")
-            self.animal_picture_label.clear()
-            self.animal_picture_label.setText(self.tr("no image file"))
-            self.animal_picture_path = None
-            self.show_curve_pushbutton.setEnabled(False)
-            self.hydrosignature_pushbutton.setEnabled(False)
-            # set focus
-            self.add_selected_to_main_pushbutton.setFocus()
-            return
+        if len(selection) > 0:
+            i1 = selection[-1]  # show the info concerning the last selected fish
+            # get info
+            name_fish, stage, code_bio_model = bio_info_mod.get_name_stage_codebio_fromstr(
+                i1.text()[:i1.text().rindex(" (")])
+            self.selected_fish_code_biological_model = code_bio_model
+            self.selected_fish_stage = stage
+            self.selected_name_fish = name_fish
+            i = self.biological_models_dict_gui["code_biological_model"].index(self.selected_fish_code_biological_model)
 
-        # get info
-        name_fish, stage, code_bio_model = bio_info_mod.get_name_stage_codebio_fromstr(i1.text()[:i1.text().rindex(" (")])
-        self.selected_fish_code_biological_model = code_bio_model
-        self.selected_fish_stage = stage
-        self.selected_name_fish = name_fish
-        i = self.biological_models_dict_gui["code_biological_model"].index(self.selected_fish_code_biological_model)
+            xmlfile = self.biological_models_dict_gui["path_xml"][i]
+            img_file = self.biological_models_dict_gui["path_img"][i]
 
-        xmlfile = self.biological_models_dict_gui["path_xml"][i]
-        img_file = self.biological_models_dict_gui["path_img"][i]
+            # from dict
+            self.latin_name_label.setText(self.biological_models_dict_gui["latin_name"][i])
+            common_name = bio_info_mod.get_biomodels_informations_for_database(xmlfile)["common_name_dict"][self.nativeParentWidget().nativeParentWidget().lang]
+            if common_name:
+                # selected lang
+                self.com_name_label.setText(common_name)
+            else:
+                # english
+                self.com_name_label.setText(bio_info_mod.get_biomodels_informations_for_database(xmlfile)["common_name_dict"][0])
+            self.code_alternative_label.setText(self.biological_models_dict_gui["code_alternative"][i][0])
+            self.code_bio_label.setText(self.biological_models_dict_gui["code_biological_model"][i])
+            self.country_label.setText(self.biological_models_dict_gui["country"][i])
+            self.made_by_label.setText(self.biological_models_dict_gui["made_by"][i])
+            self.model_type_label.setText(self.biological_models_dict_gui["model_type"][i])
 
-        # from dict
-        self.code_alternative_label.setText(self.biological_models_dict_gui["code_alternative"][i][0])
-        self.latin_name_label.setText(self.biological_models_dict_gui["latin_name"][i])
-
-        # open the file
-        try:
+            # open the file
             try:
-                docxml = ET.parse(xmlfile)
-                root = docxml.getroot()
-            except IOError:
-                print("Warning: " + xmlfile + " file does not exist \n")
+                try:
+                    docxml = ET.parse(xmlfile)
+                    root = docxml.getroot()
+                except IOError:
+                    print("Warning: " + xmlfile + " file does not exist \n")
+                    return
+            except ET.ParseError:
+                print("Warning: " + xmlfile + " file is not well-formed.\n")
                 return
-        except ET.ParseError:
-            print("Warning: " + xmlfile + " file is not well-formed.\n")
-            return
 
-        # get the description from xml
-        data = root.findall('.//Description')
-        if len(data) > 0:
-            found = False
-            for d in data:
-                if d.attrib['Language'] == self.lang:
-                    description = d.text
+            # get the description from xml
+            data = root.findall('.//Description')
+            if len(data) > 0:
+                found = False
+                for d in data:
+                    if d.attrib['Language'] == self.lang:
+                        description = d.text
+                        description = re.sub("\s\s+", "\n", description)
+                        self.description_textedit.setText(description[1:-1])
+                        found = True
+                if not found:
+                    description = data[0].text
                     description = re.sub("\s\s+", "\n", description)
                     self.description_textedit.setText(description[1:-1])
-                    found = True
-            if not found:
-                description = data[0].text
-                description = re.sub("\s\s+", "\n", description)
-                self.description_textedit.setText(description[1:-1])
 
-        if img_file:
-            if os.path.isfile(img_file):
-                self.animal_picture_label.clear()
-                self.animal_picture_label.setPixmap(QPixmap(img_file).scaled(self.animal_picture_label.size() * 0.95,
-                                                                            Qt.KeepAspectRatio))  # 800 500  # .scaled(self.animal_picture_label.size(), Qt.KeepAspectRatio)
-                self.animal_picture_path = img_file
+            if img_file:
+                if os.path.isfile(img_file):
+                    self.animal_picture_label.clear()
+                    animal_qpixmap = QPixmap(img_file)
+                    animal_qpixmap = animal_qpixmap.scaled(self.animal_picture_label.size() * 0.95, Qt.KeepAspectRatio)
+                    self.animal_picture_label.setPixmap(animal_qpixmap)
+                    self.animal_picture_path = img_file
+                else:
+                    self.animal_picture_label.clear()
+                    self.animal_picture_label.setText(self.tr("no image file"))
+                    self.animal_picture_path = None
             else:
                 self.animal_picture_label.clear()
                 self.animal_picture_label.setText(self.tr("no image file"))
                 self.animal_picture_path = None
+
+            # is hydrosignature
+            data, vclass, hclass = bio_info_mod.get_hydrosignature(xmlfile)
+            if isinstance(data, np.ndarray):
+                self.hydrosignature_pushbutton.setEnabled(True)
+            else:
+                self.hydrosignature_pushbutton.setEnabled(False)
+
+            # enable show_curve_pushbutton
+            self.show_curve_pushbutton.setEnabled(True)
+            self.open_file_pushbutton.setEnabled(True)
+
+            # set focus
+            self.add_selected_to_main_pushbutton.setFocus()
         else:
+            self.latin_name_label.setText("")
+            self.com_name_label.setText("")
+            self.code_alternative_label.setText("")
+            self.description_textedit.setText("")
+            self.code_bio_label.setText("")
+            self.country_label.setText("")
+            self.made_by_label.setText("")
+            self.model_type_label.setText("")
             self.animal_picture_label.clear()
-            self.animal_picture_label.setText(self.tr("no image file"))
+            self.animal_picture_label.setText("")
             self.animal_picture_path = None
-
-        # is hydrosignature
-        data, vclass, hclass = bio_info_mod.get_hydrosignature(xmlfile)
-        if isinstance(data, np.ndarray):
-            self.hydrosignature_pushbutton.setEnabled(True)
-        else:
+            self.show_curve_pushbutton.setEnabled(False)
+            self.open_file_pushbutton.setEnabled(False)
             self.hydrosignature_pushbutton.setEnabled(False)
-
-        # enable show_curve_pushbutton
-        self.show_curve_pushbutton.setEnabled(True)
-
-        # set focus
-        self.add_selected_to_main_pushbutton.setFocus()
+            # set focus
+            self.add_selected_to_main_pushbutton.setFocus()
 
     def open_explorer_on_picture_path(self):
         if self.animal_picture_path:
@@ -939,6 +993,29 @@ class BioModelInfoSelection(QScrollArea):
                                                  load_project_properties(self.path_prj))
 
         self.process_manager_sc_hs_plot.start()
+
+    def open_file(self):
+        """
+        This function make the link with function in bio_info_mod.py which allows to load and plot the data related
+        to the hydrosignature.
+        """
+
+        if not self.selected_fish_code_biological_model:
+            self.send_log.emit("Warning: " + self.tr("No fish selected to open file."))
+            return
+
+        # get the file
+        i = self.biological_models_dict_gui["code_biological_model"].index(self.selected_fish_code_biological_model)
+        xmlfile = self.biological_models_dict_gui["path_xml"][i]
+
+        path_choosen = os.path.normpath(xmlfile)
+
+        if operatingsystem() == 'Windows':
+            call(['explorer', path_choosen])
+        elif operatingsystem() == 'Linux':
+            call(["xdg-open", path_choosen])
+        elif operatingsystem() == 'Darwin':
+            call(['open', path_choosen])
 
     def add_selected_to_main(self):
         # source
