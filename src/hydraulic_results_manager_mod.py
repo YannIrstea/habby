@@ -358,7 +358,7 @@ class HydraulicSimulationResultsAnalyzer:
                             # (if split without arg, date with time is also splitted for hec ras 2D)
                             data_index_file[column_name].append(line.split("\t")[index])
             except IndexError:
-                self.hydrau_description_list = "Error: indexHYDRAU.txt file is not weel formated. Column separator is a tabulation."
+                self.hydrau_description_list = "Error: indexHYDRAU.txt file is not well formated. Column separator is a tabulation."
                 return
 
             if self.model_type == 'rubar2d':
