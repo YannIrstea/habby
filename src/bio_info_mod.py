@@ -118,10 +118,14 @@ def get_biomodels_informations_for_database(path_xml):
 
     # Common_name
     common_name_el_list = root.findall('.//ComName')
-    common_name_list = []
+    lang_list = ["english", "french", "spanish", "portuguese", "italian"]
+    common_name_list = ["", "", "", "", ""]
     for common_name in common_name_el_list:
         if common_name.text:
-            common_name_list.append(common_name.text)
+            if common_name.attrib['Language'].lower() in lang_list:
+                common_name_list[lang_list.index(common_name.attrib['Language'].lower())] = common_name.text
+            else:
+                common_name_list.append("")
         else:
             common_name_list.append("")
 
