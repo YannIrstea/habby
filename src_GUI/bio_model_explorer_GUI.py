@@ -780,11 +780,14 @@ class BioModelInfoSelection(QScrollArea):
                         stage_wish = self.bio_model_explorer_selection_dict["stage_and_size"][0][selected_stage_ind]
                         if stage_wish in self.biological_models_dict_gui["stage_and_size"][selected_xml_ind]:
                             stage_ind = self.biological_models_dict_gui["stage_and_size"][selected_xml_ind].index(stage_wish)
+                            hydraulic_type = self.biological_models_dict_gui["hydraulic_type"][selected_xml_ind][stage_ind]
+                            if self.biological_models_dict_gui["model_type"][selected_xml_ind] == "bivariate suitability index models":
+                                hydraulic_type = "*".join(hydraulic_type)
                             item_list.append(
                                 self.biological_models_dict_gui["latin_name"][selected_xml_ind] + " - " +
                                 self.bio_model_explorer_selection_dict["stage_and_size"][0][selected_stage_ind] + " - " +
                                 self.biological_models_dict_gui["code_biological_model"][selected_xml_ind] + " (" +
-                                self.biological_models_dict_gui["hydraulic_type"][selected_xml_ind][stage_ind] + ", " +
+                                hydraulic_type + ", " +
                                 self.biological_models_dict_gui["substrate_type"][selected_xml_ind][stage_ind] + ")"
                             )
 
