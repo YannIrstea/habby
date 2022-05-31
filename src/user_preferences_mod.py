@@ -195,18 +195,17 @@ class UserPreferences(AppDataFolders):
                 information_model_dict = bio_info_mod.get_biomodels_informations_for_database(xml_filename)
                 if type(information_model_dict) == dict:
                     # check if user model added exist in habby database .xml name (same as code_alternative)
-                    if xml_origine == "user":
-                        continue_tf = False
-                        if os.path.basename(xml_filename) in [os.path.basename(path_xml) for path_xml in biological_models_dict["path_xml"]]:
-                            self.user_preference_cruve_list.append(
-                                "Warning: The recently added preference curve " + xml_filename + " is invalid. Filename already exists. Please fix it and re-run HABBY.")
-                            continue_tf = True
-                        if information_model_dict["code_biological_model"] in biological_models_dict["code_biological_model"]:
-                            self.user_preference_cruve_list.append(
-                                "Warning: The recently added preference curve " + xml_filename + " is invalid. CdBiologicalModel already exists. Please fix it and re-run HABBY.")
-                            continue_tf = True
-                        if continue_tf:
-                            continue
+                    continue_tf = False
+                    if os.path.basename(xml_filename) in [os.path.basename(path_xml) for path_xml in biological_models_dict["path_xml"]]:
+                        self.user_preference_cruve_list.append(
+                            "Warning: The recently added preference curve " + xml_filename + " is invalid. Filename already exists. Please fix it and re-run HABBY or refresh user biological database.")
+                        continue_tf = True
+                    if information_model_dict["code_biological_model"] in biological_models_dict["code_biological_model"]:
+                        self.user_preference_cruve_list.append(
+                            "Warning: The recently added preference curve " + xml_filename + " is invalid. CdBiologicalModel already exists. Please fix it and re-run HABBY or refresh user biological database.")
+                        continue_tf = True
+                    if continue_tf:
+                        continue
 
                     # append in dict
                     biological_models_dict["country"].append(information_model_dict["country"])
