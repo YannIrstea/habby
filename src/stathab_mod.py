@@ -713,6 +713,20 @@ class Stathab:
                 h_born_reach.append(h_born)
                 v_born_reach.append(v_born)
 
+                #for bivariate*************************************
+                # change to the vecloity and heigth distribtion because we are in bivariate
+                # we nomalize the height distribution (between 0 and 1 ) and mulitply it with the velocity
+                bvolume= True #YLC  bvolume= False si Nico veut distribution du type HS_Area
+                rep_num = len(h_dist)
+                if bvolume:
+                    h_dist1 = h_dist / h_born      #YLC ???????????? hdist*hborn plus logique
+                    h_dist1 = h_dist1 / sum(h_dist1)  # normalisation to one, (like getting a mini-volum?)
+                    h_dist2 = np.tile(h_dist1, (1, rep_num))  # [0,1,2] -> [0,1,2,0,1,2]
+                else:
+                    h_dist2 = np.tile(h_dist, (1, rep_num))  # [0,1,2] -> [0,1,2,0,1,2]
+                v_dist2 = np.repeat(v_dist, rep_num)  # [0,1,2] -> [0,0,1,1,2,2]
+                biv_dist = (h_dist2 * v_dist2).T #YLC ??? pourquoi transposer si l'on retranspose apres
+
                 # calculate J
 
                 for index_habmodel in range(nb_models):
@@ -728,13 +742,25 @@ class Stathab:
                         else:
                             pref_v = np.interp(v_born, dict_pref_stahab['v_data'][index_habmodel],
                                                dict_pref_stahab['v_pref_data'][index_habmodel])
+
+                        hv_dist = np.outer(h_dist, v_dist)
+                        pref_hv = np.outer(pref_h, pref_v)
+                        hv_hv[r, index_habmodel, qind] = np.sum(hv_dist * pref_hv)
                     else:
-                        # TODO bivariate for StathabSteep
+                        # bivariate for StathabSteep
                         pref_h = np.zeros((len(h_born)))
                         pref_v = np.zeros((len(v_born)))
-                    hv_dist = np.outer(h_dist, v_dist)
-                    pref_hv = np.outer(pref_h, pref_v)
-                    hv_hv[r, index_habmodel, qind] = np.sum(hv_dist * pref_hv)
+                        data_prefh= dict_pref_stahab['h_data'][index_habmodel]
+                        data_prefv =dict_pref_stahab['v_data'][index_habmodel]
+                        rep_numf=len(data_prefv)
+                        data_prefvh=np.c_[np.tile(data_prefv, (1, rep_numf)), np.repeat(data_prefh, rep_numf)]
+                        pref_vh=dict_pref_stahab['hv_pref_data'][index_habmodel]
+                        v_born2 = np.repeat(v_born, rep_num)
+                        h_born2 = np.squeeze(np.tile(h_born, (1, rep_num)))
+                        point_vh = np.array([v_born2, h_born2]).T #YLC ??? pourquoi transposer si l'on est vh ???
+                        pref_here = interpolate.griddata(data_prefvh, pref_vh, point_vh, method='linear')
+                        hv_hv[r, index_habmodel, qind] = np.sum(pref_here * biv_dist.T) #YLC ????? il ne faut pas retransposer + Diane multiplie par hs la hauterur d'eau ???
+
                     wua_hv[r, index_habmodel, qind] = hv_hv[r, index_habmodel, qind] * ws * 100  # WUA/100m of river
                     hv_h[r, index_habmodel, qind] = np.sum(pref_h * h_dist)
                     hv_v[r, index_habmodel, qind] = np.sum(pref_v * v_dist)
@@ -915,7 +941,7 @@ class Stathab:
                     hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data)
                 dict_pref_stahab['v_data'].append(
                     hab_var.variable_list[hab_var.variable_list.names().index(hvum.v.name)].data)
-                dict_pref_stahab['hv_pref_data'].append(hab_var.osi)
+                dict_pref_stahab['hv_pref_data'].append(hab_var.hsi_model_data)
                 dict_pref_stahab['h_pref_data'].append([])
                 dict_pref_stahab['v_pref_data'].append([])
         return dict_pref_stahab
