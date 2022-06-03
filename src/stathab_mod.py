@@ -123,27 +123,33 @@ class Stathab:
 
                 # open rivself.qwh.txt
                 if ef[-7:-4] == 'qhw':
-                    qwh_r = check_stahab_files(filename, True, ['Q[m3/s]', 'H[m]', 'W[m]'], [])
+                    qwh_r = check_stahab_files(filename, True, ['Q[m3/s]', 'H[m]', 'W[m]'], [],False)
                     if np.array_equal(qwh_r, [-99]):  # if failed
+                        return
+                    if np.any(qwh_r[:,0]==0):
+                        print('Error: The file called ' + filename + ' a 0 value for Q[m3/s] has been found\n')
                         return
                     self.qwh.append(qwh_r)
 
                 # open rivdeb.txt
                 elif ef[-7:-4] == 'deb':
-                    qlist_r = check_stahab_files(filename, True, ['Q[m3/s]'], [])
+                    qlist_r = check_stahab_files(filename, True, ['Q[m3/s]'], [],False)
                     if np.array_equal(qlist_r, [-99]):
                         return
-                    self.qlist.append(qlist_r)
+                    if np.any(qlist_r ==0):
+                        print('Error: The file called ' + filename + ' a 0 value for Q[m3/s] has been found\n')
+                        return
                     if len(qlist_r) < 2:
                         print('Error: two discharges minimum are needed in ' + filename + '\n')
                         return
+                    self.qlist.append(qlist_r)
 
                 # open riv dis
                 elif ef[-7:-4] == 'dis':
                     ldisl = ['Q[m3/s]', 'H[m]']
                     for i in range(20):
                         ldisl.append('frequency(' + str(i) + '*H/4<h<' + str(i + 1) + '*H/4)')
-                    dis_r = check_stahab_files(filename, True, [], ldisl)
+                    dis_r = check_stahab_files(filename, True, [], ldisl,True)
                     if np.array_equal(dis_r, [-99]):  # if failed
                         return
                     self.disthmes.append(dis_r[2:])
@@ -157,7 +163,7 @@ class Stathab:
                              'boulders:<1024[mm]', 'rocks:>=1024[mm]']
                     dist_granulo_r = check_stahab_files(filename, True,
                                                         ['substrate_classification_code', 'frequency[]'],
-                                                        lgral)
+                                                        lgral,True)
                     if np.array_equal(dist_granulo_r, [-99]):  # if failed
                         return
                     self.dist_gran.append(dist_granulo_r)
@@ -165,7 +171,7 @@ class Stathab:
                 # open data_ii.txt (only for tropical rivers; stahb_steep)
                 elif ef[-6:-4] == 'ii':
                     data_ii_r = check_stahab_files(filename, False, [],
-                                                   ['reach_slope[%]', 'total_waterfalls_height[m]', 'reach_length[m]'])
+                                                   ['reach_slope[%]', 'total_waterfalls_height[m]', 'reach_length[m]'],False)
                     if np.array_equal(data_ii_r, [-99]):  # if failed
                         return
                     self.data_ii.append(data_ii_r)
@@ -181,7 +187,7 @@ class Stathab:
                 bok = 2
             if bok != 0:
                 filename = os.path.join(path, name_file_allreach[b])
-                born = check_stahab_files(filename, True, lbornl[bok - 1], [])
+                born = check_stahab_files(filename, True, lbornl[bok - 1], [],False)
                 if np.array_equal(born, [-99]):
                     return
                 if len(born) < 2:
@@ -461,7 +467,6 @@ class Stathab:
             [0.00001, 0.0001, 0.00028, 0.00125, 0.005, 0.012, 0.024, 0.048, 0.096, 0.192, 0.640, 1.536])  # WHY?
         # coeff = np.zeros((len(self.fish_chosen), coeff_all.shape[1]))
 
-
         nb_reach = len(self.name_reach)
         dict_pref_stahab = self.stahab_get_pref()
 
@@ -500,14 +505,6 @@ class Stathab:
             # # granulometry
             granulo_mean = np.sum(coeff_granu * dist_gran_r)
             self.granulo_mean_all.append(granulo_mean)
-            # lim_g = self.lim_all[2]
-            # lim_g[lim_g < 0] = 0
-            # lim_g[lim_g > 11] = 11
-            # dist_gs = np.zeros(len(lim_g) - 1, )
-            # for cg in range(0, len(lim_g) - 1):
-            #     lim_cg = [np.int(np.floor(lim_g[cg])), np.floor(lim_g[cg + 1])]
-            #     dist_chosen = dist_gran_r[np.int(lim_cg[0]):np.int(lim_cg[1])]
-            #     dist_gs[cg] = np.sum(dist_chosen)
 
             # get the distributions and power law ready
             [h_coeff, w_coeff] = self.power_law(qwh_r)
@@ -524,24 +521,21 @@ class Stathab:
             pref_v = np.zeros((nb_models, len(v_born)))
             for index_habmodel in range(nb_models):
                 if dict_pref_stahab['bmono'][index_habmodel]:
-                    if dict_pref_stahab['h_data'][index_habmodel]==[]:
+                    if dict_pref_stahab['h_data'][index_habmodel] == []:
                         pref_h[index_habmodel, :] = np.ones((len(h_born)))
                     else:
                         pref_h[index_habmodel, :] = np.interp(h_born, dict_pref_stahab['h_data'][index_habmodel],
-                                                          dict_pref_stahab['h_pref_data'][index_habmodel])
+                                                              dict_pref_stahab['h_pref_data'][index_habmodel])
                     if dict_pref_stahab['v_data'][index_habmodel] == []:
                         pref_v[index_habmodel, :] = np.ones((len(v_born)))
                     else:
                         pref_v[index_habmodel, :] = np.interp(v_born, dict_pref_stahab['v_data'][index_habmodel],
-                                                          dict_pref_stahab['v_pref_data'][index_habmodel])
-                else:
-                    # TODO bivariate for stathab
-                    pref_h[index_habmodel, :] = np.zeros((len(h_born)))
-                    pref_v[index_habmodel, :] = np.zeros((len(v_born)))
+                                                              dict_pref_stahab['v_pref_data'][index_habmodel])
+                # else: # TODO for bivariate avoid doing duplicates things for all discharges
 
             # result = np.zeros((nbclaq, 10))
             result_reach_q_hyd = np.zeros((nbclaq, 4))
-            dist_hs_reach=[]
+            dist_hs_reach = []
             dist_vs_reach = []
             # for all discharge
             for qind in range(0, nbclaq):
@@ -567,50 +561,42 @@ class Stathab:
                 wmod[qind] = ws
                 result_reach_q_hyd[qind, :] = [qmod[qind][0], ws, hs, vs]
 
+                # for bivariate*************************************
+                # change to the velocity and heigth distribution because we are in bivariate
+                rep_numh, rep_numv = len(dist_hs), len(dist_vs)
+                h_dist2 = np.tile(dist_hs, (1, rep_numv))  # [0,1,2] -> [0,1,2,0,1,2]
+                v_dist2 = np.repeat(dist_vs, rep_numh)  # [0,1,2] -> [0,0,1,1,2,2]
+                biv_dist = (h_dist2 * v_dist2)  # similar to an hydrosignature with a sum of 1
+                v_born2 = np.repeat(v_born, rep_numh)
+                h_born2 = np.squeeze(np.tile(h_born, (1, rep_numv)))
+                point_vh = np.array([v_born2, h_born2]).T  # values for v and h for each class frequency of biv_dist
+
                 for index_habmodel in range(nb_models):
                     if dict_pref_stahab['bmono'][index_habmodel]:
                         # vh_v	spu_v	vh_h	spu_h	vh_hv	spu_hv
                         vh_h = np.sum(dist_hs * pref_h[index_habmodel, :])
-                        spu_h = vh_h * ws * 100
                         vh_v = np.sum(dist_vs * pref_v[index_habmodel, :])
-                        spu_v = vh_v * ws * 100
                         vh_hv = vh_h * vh_v
-                        spu_hv = vh_hv * ws * 100
                         hv_hv[r, index_habmodel, qind] = vh_hv
-                        wua_hv[r, index_habmodel, qind] = spu_hv
                         hv_h[r, index_habmodel, qind] = vh_h
-                        wua_h[r, index_habmodel, qind] = spu_h
                         hv_v[r, index_habmodel, qind] = vh_v
-                        wua_v[r, index_habmodel, qind] = spu_v
                     else:
-                        # TODO bivariate for stathab
-                        # TODO simplifier avec ce qui precede
-                        hv_hv[r, index_habmodel, qind] = 0
-                        wua_hv[r, index_habmodel, qind] = 0
-                        hv_h[r, index_habmodel, qind] = 0
-                        wua_h[r, index_habmodel, qind] = 0
-                        hv_v[r, index_habmodel, qind] = 0
-                        wua_v[r, index_habmodel, qind] = 0
+                        # bivariate for StathabSteep
+                        data_prefh = dict_pref_stahab['h_data'][index_habmodel]
+                        data_prefv = dict_pref_stahab['v_data'][index_habmodel]
+                        rep_numfv, rep_numfh = len(data_prefv), len(data_prefh)
+                        # Todo verifier que l'on est dans le xml DescriptionMode="VelocityIncreasingAndThenHeightOfWaterIncreasing"
+                        data_prefvh = np.c_[
+                            np.squeeze(np.tile(data_prefv, (1, rep_numfh))), np.repeat(data_prefh, rep_numfv)]
+                        pref_vh = dict_pref_stahab['hv_pref_data'][index_habmodel]
+                        pref_here = interpolate.griddata(data_prefvh, pref_vh, point_vh, method='linear')
+                        hv_hv[r, index_habmodel, qind] = np.nansum(pref_here * biv_dist)
+                        hv_h[r, index_habmodel, qind] = hv_hv[r, index_habmodel, qind]
+                        hv_v[r, index_habmodel, qind] = hv_hv[r, index_habmodel, qind]
+                    wua_hv[r, index_habmodel, qind] = hv_hv[r, index_habmodel, qind] * ws * 100  # WUA/100m of river
+                    wua_h[r, index_habmodel, qind] = hv_h[r, index_habmodel, qind] * ws * 100  # WUA/100m of river
+                    wua_v[r, index_habmodel, qind] = hv_v[r, index_habmodel, qind] * ws * 100  # WUA/100m of river
 
-            # ************************************************************************************************************
-            # Verif Stathab
-            # for index_habmodel in range(nb_models):
-            #     nomfich = 'C:\\w\\S_' + self.name_reach[r] + '-' + dict_pref_stahab['code_bio_model'][
-            #         index_habmodel] + '-' + dict_pref_stahab['stage'][index_habmodel] + '.txt'
-            #     f_chk2 = open(nomfich, 'w')
-            #     f_chk2.write(
-            #         '\t'.join(['q', 'ws', 'hs', 'vs'] + ['vh_v', 'spu_v', 'vh_h', 'spu_h', 'vh_hv', 'spu_hv']) + '\n')
-            #     f_chk2.close()
-            #     f_chk2 = open(nomfich, 'a')
-            #     np.savetxt(f_chk2,
-            #                np.concatenate(
-            #                    (np.concatenate((qmod, wmod, hmod, vmod), axis=1),
-            #                     np.stack((hv_v[r, index_habmodel, :], wua_v[r, index_habmodel, :],
-            #                               hv_h[r, index_habmodel, :], wua_h[r, index_habmodel, :],
-            #                               hv_hv[r, index_habmodel, :],
-            #                               wua_hv[r, index_habmodel, :]), axis=1)), axis=1), delimiter='\t')
-            #     f_chk2.close()
-            # ************************************************************************************************************
 
             # adding results by reach
             self.vclass_all.append(vclass)
@@ -624,14 +610,16 @@ class Stathab:
             self.dist_vs_all.append(dist_vs_reach)
 
             # list of dict data for plotting
-            self.data_list.append(dict(fish_list=[dict_pref_stahab['code_bio_model'][index_habmodel] + '-' + dict_pref_stahab['stage'][index_habmodel] for index_habmodel in range(nb_models)],
+            self.data_list.append(dict(fish_list=[
+                dict_pref_stahab['code_bio_model'][index_habmodel] + '-' + dict_pref_stahab['stage'][index_habmodel] for
+                index_habmodel in range(nb_models)],
                                        q_all=qmod,
                                        h_all=hmod,
                                        w_all=wmod,
                                        vel_all=vmod,
                                        OSI=hv_hv[r],
                                        WUA=wua_hv[r],
-                                        targ_q_all=[]))
+                                       targ_q_all=[]))
 
         # the biological habitat value and wua for all reach, all species
         self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv, 'hv_h': hv_h, 'wua_h': wua_h, 'hv_v': hv_v, 'wua_v': wua_v}
@@ -713,27 +701,27 @@ class Stathab:
                 h_born_reach.append(h_born)
                 v_born_reach.append(v_born)
 
-                #for bivariate*************************************
-                # change to the vecloity and heigth distribtion because we are in bivariate
-                # we nomalize the height distribution (between 0 and 1 ) and mulitply it with the velocity
-                bvolume= True #YLC  bvolume= False si Nico veut distribution du type HS_Area
-                rep_num = len(h_dist)
-                if bvolume:
-                    h_dist1 = h_dist / h_born      #YLC ???????????? hdist*hborn plus logique
-                    h_dist1 = h_dist1 / sum(h_dist1)  # normalisation to one, (like getting a mini-volum?)
-                    h_dist2 = np.tile(h_dist1, (1, rep_num))  # [0,1,2] -> [0,1,2,0,1,2]
-                else:
-                    h_dist2 = np.tile(h_dist, (1, rep_num))  # [0,1,2] -> [0,1,2,0,1,2]
-                v_dist2 = np.repeat(v_dist, rep_num)  # [0,1,2] -> [0,0,1,1,2,2]
-                biv_dist = (h_dist2 * v_dist2).T #YLC ??? pourquoi transposer si l'on retranspose apres
-
+                # for bivariate*************************************
+                # change to the velocity and heigth distribution because we are in bivariate
+                rep_numh, rep_numv = len(h_dist), len(v_dist)
+                # OLD in volume but Now Nicolas Lamouroux wants it in area
+                # we normalize the height distribution (between 0 and 1 ) and mulitply it with the velocity
+                # h_dist1 = h_dist / h_born      #YLC ???????????? hdist*hborn plus logique
+                # h_dist1 = h_dist1 / sum(h_dist1)  # normalisation to one, (like getting a mini-volume)
+                # h_dist2 = np.tile(h_dist1, (1, rep_numv))  # [0,1,2] -> [0,1,2,0,1,2]
+                h_dist2 = np.tile(h_dist, (1, rep_numv))  # [0,1,2] -> [0,1,2,0,1,2]
+                v_dist2 = np.repeat(v_dist, rep_numh)  # [0,1,2] -> [0,0,1,1,2,2]
+                biv_dist = (h_dist2 * v_dist2)  # similar to an hydrosignature with a sum of 1
+                v_born2 = np.repeat(v_born, rep_numh)
+                h_born2 = np.squeeze(np.tile(h_born, (1, rep_numv)))
+                point_vh = np.array([v_born2, h_born2]).T  # values for v and h for each class frequency of biv_dist
                 # calculate J
 
                 for index_habmodel in range(nb_models):
-                    # to be checked
+                    # Todo stathab mor optimized here we work on model for all discharges
                     if dict_pref_stahab['bmono'][index_habmodel]:
                         if dict_pref_stahab['h_data'][index_habmodel] == []:
-                            pref_h= np.ones((len(h_born)))
+                            pref_h = np.ones((len(h_born)))
                         else:
                             pref_h = np.interp(h_born, dict_pref_stahab['h_data'][index_habmodel],
                                                dict_pref_stahab['h_pref_data'][index_habmodel])
@@ -746,24 +734,24 @@ class Stathab:
                         hv_dist = np.outer(h_dist, v_dist)
                         pref_hv = np.outer(pref_h, pref_v)
                         hv_hv[r, index_habmodel, qind] = np.sum(hv_dist * pref_hv)
+                        hv_h[r, index_habmodel, qind] = np.sum(pref_h * h_dist)
+                        hv_v[r, index_habmodel, qind] = np.sum(pref_v * v_dist)
+
                     else:
                         # bivariate for StathabSteep
-                        pref_h = np.zeros((len(h_born)))
-                        pref_v = np.zeros((len(v_born)))
-                        data_prefh= dict_pref_stahab['h_data'][index_habmodel]
-                        data_prefv =dict_pref_stahab['v_data'][index_habmodel]
-                        rep_numf=len(data_prefv)
-                        data_prefvh=np.c_[np.tile(data_prefv, (1, rep_numf)), np.repeat(data_prefh, rep_numf)]
-                        pref_vh=dict_pref_stahab['hv_pref_data'][index_habmodel]
-                        v_born2 = np.repeat(v_born, rep_num)
-                        h_born2 = np.squeeze(np.tile(h_born, (1, rep_num)))
-                        point_vh = np.array([v_born2, h_born2]).T #YLC ??? pourquoi transposer si l'on est vh ???
+                        data_prefh = dict_pref_stahab['h_data'][index_habmodel]
+                        data_prefv = dict_pref_stahab['v_data'][index_habmodel]
+                        rep_numfv, rep_numfh = len(data_prefv), len(data_prefh)
+                        # Todo verifier que l'on est dans le xml DescriptionMode="VelocityIncreasingAndThenHeightOfWaterIncreasing"
+                        data_prefvh = np.c_[
+                            np.squeeze(np.tile(data_prefv, (1, rep_numfh))), np.repeat(data_prefh, rep_numfv)]
+                        pref_vh = dict_pref_stahab['hv_pref_data'][index_habmodel]
                         pref_here = interpolate.griddata(data_prefvh, pref_vh, point_vh, method='linear')
-                        hv_hv[r, index_habmodel, qind] = np.sum(pref_here * biv_dist.T) #YLC ????? il ne faut pas retransposer + Diane multiplie par hs la hauterur d'eau ???
+                        hv_hv[r, index_habmodel, qind] = np.nansum(pref_here * biv_dist)
+                        hv_h[r, index_habmodel, qind] = hv_hv[r, index_habmodel, qind]
+                        hv_v[r, index_habmodel, qind] = hv_hv[r, index_habmodel, qind]
 
                     wua_hv[r, index_habmodel, qind] = hv_hv[r, index_habmodel, qind] * ws * 100  # WUA/100m of river
-                    hv_h[r, index_habmodel, qind] = np.sum(pref_h * h_dist)
-                    hv_v[r, index_habmodel, qind] = np.sum(pref_v * v_dist)
                     wua_h[r, index_habmodel, qind] = hv_h[r, index_habmodel, qind] * ws * 100  # WUA/100m of river
                     wua_v[r, index_habmodel, qind] = hv_v[r, index_habmodel, qind] * ws * 100  # WUA/100m of river
             self.h_all.append(hmod)
@@ -776,14 +764,16 @@ class Stathab:
             self.vborn_Stahabsteep.append(v_born_reach)
 
             # list of dict data for plotting
-            self.data_list.append(dict(fish_list=[dict_pref_stahab['code_bio_model'][index_habmodel] + '-' + dict_pref_stahab['stage'][index_habmodel] for index_habmodel in range(nb_models)],
+            self.data_list.append(dict(fish_list=[
+                dict_pref_stahab['code_bio_model'][index_habmodel] + '-' + dict_pref_stahab['stage'][index_habmodel] for
+                index_habmodel in range(nb_models)],
                                        q_all=qmod,
                                        h_all=hmod,
                                        w_all=wmod,
                                        vel_all=vmod,
                                        OSI=hv_hv[r],
                                        WUA=wua_hv[r],
-                                        targ_q_all=[]))
+                                       targ_q_all=[]))
 
             # # ************************************************************************************************************
             # # Verif Stathab
@@ -806,92 +796,6 @@ class Stathab:
 
         ## the biological habitat value and wua for all reach, all species
         self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv, 'hv_h': hv_h, 'wua_h': wua_h, 'hv_v': hv_v, 'wua_v': wua_v}
-
-        self.load_ok = True
-
-    def stathab_trop_biv(self, path_bio):
-        """
-        This function calculate the stathab outputs  for the bivariate preference file in the case where the river is
-        steep and in the tropical regions (usually the islands of Reunion and Guadeloupe).
-
-        :param path_bio:
-        :return:
-        """
-
-        # various info
-        self.load_ok = False
-        nb_reach = len(self.name_reach)
-        nbclaq = 50  # number of discharge value where the data have to be calculated
-
-        # get the preference info based on the files known
-        code_fish = self.fish_chosen
-        data_pref_all = load_pref_trop_biv(code_fish, path_bio)
-        nb_fish = len(data_pref_all)
-        if nb_fish == 0:
-            print('Error: No fish found \n')
-            return
-
-        # the biological preference index for all reach, all species
-        self.j_all = np.zeros((nb_reach, len(self.fish_chosen), nbclaq))
-
-        # for each  reach
-        for r in range(0, nb_reach):
-
-            qmod = np.zeros((nbclaq, 1))
-            hmod = np.zeros((nbclaq, 1))
-            vmod = np.zeros((nbclaq, 1))
-            wmod = np.zeros((nbclaq, 1))
-            try:
-                qwh_r = self.qwh[r]
-                qlist_r = self.qlist[r]
-            except IndexError:
-                print('Error: data not coherent with the number of reach \n')
-                return
-
-            # get the power law
-            [h_coeff, w_coeff] = self.power_law(qwh_r)
-
-            # for each Q
-            for qind in range(0, nbclaq):
-                # discharge, height and velcoity data
-                lnqs = np.log(min(qlist_r)) + (qind + 0.5) * (np.log(max(qlist_r)) - np.log(min(qlist_r))) / nbclaq
-                qmod[qind] = np.exp(lnqs)
-                hs = np.exp(h_coeff[1] + lnqs * h_coeff[0])
-                hmod[qind] = hs
-                ws = np.exp(w_coeff[1] + lnqs * w_coeff[0])
-                wmod[qind] = ws
-                vs = np.exp(lnqs) / (hs * ws)
-                vmod[qind] = vs
-
-                # get dist h
-                [h_dist, h_born] = self.dist_h_trop(vs, hs, self.data_ii[r][0])
-                # get dist v
-                [v_dist, v_born] = self.dist_v_trop(vs, hs, self.data_ii[r][1], self.data_ii[r][2])
-
-                # change to the vecloity and heigth distribtion because we are in bivariate
-                # we nomalize the height distribution (between 0 and 1 ) and mulitply it with the velocity
-                h_dist = h_dist / h_born
-                h_dist = h_dist / sum(h_dist)  # normalisation to one, (like getting a mini-volum?)
-                rep_num = len(h_dist)
-                v_dist = np.repeat(v_dist, rep_num)  # [0,1,2] -> [0,0,1,1,2,2]
-                h_vol = np.tile(h_dist, (1, rep_num))  # [0,1,2] -> [0,1,2,0,1,2]
-                biv_dist = (h_vol * v_dist).T
-
-                # calculate J
-                for f in range(0, nb_fish):
-                    # interpolate the preference file to the new point
-                    data_pref = data_pref_all[f]
-                    v_born2 = np.repeat(v_born, rep_num)
-                    h_born2 = np.squeeze(np.tile(h_born, (1, rep_num)))
-                    point_vh = np.array([v_born2, h_born2]).T
-                    pref_here = interpolate.griddata(data_pref[:, :2], data_pref[:, 2], point_vh, method='linear')
-                    hv_hv[r, f, qind] = np.sum(pref_here * biv_dist.T)
-                    wua_hv[r, f, qind] = hv_hv[r, f, qind] * ws
-                    self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv}
-                self.h_all.append(hmod)
-                self.v_all.append(vmod)
-                self.w_all.append(wmod)
-                self.q_all.append(qmod)
 
         self.load_ok = True
 
@@ -1236,16 +1140,19 @@ class Stathab:
 
     def savetxt_stathab(self):
         """
-        A function to save the stathab result in .txt form
+        A function to save the stathab results in .txt form
         """
         dict_pref_stahab = self.stahab_get_pref()
         nb_models = len(dict_pref_stahab['code_bio_model'])
         mode_name = "Stathab_steep" if self.riverint == 1 else "Stathab"
-        z0namefile = os.path.join(self.path_txt,'z'+ mode_name + '.txt')
-        z0header_txt = '\t'.join(['site', 'esp', 'Q', 'W', 'H', 'V', 'vh_v', 'spu_v', 'vh_h', 'spu_h', 'vh_hv', 'spu_hv']) + '\n' + '\t'.join([' ', ' ','[m3/s]', '[m]', '[m]', '[m/s]','[-]', '[m2/100m]','[-]', '[m2/100m]','[-]', '[m2/100m]'])
+
+        z0header_txt = '\t'.join(['site', 'esp', 'Q', 'W', 'H', 'V', 'vh_v', 'spu_v', 'vh_h', 'spu_h', 'vh_hv',
+                                  'spu_hv']) + '\n' + '\t'.join(
+            [' ', ' ', '[m3/s]', '[m]', '[m]', '[m/s]', '[-]', '[m2/100m]', '[-]', '[m2/100m]', '[-]', '[m2/100m]'])
 
         # save in txt hydraulic information and habitat results for each reach X biological models selected
         for r in range(0, len(self.name_reach)):
+            z0namefile = os.path.join(self.path_txt, 'z' + mode_name + '_' + self.name_reach[r] + '.txt')
             qmod = self.q_all[r]
             hmod = self.h_all[r]
             vmod = self.v_all[r]
@@ -1263,36 +1170,35 @@ class Stathab:
                 jj = np.concatenate((jj, np.stack(
                     (self.j_all['hv_hv'][r, index_habmodel, :], self.j_all['wua_hv'][r, index_habmodel, :]),
                     axis=1)), axis=1)
-                z0b=np.array([codefish for _ in range(len(qmod))], dtype=object)
+                z0b = np.array([codefish for _ in range(len(qmod))], dtype=object)
                 z0c = np.concatenate((np.column_stack((z0a, z0b)), jj0, np.stack(
                     (self.j_all['hv_v'][r, index_habmodel, :], self.j_all['wua_v'][r, index_habmodel, :],
                      self.j_all['hv_h'][r, index_habmodel, :], self.j_all['wua_h'][r, index_habmodel, :],
                      self.j_all['hv_hv'][r, index_habmodel, :], self.j_all['wua_hv'][r, index_habmodel, :]),
                     axis=1)), axis=1)
-                if r == 0 and index_habmodel==0:
+                if index_habmodel == 0:
                     z0jj = np.copy(z0c)
                 else:
                     z0jj = np.concatenate((z0jj, z0c), axis=0)
             namefile = os.path.join(self.path_txt, mode_name + '_' + self.name_reach[r] + '.txt')
             header_txt = '\t'.join(header0_list) + '\n' + '\t'.join(header1_list)
             np.savetxt(namefile, jj, delimiter='\t', header=header_txt)
-
-        np.savetxt(z0namefile, z0jj, delimiter='\t', header=z0header_txt, fmt='%s')
+            np.savetxt(z0namefile, z0jj, delimiter='\t', header=z0header_txt, fmt='%s')
 
         # save in txt stathab calculations of depth and  velocity distribution for each reach X discharge Q
-        z1namefile = os.path.join(self.path_txt, 'z' + mode_name + '_dist_h.txt')
         z1header_txt = '\t'.join(['site', 'Q', 'frequency', 'Hmin', 'Hmax']) + '\n' + '\t'.join(
             [' ', '[m3/s]', ' ', '[m]', '[m]'])
-        z2namefile = os.path.join(self.path_txt, 'z' + mode_name + '_dist_v.txt')
         z2header_txt = '\t'.join(['site', 'Q', 'frequency', 'Vmin', 'Vmax']) + '\n' + '\t'.join(
             [' ', '[m3/s]', ' ', '[m/s]', '[m/s]'])
-        if mode_name == "Stathab":
-            nb_h = len(self.lim_all[0]) - 1
-            nb_v = len(self.lim_all[1]) - 1
-        elif mode_name == "Stathab_steep":
-            nb_h = len(self.hborn_Stahabsteep[0][0])
-            nb_v = len(self.vborn_Stahabsteep[0][0])
         for r in range(0, len(self.name_reach)):
+            z1namefile = os.path.join(self.path_txt, 'z' + mode_name + '_' + self.name_reach[r] + '_dist_h.txt')
+            z2namefile = os.path.join(self.path_txt, 'z' + mode_name + '_' + self.name_reach[r] + '_dist_v.txt')
+            if mode_name == "Stathab":
+                nb_h = len(self.lim_all[0]) - 1
+                nb_v = len(self.lim_all[1]) - 1
+            elif mode_name == "Stathab_steep":
+                nb_h = len(self.hborn_Stahabsteep[0][0])
+                nb_v = len(self.vborn_Stahabsteep[0][0])
             qmod = self.q_all[r]
             for iq in range(len(qmod)):
                 z1r = np.array([self.name_reach[r] for _ in range(nb_h)], dtype=object)
@@ -1305,17 +1211,19 @@ class Stathab:
                     z2all = np.column_stack(
                         (z2r, z2q, self.dist_vs_all[r][iq], self.lim_all[1][0: -1], self.lim_all[1][1:]))
                 elif mode_name == "Stathab_steep":
-                    deltah,deltav=self.hborn_Stahabsteep[r][iq][0],self.vborn_Stahabsteep[r][iq][0]
+                    deltah, deltav = self.hborn_Stahabsteep[r][iq][0], self.vborn_Stahabsteep[r][iq][0]
                     z1all = np.column_stack(
-                        (z1r, z1q, self.dist_hs_all[r][iq], self.hborn_Stahabsteep[r][iq]-deltah, self.hborn_Stahabsteep[r][iq]+deltah))
+                        (z1r, z1q, self.dist_hs_all[r][iq], self.hborn_Stahabsteep[r][iq] - deltah,
+                         self.hborn_Stahabsteep[r][iq] + deltah))
                     z2all = np.column_stack(
-                        (z2r, z2q, self.dist_vs_all[r][iq], self.vborn_Stahabsteep[r][iq]-deltav, self.vborn_Stahabsteep[r][iq]+deltav))
-                if r == 0 and iq == 0:
+                        (z2r, z2q, self.dist_vs_all[r][iq], self.vborn_Stahabsteep[r][iq] - deltav,
+                         self.vborn_Stahabsteep[r][iq] + deltav))
+                if iq == 0:
                     z1jj, z2jj = np.copy(z1all), np.copy(z2all)
                 else:
                     z1jj, z2jj = np.concatenate((z1jj, z1all), axis=0), np.concatenate((z2jj, z2all), axis=0)
-        np.savetxt(z1namefile, z1jj, delimiter='\t', header=z1header_txt, fmt='%s')
-        np.savetxt(z2namefile, z2jj, delimiter='\t', header=z2header_txt, fmt='%s')
+            np.savetxt(z1namefile, z1jj, delimiter='\t', header=z1header_txt, fmt='%s')
+            np.savetxt(z2namefile, z2jj, delimiter='\t', header=z2header_txt, fmt='%s')
 
     def find_path_hdf5_stat(self):
         """
@@ -1341,161 +1249,25 @@ class Stathab:
 
         return path_hdf5
 
-    def test_stathab(self, path_ori):
-        """
-        A short function to test part of the outputs of stathab in temperate rivers against the C++ code,
-        It is not used in Habby but it is practical to debug.
-
-        :param path_ori: the path to the files from stathab based on the c++ code
-        """
-
-        # stathab.txt
-        filename = os.path.join(path_ori, 'stathab.txt')
-        if os.path.isfile(filename):
-            with open(filename, 'rt') as f:
-                data = f.read()
-        else:
-            print('Error: Stathab.txt was not found.\n')
-            return -99
-        # granulo_mean
-        exp_reg1 = 'average\ssubstrate\ssize\s([\d.,]+)\s*'
-        mean_sub_ori = re.findall(exp_reg1, data)
-        for r in range(0, len(mean_sub_ori)):
-            mean_sub_ori_fl = np.float(mean_sub_ori[r])
-            if np.abs(mean_sub_ori_fl - self.granulo_mean_all[r]) < 0.0001:
-                print('substrate size: ok')
-            else:
-                print(mean_sub_ori[r])
-                print(self.granulo_mean_all[r])
-
-        # rivrrd.txt
-        filename = os.path.join(path_ori, self.name_reach[0] + 'rrd.txt')
-        vol_all_orr = np.loadtxt(filename)
-        q_orr = np.exp(vol_all_orr[:, 0])
-        vclass = self.vclass_all[0]
-        hclass = self.hclass_all[0]
-        rclass = self.rclass_all[0]
-        v = self.h_all[0] * self.w_all[0]
-
-        plt.figure()
-        plt.subplot(221)
-        plt.title('Volume total')
-        plt.plot(q_orr, 1 * vol_all_orr[:, 3] * vol_all_orr[:, 2], '*')
-        plt.plot(q_orr, v)
-        plt.xlabel('Q [m$^{3}$3/sec]')
-        plt.ylabel('Volume for 1m reach [m3]')
-        plt.legend(('C++ Code', 'new python code'), loc='upper left')
-        plt.subplot(222)
-        plt.title('Surface by class for the granulometry')
-        for g in range(0, len(rclass)):
-            plt.plot(q_orr, vol_all_orr[:, 13 + g], '*')
-            plt.plot(q_orr, rclass[g], '-')
-        plt.xlabel('Q [m$^{3}$3/sec]')
-        plt.ylabel('Surface by Class [m2]')
-        plt.subplot(223)
-        plt.title('Surface by class for the height')
-        for g in range(0, len(hclass)):
-            plt.plot(q_orr, vol_all_orr[:, 9 + g], '*')
-            plt.plot(q_orr, hclass[g, :], '-')
-        plt.xlabel('Q [m$^{3}$3/sec]')
-        plt.ylabel('Surface by Class [m2]')
-        plt.subplot(224)
-        plt.title('Volume by class for the velocity')
-        for g in range(0, len(vclass)):
-            plt.plot(q_orr, vol_all_orr[:, 4 + g], '*')
-            plt.plot(q_orr, vclass[g], '-')
-        plt.xlabel('Q [m$^{3}$3/sec]')
-        plt.ylabel('Volume by Class [m3]')
-
-        # rivrre.txt
-        filename = os.path.join(path_ori, self.name_reach[0] + 'rre.txt')
-        j_orr = np.loadtxt(filename)
-        j = np.squeeze(self.j_all[0, :, :])
-        nb_spe = j_orr.shape[1]
-        plt.figure()
-        for e in range(0, nb_spe):
-            plt.plot(q_orr, j_orr[:, e], '*', label=self.fish_chosen[e] + '(C++)')
-            plt.plot(q_orr, j[e, :], '-', label=self.fish_chosen[e] + '(Python)')
-        plt.xlabel('Q [m$^{3}$3/sec]')
-        plt.ylabel('J')
-        plt.title('Suitability index J - STATHAB')
-        lgd = plt.legend(bbox_to_anchor=(1, 1), loc='upper right', ncol=1)
-
-        plt.show()
-
-    def test_stathab_trop_biv(self, path_ori):
-        """
-        A short function to test part of the outputs of the stathab tropical rivers against the R code
-        in the bivariate mode. It is not used in Habby but it is practical to debug. Stathab_trop+biv should be
-        executed before. For the moment only the fish SIC is tested.
-
-        :param path_ori: the path to the output files from stathab based on the R code
-
-        """
-
-        # load the R output data
-        filename = os.path.join(path_ori, 'SIC_ind-vh.csv')
-        data_r = np.genfromtxt(filename, skip_header=1, delimiter=";")
-        q_r = data_r[:, 2]
-        vpu = data_r[:, 6]
-
-        # compare result
-        plt.figure()
-        plt.title('Stathab - Tropical bivariate - SIC')
-        plt.plot(self.q_all[0], self.j_all[0, 0, :], '-')
-        plt.plot(q_r, vpu, 'x')
-        plt.xlabel('Q [m3/sec]')
-        plt.ylabel('VPU')
-        plt.legend(('Python Code', 'R Code'), loc=2)
-        plt.grid('on')
-        plt.show()
-
-    def test_stathab_trop_uni(self, path_ori, by_vel=True):
-        """
-        A short function to test part of the outputs of the stathab tropical rivers against the R code
-        in the univariate mode. It is not used in Habby but it is practical to debug. Stathab_trop_uni should be
-        executed before. For the moment only the fish SIC is tested.
-
-        :param path_ori: the path to the output files from stathab based on the R code
-        :param by_vel: If True, the velcoity-based vpu is used. Otherise, it is height-based wua
-
-        """
-
-        # load the R output data
-        if by_vel:
-            filename = os.path.join(path_ori, 'SIC_ind-v.csv')
-        else:
-            filename = os.path.join(path_ori, 'SIC_ind-h.csv')
-        data_r = np.genfromtxt(filename, skip_header=1, delimiter=";")
-        q_r = data_r[:, 2]
-        vpu = data_r[:, 6]
-
-        # compare result
-        plt.figure()
-        if by_vel:
-            plt.title('Stathab - Tropical univariate, based on velocity preference - SIC ')
-            plt.ylabel('VPU')
-        else:
-            plt.title('Stathab - Tropical univariate, based on height preference - SIC ')
-            plt.ylabel('WUA')
-        plt.plot(self.q_all[0], self.j_all[0, 0, :], '-')
-        plt.plot(q_r, vpu, 'x')
-        plt.xlabel('Q [m3/sec]')
-
-        plt.legend(('Python Code', 'R Code'), loc=2)
-        plt.grid('on')
-        plt.show()
 
 
-def check_stahab_files(filename,check_neg,lchkcolhead,lchklines):
+
+
+
+
+
+def check_stahab_files(filename,check_neg,lchkcolhead,lchklines,check_sumone):
     '''
     A function to load and check stahab and stahab_steep files and extract list of floats
     :param filename:  the file to load with the path
     :param check_neg: if true negatives values are not allowed in the data
     :param lchkcolhead: a list of string for column names
     :param lchklines: a list of string for lines names
+    :param check_sumone: if true the sum of the values must be one at tolerance_check_sumone
+
     :return: data in a list of np.array if ok, [-99] if failed
     '''
+    tolerance_check_sumone = 0.0011
     filemantisse, file_extension = os.path.splitext(filename)
     nbcol, nblines = len(lchkcolhead), len(lchklines)
     myfloatdata = []
@@ -1556,7 +1328,7 @@ def check_stahab_files(filename,check_neg,lchkcolhead,lchklines):
                                 return [-99]
                             if check_neg and col[i] < 0:  # if there is negative value
                                 print('Error: the line ' + lchklines[
-                                    inblines] + ' egative values found in ' + filename + '.\n')
+                                    inblines] + ' negative values found in ' + filename + '.\n')
                                 return [-99]
                         myfloatdata.append(col)
         myfloatdata2 = np.array(myfloatdata)
@@ -1565,6 +1337,16 @@ def check_stahab_files(filename,check_neg,lchkcolhead,lchklines):
                 myfloatdata2 = myfloatdata2.reshape((myfloatdata2.shape[0],))
         except:
             pass
+    if check_sumone:
+
+        if filename[-7:-3].lower() == "dis.":
+            sumdata = np.sum(myfloatdata[2:])
+        else:
+            sumdata = np.sum(myfloatdata)
+        if np.abs(sumdata - 1) > tolerance_check_sumone:
+            print('Error: the sum of the values are not one withe a ' + str(
+                tolerance_check_sumone) + ' tolerance ' + filename + '.\n')
+            return [-99]
     return myfloatdata2
 
 def is_number(n):
@@ -1578,125 +1360,10 @@ def is_number(n):
 
 
 
-def load_pref(filepref, path):
-    """
-    The function loads the different pref coeffficient contained in filepref, for the temperate river from Stathab
-
-    :param filepref: the name of the file (usually Pref.txt)
-    :param path: the path to this file
-    :return: the name of the fish, a np.array with the differen coeff
-    """
-    filename_path = os.path.join(path, filepref)
-    if os.path.isfile(filename_path):
-        with open(filename_path, 'rt') as f:
-            data = f.read()
-    else:
-        print('Error:  The file containing biological models was not found (Pref.txt).\n')
-        return [-99], [-99]
-    if not data:
-        print('Error:  The file containing biological models could not be read (Pref.txt).\n')
-        return [-99], [-99]
-    # get data line by line
-    data = data.split('\n')
-
-    # read the data and pass to float
-    name_fish = []
-    coeff_all = []
-    for l in range(0, len(data)):
-        # ignore empty line
-        if data[l]:
-            data_l = data[l].split()
-            name_fish.append(data_l[0])
-            coeff_l = list(map(float, data_l[1:]))
-            coeff_all.append(coeff_l)
-    coeff_all = np.array(coeff_all)
-
-    return name_fish, coeff_all
 
 
-def load_pref_trop_uni(code_fish, path):
-    """
-    This function loads the preference files for the univariate data. The file with the univariate data should be in the
-    form of xuni-h_XXX where XX is the fish code and x is whatever string. The assumption is that the filename for
-    velocity is very similar to the filename for height. In more detail that the string uni-h is changed to uni-v in
-    the filename. Otherwise, the file are csv file with two columns: First is velocity or height,
-    the second is the preference data.
-
-    :param code_fish: the code for the fish name in three letters (such as ASC)
-    :param path: the path to files
-    :return: the height data and velcoity data (h, pref) and (v,pref)
-    """
-
-    datah_all = []
-    datav_all = []
-
-    # get all possible file
-    all_files = src.dev_tools_mod.get_all_filename(path, '.csv')
-
-    # get the name of univariate height files
-    filenamesh = []
-    for fi in code_fish:
-        for file in all_files:
-            if 'uni-h_' + fi in file:
-                filenamesh.append(file)
-
-    # load the data
-    for fh in filenamesh:
-        # get filename with the path
-        fv = fh.replace('uni-h', 'uni-v')
-        fileh = os.path.join(path, fh)
-        filev = os.path.join(path, fv)
-
-        # load file
-        if not os.path.isfile(fileh) or not os.path.isfile(filev):
-            print('Warning: One preference file was not found.\n')
-        else:
-            try:
-                datah = np.loadtxt(fileh, skiprows=1, delimiter=';')
-                datav = np.loadtxt(filev, skiprows=1, delimiter=';')
-                datah_all.append(datah)
-                datav_all.append(datav)
-            except ValueError:
-                print('Warning: One preference file could not be read.\n')
-
-    return datah_all, datav_all
 
 
-def load_pref_trop_biv(code_fish, path):
-    """
-    This function loads the bivariate preference files for tropical rivers. The name of the file must be in the form
-    of xbiv_XXX.csv where XXX is the three-letters fish code and x is whatever string.
-
-    :param code_fish: the code for the fish name in three letters (such as ASC)
-    :param path: the path to files
-    :return: the bivariate preferences
-    """
-    data_all = []
-
-    # get all possible files
-    all_files = src.dev_tools_mod.get_all_filename(path, '.csv')
-
-    # get the name of univariate height files
-    filenames = []
-    for fi in code_fish:
-        for file in all_files:
-            if 'biv_' + fi in file:
-                filenames.append(file)
-
-    # load the data
-    for f in filenames:
-        # get filename with the path
-        file = os.path.join(path, f)
-        if not os.path.isfile(file):
-            print('Warning: One preference file was not found.\n')
-        else:
-            try:
-                data = np.loadtxt(file, skiprows=1, delimiter=';')
-                data_all.append(data)
-            except ValueError:
-                print('Warning: One preference file could not be read.\n')
-
-    return data_all
 
 
 def load_namereach(path):
@@ -1740,55 +1407,7 @@ def load_namereach(path):
     return name_reach
 
 
-def main():
-    """
-    used to test this module.
-    """
 
-    # test temperate stathab
-
-    # path = 'D:\Diane_work\model_stat\input_test'
-    # path_ori = 'D:\Diane_work\model_stat\stathab_t(1)'
-    # #path_ori = r'D:\Diane_work\model_stat\stathab_t(1)\mob_test'
-    # end_file_reach = ['deb.txt', 'qhw.txt', 'gra.txt', 'dis.txt']
-    # name_file_allreach = ['bornh.txt', 'bornv.txt', 'borng.txt', 'Pref.txt']
-    # path_habby = r'C:\Users\diane.von-gunten\HABBY'
-    # path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
-    #
-    # mystathab = Stathab('my_test4', path_habby)
-    # mystathab.load_stathab_from_txt('listriv.txt', end_file_reach, name_file_allreach, path)
-    # mystathab.create_hdf5()
-    # mystathab.load_stathab_from_hdf5()
-    # mystathab.stathab_calc(path_ori)
-    # mystathab.path_im = path_im
-    # #mystathab.savefig_stahab()
-    # #mystathab.savetxt_stathab()
-    # mystathab.test_stathab(path_ori)
-
-    # test tropical stathab
-    path_ori = r'D:\Diane_work\model_stat\FSTRESSandtathab\fstress_stathab_C\Stathab2_2014 04_R\Stathab2_2014 04\output'
-    path = r'C:\Users\diane.von-gunten\HABBY\test_data\input_stathab2'
-    path_prj = r'D:\Diane_work\dummy_folder\Projet1'
-    name_prj = 'Projet1'
-    path_im = r'D:\Diane_work\dummy_folder\cmd_test'
-    path_bio = r'C:\Users\diane.von-gunten\HABBY\biology\stathab'
-    name_file_allreach_trop = []
-    end_file_reach_trop = ['deb.csv', 'qhw.csv', 'ii.csv']  # .txt or .csv
-    biv = False
-
-    mystathab = Stathab(name_prj, path_prj)
-    mystathab.riverint = 2
-    mystathab.load_stathab_from_txt('listriv', end_file_reach_trop, name_file_allreach_trop, path)
-    # mystathab.create_hdf5()
-    mystathab.fish_chosen = ['SIC']
-
-    if biv:
-        mystathab.stathab_trop_biv(path_bio)
-        mystathab.test_stathab_trop_biv(path_ori)
-    else:
-        # False-> height based wua, True-> vpu
-        mystathab.stathab_steep_calc(path_bio, False)
-        mystathab.test_stathab_trop_uni(path_ori, False)
 
 
 if __name__ == '__main__':
