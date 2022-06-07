@@ -20,7 +20,7 @@ import numpy as np
 from PyQt5.QtCore import pyqtSignal, Qt, QEvent, QSize, QCoreApplication
 from PyQt5.QtGui import QPixmap, QIcon, QFont
 from PyQt5.QtWidgets import QPushButton, QLabel, QGroupBox, QVBoxLayout, QListWidget, QHBoxLayout, QGridLayout, \
-    QMessageBox, QTabWidget, QApplication, QStatusBar,\
+    QMessageBox, QTabWidget, QApplication, QStatusBar, QWidget, \
     QAbstractItemView, \
     QSizePolicy, QScrollArea, QFrame, QDialog, QTextEdit
 from subprocess import call
@@ -683,7 +683,7 @@ class BioModelInfoSelection(QScrollArea):
         self.hydrosignature_pushbutton.setEnabled(False)
 
         # open xml file
-        self.open_file_pushbutton = QPushButton(self.tr("Open file"))
+        self.open_file_pushbutton = QPushButton(self.tr("Open xml file"))
         self.open_file_pushbutton.setStatusTip(self.tr("clic = all stages"))
         self.open_file_pushbutton.setToolTip(self.tr("Open the file with your favorite software."))
         self.open_file_pushbutton.clicked.connect(self.open_file)
@@ -692,10 +692,11 @@ class BioModelInfoSelection(QScrollArea):
         # description
         description_title_label = QLabel(self.tr('Description:'))
         description_title_label.setAlignment(Qt.AlignTop)
-        self.description_textedit = QTextEdit(self)  # where the log is show
-        self.description_textedit.setAlignment(Qt.AlignLeft)
-        self.description_textedit.setFrameShape(QFrame.NoFrame)
-        self.description_textedit.setReadOnly(True)
+        self.description_textedit = ScrollLabel(self)
+        # self.description_textedit.setAlignment(Qt.AlignLeft)
+        # self.description_textedit.setWordWrap(True)
+        # self.description_textedit.setFrameShape(QFrame.NoFrame)
+        # self.description_textedit.setReadOnly(True)
         # image fish
         self.animal_picture_label = ClickLabel()
         self.animal_picture_label.setStyleSheet("QLabel { background-color : white; color : black; }")
@@ -737,9 +738,9 @@ class BioModelInfoSelection(QScrollArea):
         self.information_curve_layout.addWidget(self.open_file_pushbutton, 2, 2)
         self.information_curve_layout.addWidget(code_bio_title_label, 3, 0)
         self.information_curve_layout.addWidget(self.code_bio_label, 3, 1)
+        self.information_curve_layout.addWidget(self.animal_picture_label, 3, 2, 5, 1)
         self.information_curve_layout.addWidget(country_title_label, 4, 0)
         self.information_curve_layout.addWidget(self.country_label, 4, 1)
-        self.information_curve_layout.addWidget(self.animal_picture_label, 4, 2, 5, 1)
         self.information_curve_layout.addWidget(made_by_title_label, 5, 0)
         self.information_curve_layout.addWidget(self.made_by_label, 5, 1)
         self.information_curve_layout.addWidget(model_type_title_label, 6, 0)
@@ -885,6 +886,7 @@ class BioModelInfoSelection(QScrollArea):
                     description = data[0].text
                     description = re.sub("\s\s+", "\n", description)
                     self.description_textedit.setText(description[1:-1])
+                self.description_textedit.setAlignment(Qt.AlignLeft)
 
             if img_file:
                 if os.path.isfile(img_file):
@@ -1082,3 +1084,37 @@ class ClickLabel(QLabel):
     def mousePressEvent(self, event):
         self.clicked.emit()
         QLabel.mousePressEvent(self, event)
+
+
+class ScrollLabel(QScrollArea):
+    def __init__(self, *args, **kwargs):
+        QScrollArea.__init__(self, *args, **kwargs)
+        self.setFrameShape(QFrame.NoFrame)
+        # making widget resizable
+        self.setWidgetResizable(True)
+
+        # making qwidget object
+        content = QWidget(self)
+        self.setWidget(content)
+
+        # vertical box layout
+        lay = QVBoxLayout(content)
+        lay.setContentsMargins(0, 0, 0, 0)
+
+        # creating label
+        self.label = QLabel(content)
+        self.label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+
+        # setting alignment to the text
+        self.label.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+
+        # making label multi-line
+        self.label.setWordWrap(True)
+
+        # adding label to the layout
+        lay.addWidget(self.label)
+
+    # the setText method
+    def setText(self, text):
+        # setting text to the label
+        self.label.setText(text)
