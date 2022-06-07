@@ -271,7 +271,7 @@ class Data2d(list):
         for reach_number in range(self.reach_number):
             self[reach_number].unit_number = len(self[reach_number])
             for unit_number in range(len(self[reach_number])):
-                self[reach_number][unit_number].unit_name = self.unit_list[reach_number][unit_number]
+                self[reach_number][unit_number].unit_name = self.unit_list[reach_number][unit_number].replace(":", "_").replace(" ", "_")
                 self[reach_number][unit_number].unit_number = unit_number
             self.units_index.append(list(range(len(self[reach_number]))))
 
@@ -283,6 +283,7 @@ class Data2d(list):
         for unit_index_to_remove in reversed(unit_index_to_remove_list):
             self[reach_number].pop(unit_index_to_remove)
             # unit_name_list updated
+            print("Warning: The mesh of unit " + str(self.unit_list[reach_number][unit_index_to_remove]) + " of reach n°" + str(reach_number) + " is entirely dry.")
             self.unit_list[reach_number].pop(unit_index_to_remove)
         self.get_informations()
 
@@ -391,7 +392,7 @@ class Data2d(list):
             if unit_to_remove_list:
                 self.remove_unit_from_unit_index_list(unit_to_remove_list, reach_number)
 
-    def semi_wetted_mesh_cutting(self, unit_list, progress_value, delta_file):
+    def semi_wetted_mesh_cutting(self, progress_value, delta_file):
         """
         This function cut the grid of the 2D model to have correct wet surface. If we have a node with h<0 and other node(s)
         with h>0, this function cut the cells to find the wetted part, assuming a constant water elevation in the mesh.
@@ -417,12 +418,12 @@ class Data2d(list):
         for reach_number in range(self.reach_number):
 
             # progress
-            delta_unit = delta_reach / len(unit_list[reach_number])
+            delta_unit = delta_reach / len(self[reach_number])
 
             unit_to_remove_list = []
 
             # for each unit
-            for unit_number, unit_name in enumerate(unit_list[reach_number]):
+            for unit_number in range(len(self[reach_number])):
                 # get data from dict
                 ikle = self[reach_number][unit_number]["mesh"]["tin"]
                 point_all = np.column_stack((self[reach_number][unit_number]["node"][self.hvum.xy.name],
@@ -443,7 +444,7 @@ class Data2d(list):
                 ipt_all_ok_wetdry = []
                 # all meshes are entirely wet
                 if all(mikle_keep):
-                    print("Warning: The mesh of unit " + unit_name + " is entirely wet.")
+                    print("Warning: The mesh of unit " + self[reach_number][unit_number].unit_name + " of reach n°" + str(reach_number) + " doesn't have any mesh partialy wet.")
                     # progress
                     progress_value.value = progress_value.value + delta_unit
                     continue
@@ -521,7 +522,8 @@ class Data2d(list):
                                         ind_whole2.append(i)
                                 else:
                                     print(
-                                        "Error: Impossible case during the cutting of mesh partially wet on the unit " + unit_name + ".")
+                                        "Error: Impossible case during the cutting of mesh partially wet on the unit " + self[reach_number][
+                            unit_number].unit_name + ".")
                                     unit_to_remove_list.append(unit_number)
                                     continue
                                 jpn += 2

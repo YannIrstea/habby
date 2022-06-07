@@ -195,9 +195,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
 
     """ semi_wetted_mesh_cutting for only 2d models"""
     if project_properties["cut_mesh_partialy_dry"] and hydrau_description["model_dimension"] != "1":
-        data_2d.semi_wetted_mesh_cutting(hydrau_description["unit_list"],
-                                         progress_value,
-                                         delta_file)
+        data_2d.semi_wetted_mesh_cutting(progress_value, delta_file)
         if len(data_2d[0]) == 0:
             print("Error: All selected units or timestep are not hydraulically operable.")
             # warnings
@@ -252,14 +250,6 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
     data_2d.reach_list = hydrau_description["reach_list"]
     data_2d.reach_number = int(hydrau_description["reach_number"])
     data_2d.reach_type = hydrau_description["reach_type"]
-    reach_unit_list_str = []
-    for reach_number in range(data_2d.reach_number):
-        unit_list_str = []
-        for unit_name in hydrau_description["unit_list"][reach_number]:
-            unit_list_str.append(unit_name.replace(":", "_").replace(" ", "_"))
-        reach_unit_list_str.append(unit_list_str)
-    data_2d.unit_list = reach_unit_list_str
-    data_2d.set_unit_list(reach_unit_list_str)
     data_2d.unit_type = hydrau_description["unit_type"]
     data_2d.hyd_varying_mesh = hyd_varying_mesh
     data_2d.hyd_unit_z_equal = hyd_unit_z_equal
