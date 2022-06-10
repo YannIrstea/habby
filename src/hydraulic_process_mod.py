@@ -191,7 +191,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
     data_2d.remove_null_area()
 
     """ super_cut """
-    data_2d.super_cut(level=4, coeff_std=1)
+    data_2d.super_cut(level=3, coeff_std=1)
     data_2d.super_cut(level=2, coeff_std=3)
 
     """ semi_wetted_mesh_cutting for only 2d models"""
