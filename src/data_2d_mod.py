@@ -662,7 +662,9 @@ class Data2d(list):
         self.get_informations()
 
     def super_cut(self, bremoveisolatedmeshes=True, level=4, coeff_std = 1):
+        # Todo add general explenations
         """
+        Taking off bank hydraulic aberrations
         :param bremoveisolatedmeshes: every index of loca represent a mesh index of the tin with 3 values in column indexing the mesh indexes in contact ; -1 if not
         :param level: to be fixed to determine the number of contacts meshes where the research is done
         """
@@ -691,6 +693,7 @@ class Data2d(list):
                 limit = slope_mean + anomaly_cut_off
                 bmeshinvalid = np.full((len(self[reach_number][unit_number]["mesh"]["tin"]),), False)
 
+                np_max_slope_surface = self[reach_number][unit_number]["mesh"]["data"][self.hvum.max_slope_surface.name].to_numpy()
                 if bremoveisolatedmeshes:
                     bmeshinvalid = np.logical_xor(bmeshinvalid, (countcontact == 0))  # TO remove isolated mesh
                 for j in range(len(self[reach_number][unit_number]["mesh"]["tin"])):
@@ -705,7 +708,7 @@ class Data2d(list):
                             a = a | b
                         surroundingmesh = list(a)
                         surroundingmesh3 = np.array(surroundingmesh)
-                        penta3 = self[reach_number][unit_number]["mesh"]["data"][self.hvum.max_slope_surface.name].to_numpy()[surroundingmesh3]
+                        penta3 = np_max_slope_surface[surroundingmesh3]
                         for i in range(len(penta3)):
                             if penta3[i] > limit:
                                 bmeshinvalid[surroundingmesh3[i]] = True
@@ -713,6 +716,7 @@ class Data2d(list):
                 # mesh data
                 self[reach_number][unit_number]["mesh"][self.hvum.tin.name] = self[reach_number][unit_number]["mesh"][self.hvum.tin.name][~bmeshinvalid]
                 self[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name] = self[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name][~bmeshinvalid]
+                # Todo remove pandas datas for bmeshinvalid
                 if not self[reach_number][unit_number]["mesh"]["data"].empty:
                     self[reach_number][unit_number]["mesh"]["data"] = self[reach_number][unit_number]["mesh"]["data"][~bmeshinvalid]
 
