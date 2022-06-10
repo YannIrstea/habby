@@ -716,7 +716,7 @@ class Data2d(list):
                 # mesh data
                 self[reach_number][unit_number]["mesh"][self.hvum.tin.name] = self[reach_number][unit_number]["mesh"][self.hvum.tin.name][~bmeshinvalid]
                 self[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name] = self[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name][~bmeshinvalid]
-                # Todo remove pandas datas for bmeshinvalid
+                # Todo check if we remove pandas datas for bmeshinvalid
                 if not self[reach_number][unit_number]["mesh"]["data"].empty:
                     self[reach_number][unit_number]["mesh"]["data"] = self[reach_number][unit_number]["mesh"]["data"][~bmeshinvalid]
 
