@@ -717,7 +717,7 @@ class Data2d(list):
 
                 if np.sum(bmeshinvalid):
                     print("Warning: The mesh of the unit " + self[reach_number][unit_number].unit_name + " has " + str(np.sum(bmeshinvalid)) + " mesh bank hydraulic aberations(s). The latter has been removed.")
-                # print("the value of slope limit is ", limit)
+                print("the value of slope limit is ", limit)
 
 
             if unit_to_remove_list:
