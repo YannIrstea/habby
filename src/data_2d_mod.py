@@ -665,6 +665,7 @@ class Data2d(list):
         """
         unit_to_remove_list = []
         # for all reach
+        #TEST
         for reach_number in range(0, self.reach_number):
             # for all units
             for unit_number in range(0, self[reach_number].unit_number):
