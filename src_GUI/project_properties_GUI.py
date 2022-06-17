@@ -64,6 +64,17 @@ class ProjectPropertiesDialog(QDialog):
 
         """ WIDGETS """
         """ general widgets """
+
+        # Hydraulic Aberrations
+        neighbor_level = QLabel(self.tr('Neighboring mesh level'))
+        self.neighbor_level_lineedit = QLineEdit("")
+
+        coeff_std = QLabel(self.tr('Standard Deviation Multiplier'))
+        self.coeff_std_lineedit = QLineEdit("")
+
+        second_supercut = QLabel(self.tr('Recall func to remove hydraulic aberrations'))
+        self.second_supercut_checkbox = QCheckBox(self.tr(''))
+
         # cut_2d_grid
         self.cut_2d_grid_label = QLabel(self.tr('Cut hydraulic mesh partialy wet'))
         self.cut_2d_grid_checkbox = QCheckBox(self.tr(''))
@@ -75,6 +86,16 @@ class ProjectPropertiesDialog(QDialog):
         # erase_data
         self.erase_data_label = QLabel(self.tr('Erase file if exist'))
         self.erase_data_checkbox = QCheckBox(self.tr(''))
+
+        #Hydraulic Aberrations
+        neighbor_level = QLabel(self.tr('Neighboring mesh level'))
+        self.neighbor_level_lineedit = QLineEdit("")
+
+        coeff_std = QLabel(self.tr('Standard Deviation Multiplier'))
+        self.coeff_std_lineedit = QLineEdit("")
+
+        second_supercut = QLabel(self.tr('Recall func to remove hydraulic aberrations'))
+        self.second_supercut_checkbox = QCheckBox(self.tr(''))
 
         """ outputs widgets """
         self.mesh_whole_profile_hyd = QCheckBox("")
@@ -207,9 +228,12 @@ class ProjectPropertiesDialog(QDialog):
         general_options_group = QGroupBox(self.tr("General"))
         #general_options_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         general_options_group.setLayout(layout_general_options)
+        layout_general_options.addRow(neighbor_level, self.neighbor_level_lineedit)
+        layout_general_options.addRow(coeff_std, self.coeff_std_lineedit)
+        layout_general_options.addRow(second_supercut, self.second_supercut_checkbox)
         layout_general_options.addRow(self.cut_2d_grid_label, self.cut_2d_grid_checkbox)
         layout_general_options.addRow(min_height_label, self.min_height_lineedit)
-        layout_general_options.addRow(self.erase_data_label, self.erase_data_checkbox)  # , Qt.AlignLeft
+        layout_general_options.addRow(self.erase_data_label, self.erase_data_checkbox)
 
         # exports options
         self.layout_available_exports = QGridLayout()
@@ -310,6 +334,9 @@ class ProjectPropertiesDialog(QDialog):
         self.min_height_lineedit.textChanged.connect(self.set_modification_presence)
         self.erase_data_checkbox.stateChanged.connect(self.set_modification_presence)
         self.pvd_variable_z_combobox.currentIndexChanged.connect(self.set_modification_presence)
+        self.neighbor_level_lineedit.textChanged.connect(self.set_modification_presence)
+        self.coeff_std_lineedit.textChanged.connect(self.set_modification_presence)
+        self.second_supercut_checkbox.stateChanged.connect(self.set_modification_presence)
         self.vertical_exaggeration_lineedit.textChanged.connect(self.set_modification_presence)
         for checkbox in self.output_checkbox_list:
             checkbox.stateChanged.connect(self.set_modification_presence)
@@ -344,6 +371,16 @@ class ProjectPropertiesDialog(QDialog):
             self.erase_data_checkbox.setChecked(True)
         else:
             self.erase_data_checkbox.setChecked(False)
+
+        # Hydraulic Aberrations
+        self.neighbor_level_lineedit.setText(str(project_properties['neighbors_level']))
+        self.coeff_std_lineedit.setText(str(project_properties['coeff_std']))
+
+        if project_properties['second_supercut']:  # is a string not a boolean
+            self.second_supercut_checkbox.setChecked(True)
+        else:
+            self.second_supercut_checkbox.setChecked(False)
+
 
         # pvd_variable_z_combobox
         item_list = [self.hvum.z.name_gui,
@@ -537,6 +574,21 @@ class ProjectPropertiesDialog(QDialog):
             project_properties['cut_mesh_partialy_dry'] = True
         else:
             project_properties['cut_mesh_partialy_dry'] = False
+
+        # Hydraulic Aberrations
+        try:
+            project_properties['neighbors_level'] = int(self.neighbor_level_lineedit.text())
+        except ValueError:
+            self.send_log.emit('Error: ' + self.tr('Neighboring mesh level should be integer'))
+        try:
+            project_properties['coeff_std'] = float(self.coeff_std_lineedit.text())
+        except ValueError:
+            self.send_log.emit('Error: ' + self.tr('The standard deviation multiplier should be a number'))
+
+        if self.second_supercut_checkbox.isChecked():
+            project_properties['second_supercut'] = True
+        else:
+            project_properties['second_supercut'] = False
 
         return project_properties
 

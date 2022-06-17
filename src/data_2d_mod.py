@@ -661,43 +661,45 @@ class Data2d(list):
 
         self.get_informations()
 
-    def super_cut(self, bremoveisolatedmeshes=True, level=4, coeff_std = 1):
-        # Todo add general explenations
+    def super_cut(self, level, coeff_std, bremoveisolatedmeshes=True):
         """
         Taking off bank hydraulic aberrations
-        :param bremoveisolatedmeshes: every index of loca represent a mesh index of the tin with 3 values in column indexing the mesh indexes in contact ; -1 if not
-        :param level: to be fixed to determine the number of contacts meshes where the research is done
+        Supercut function returns bmeshinvalid (an array of booleans) TRUE for a mesh index that is considered a Hydraulic Aberration
+        :param bremoveisolatedmeshes: TRUE to remove isolated mesh
+        :param level: to be determined by the user to determine the number of contacts meshes where the research is done (by default 3)
+        :param coeff_std : to be determined by the user (by default 3)
+        every index of loca represents a mesh index of the tin with 3 values in column indexing the mesh indexes in contact ; -1 if not
+        countcontact indicates the number of contacts for each mesh
         """
         unit_to_remove_list = []
         # for all reach
-        #TEST
         for reach_number in range(0, self.reach_number):
             # for all units
             for unit_number in range(0, self[reach_number].unit_number):
-                # connectivity_mesh_table
-                loca, countcontact = connectivity_mesh_table(self[reach_number][unit_number]["mesh"]["tin"])  # loca,posfree = connectivity_mesh_table (tin[0:5,:])
+                # connectivity_mesh_table to get the neighbors of the mesh and the number of contact neighbors
+                loca, countcontact = connectivity_mesh_table(self[reach_number][unit_number]["mesh"]["tin"])
                 if loca is None and countcontact is None:
                     unit_to_remove_list.append(unit_number)
                     continue
 
                 # note that if the  value for a mesh index in countcontact is 0 the mesh is isolated
                 countcontact = countcontact.flatten()
-                countcontact12 = (countcontact > 0) & (
-                        countcontact != 3)  # to get the information TRUE if the mesh index is on a edge
+                countcontact12 = (countcontact > 0) & (countcontact != 3)  # to get the information TRUE if the mesh index is on the edge
 
                 # c_mesh_max_slope_surface
                 self[reach_number][unit_number].c_mesh_max_slope_surface()
+                #standard deviation method
                 slope_std = self[reach_number][unit_number]["mesh"]["data"][self.hvum.max_slope_surface.name].std()
                 slope_mean = self[reach_number][unit_number]["mesh"]["data"][self.hvum.max_slope_surface.name].mean()
                 anomaly_cut_off = slope_std * coeff_std
                 limit = slope_mean + anomaly_cut_off
+                np_max_slope_surface = self[reach_number][unit_number]["mesh"]["data"][self.hvum.max_slope_surface.name].to_numpy()
                 bmeshinvalid = np.full((len(self[reach_number][unit_number]["mesh"]["tin"]),), False)
 
-                np_max_slope_surface = self[reach_number][unit_number]["mesh"]["data"][self.hvum.max_slope_surface.name].to_numpy()
                 if bremoveisolatedmeshes:
                     bmeshinvalid = np.logical_xor(bmeshinvalid, (countcontact == 0))  # TO remove isolated mesh
                 for j in range(len(self[reach_number][unit_number]["mesh"]["tin"])):
-                    if countcontact12[j]:
+                    if countcontact12[j]: #only the mesh at the edge
                         a = set(loca[j][:countcontact[j]]) | {j}
                         aa = set(loca[j][:countcontact[j]])
                         for ilevel in range(level):
@@ -706,7 +708,7 @@ class Data2d(list):
                                 b = b | set(loca[ij][:countcontact[ij]])
                             aa = b - a
                             a = a | b
-                        surroundingmesh = list(a)
+                        surroundingmesh = list(a) # the edge mesh and its neighbors up to the indicated level
                         surroundingmesh3 = np.array(surroundingmesh)
                         penta3 = np_max_slope_surface[surroundingmesh3]
                         for i in range(len(penta3)):
@@ -716,14 +718,11 @@ class Data2d(list):
                 # mesh data
                 self[reach_number][unit_number]["mesh"][self.hvum.tin.name] = self[reach_number][unit_number]["mesh"][self.hvum.tin.name][~bmeshinvalid]
                 self[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name] = self[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name][~bmeshinvalid]
-                # Todo check if we remove pandas datas for bmeshinvalid
                 if not self[reach_number][unit_number]["mesh"]["data"].empty:
                     self[reach_number][unit_number]["mesh"]["data"] = self[reach_number][unit_number]["mesh"]["data"][~bmeshinvalid]
 
                 if np.sum(bmeshinvalid):
                     print("Warning: The mesh of the unit " + self[reach_number][unit_number].unit_name + " has " + str(np.sum(bmeshinvalid)) + " mesh bank hydraulic aberations(s). The latter has been removed.")
-                #print("the value of slope limit is ", limit)
-
 
             if unit_to_remove_list:
                 self.remove_unit_from_unit_index_list(unit_to_remove_list, reach_number)
