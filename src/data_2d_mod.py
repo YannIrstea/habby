@@ -825,12 +825,12 @@ class Data2d(list):
                             else:
                                 self[reach_number][unit_number].c_mesh_mean_from_node_values(variable.name)
 
-    def remove_null_area(self):
+    def remove_null_area(self,min_area=0):
         # for all reach
         for reach_number in range(0, self.reach_number):
             # for all units
             for unit_number in range(len(self[reach_number])):
-                self[reach_number][unit_number].remove_null_area()
+                self[reach_number][unit_number].remove_null_area(min_area)
 
     def neighbouring_triangles(self, tin, interest_mesh_indices=None):
         """
