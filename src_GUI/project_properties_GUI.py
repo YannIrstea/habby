@@ -617,7 +617,7 @@ class ProjectPropertiesDialog(QDialog):
 
         # minimal_mesh_area
         try:
-            project_properties['minimal_mesh_area'] = int(self.minimal_mesh_area_lineedit.text())
+            project_properties['minimal_mesh_area'] = float(self.minimal_mesh_area_lineedit.text())
         except ValueError:
             self.send_log.emit('Error: ' + self.tr('Minimal mesh area should be float'))
 
