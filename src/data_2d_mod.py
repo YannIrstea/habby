@@ -457,9 +457,13 @@ class Data2d(list):
                         if ikle_type[i] == 1 or ikle_type[i] == 2:
                             sumk, nboverdry, bkeep = 0, 0, True
                             ia, ib, ic = ikle[i]
-                            pa = point_all[ia]
-                            pb = point_all[ib]
-                            pc = point_all[ic]
+                            pa = np.array(point_all[ia])
+                            pb = np.array(point_all[ib])
+                            pc = np.array(point_all[ic])
+                            txyz = np.min((pa, pb, pc), axis=0)  # tranlation in order to reduce numerical problems
+                            pa -= txyz
+                            pb -= txyz
+                            pc -= txyz
                             ha = water_height[ia]
                             hb = water_height[ib]
                             hc = water_height[ic]
@@ -485,7 +489,7 @@ class Data2d(list):
                                 if bkeep: mikle_keep[i] = True  # keeping the mesh we can't split
                             else:
                                 if sumk == 5:
-                                    point_new = np.append(point_new, np.array([p2, p3]), axis=0)
+                                    point_new = np.append(point_new, np.array([p2+txyz, p3+txyz]), axis=0)
                                     if hc == 0:
                                         iklenew = np.append(iklenew,
                                                             np.array([[ia, jpn + 1, jpn + 2], [ia, ib, jpn + 1]]),
@@ -497,7 +501,7 @@ class Data2d(list):
                                         ipt_all_ok_wetdry.append(ic)
                                         ind_whole2.append(i)
                                 elif sumk == 4:
-                                    point_new = np.append(point_new, np.array([p1, p3]), axis=0)
+                                    point_new = np.append(point_new, np.array([p1+txyz, p3+txyz]), axis=0)
                                     if ha == 0:
                                         iklenew = np.append(iklenew,
                                                             np.array([[jpn + 1, ib, jpn + 2], [ib, ic, jpn + 2]]),
@@ -509,7 +513,7 @@ class Data2d(list):
                                         ipt_all_ok_wetdry.append(ia)
                                         ind_whole2.append(i)
                                 elif sumk == 3:
-                                    point_new = np.append(point_new, np.array([p1, p2]), axis=0)
+                                    point_new = np.append(point_new, np.array([p1+txyz, p2+txyz]), axis=0)
                                     if hb == 0:
                                         iklenew = np.append(iklenew,
                                                             np.array([[jpn + 1, jpn + 2, ia], [ia, jpn + 2, ic]]),
