@@ -32,8 +32,8 @@ A 64 bit Windows executable is also provided that includes all the requirements 
    <b>Habby software (Windows version)</b> 
 </p>
 
-# Requirements
-
+# Usage
+Quick tutorials, user guide, reference manual and developer's corner are available at https://habby.wiki.inrae.fr/.
 
 # References
 * (1)	Bovee K.D., “Development and evaluation of habitat suitability criteria for use in the Instream Flow Incremental Methodology”, United States Fish and Wildlife Service, Biological Report, Instream Flow Information Paper 21, (1986), 235 pp.
