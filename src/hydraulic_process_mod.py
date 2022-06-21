@@ -192,10 +192,10 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
 
     """ super_cut """
     """ bank hydraulic aberations  """
-    data_2d.super_cut(project_properties['neighbors_level'], project_properties['coeff_std'])
-
-    if project_properties['second_supercut']:
-        data_2d.super_cut(level=2, coeff_std=3)
+    if project_properties['first_supercut']:
+        data_2d.super_cut(project_properties['neighbors_level'], project_properties['coeff_std'])
+        if project_properties['second_supercut']:
+            data_2d.super_cut(level=2, coeff_std=3)
 
     """ semi_wetted_mesh_cutting for only 2d models"""
     if project_properties["cut_mesh_partialy_dry"] and hydrau_description["model_dimension"] != "1":
