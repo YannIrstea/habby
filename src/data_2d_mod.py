@@ -1145,8 +1145,8 @@ class Unit(dict):
 
         return data_variable_list
 
-    def remove_null_area(self):
-        index_to_remove = self["mesh"]["data"][self.hvum.area.name].to_numpy() == 0.0
+    def remove_null_area(self, min_area=0):
+        index_to_remove = self["mesh"]["data"][self.hvum.area.name].to_numpy() <= min_area
 
         if True in index_to_remove:
             # update tin
