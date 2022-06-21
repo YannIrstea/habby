@@ -619,7 +619,7 @@ class ProjectPropertiesDialog(QDialog):
         try:
             project_properties['minimal_mesh_area'] = int(self.minimal_mesh_area_lineedit.text())
         except ValueError:
-            self.send_log.emit('Error: ' + self.tr('Neighboring mesh level should be float'))
+            self.send_log.emit('Error: ' + self.tr('Minimal mesh area should be float'))
 
         if self.second_supercut_checkbox.isChecked():
             project_properties['second_supercut'] = True
