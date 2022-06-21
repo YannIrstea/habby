@@ -225,7 +225,8 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
 
 
     """ remove null area """
-    data_2d.remove_null_area()
+    # TODO add parameter for min area in properties?
+    data_2d.remove_null_area(0.0001)
 
     """ remove_unused_node """
     data_2d.remove_unused_node()
