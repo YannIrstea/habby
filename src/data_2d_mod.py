@@ -287,7 +287,7 @@ class Data2d(list):
         for unit_index_to_remove in reversed(unit_index_to_remove_list):
             self[reach_number].pop(unit_index_to_remove)
             # unit_name_list updated
-            print("Warning: The mesh of unit " + str(self.unit_list[reach_number][unit_index_to_remove]) + " of reach n°" + str(reach_number) + " is entirely dry.")
+            print("Warning: The mesh of unit " + str(self.unit_list[reach_number][unit_index_to_remove]) + " of reach n°" + str(reach_number) + " is empty.")
             self.unit_list[reach_number].pop(unit_index_to_remove)
         self.get_informations()
 
@@ -675,9 +675,9 @@ class Data2d(list):
         every index of loca represents a mesh index of the tin with 3 values in column indexing the mesh indexes in contact ; -1 if not
         countcontact indicates the number of contacts for each mesh
         """
-        unit_to_remove_list = []
         # for all reach
         for reach_number in range(0, self.reach_number):
+            unit_to_remove_list = []
             # for all units
             for unit_number in range(0, self[reach_number].unit_number):
                 # connectivity_mesh_table to get the neighbors of the mesh and the number of contact neighbors
@@ -828,9 +828,17 @@ class Data2d(list):
     def remove_null_area(self, min_area=0):
         # for all reach
         for reach_number in range(0, self.reach_number):
+            unit_to_remove_list  = []
             # for all units
             for unit_number in range(len(self[reach_number])):
                 self[reach_number][unit_number].remove_null_area(min_area)
+
+                # all meshes are entirely dry
+                if not self[reach_number][unit_number]["mesh"]["tin"].shape[0]:
+                    unit_to_remove_list.append(unit_number)
+
+            if unit_to_remove_list:
+                self.remove_unit_from_unit_index_list(unit_to_remove_list, reach_number)
 
     def neighbouring_triangles(self, tin, interest_mesh_indices=None):
         """
