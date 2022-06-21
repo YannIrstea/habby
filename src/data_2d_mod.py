@@ -825,7 +825,7 @@ class Data2d(list):
                             else:
                                 self[reach_number][unit_number].c_mesh_mean_from_node_values(variable.name)
 
-    def remove_null_area(self,min_area=0):
+    def remove_null_area(self, min_area=0):
         # for all reach
         for reach_number in range(0, self.reach_number):
             # for all units
