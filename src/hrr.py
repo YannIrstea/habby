@@ -36,6 +36,7 @@ def analyse_whole_profile(i_whole_profile1,i_whole_profile2):
 
 
 def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properties={}):
+    paramlimdist0=0.001 #parameter at this distance we consider that a point belongs to the segment of a triangle
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
     # progress
@@ -110,6 +111,10 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
             i_split2 = hdf5_1.data_2d[reach_number][unit_number - 1]["mesh"]["data"]["i_split"]
             xy1 = hdf5_1.data_2d[reach_number][unit_number]["node"]["xy"]
             xy2 = hdf5_1.data_2d[reach_number][unit_number-1]["node"]["xy"]
+            h1 = hdf5_1.data_2d[reach_number][unit_number]["node"]["data"]["h"].to_numpy()
+            h2 = hdf5_1.data_2d[reach_number][unit_number-1]["node"]["data"]["h"].to_numpy()
+            z1 = hdf5_1.data_2d[reach_number][unit_number]["node"]["data"]["z"].to_numpy()
+            z2 = hdf5_1.data_2d[reach_number][unit_number-1]["node"]["data"]["z"].to_numpy()
             # TODO: pandas data can have several dtype
             datanode1=hdf5_1.data_2d[reach_number][unit_number]["node"]["data"].to_numpy()
             datanode2 = hdf5_1.data_2d[reach_number][unit_number]["node"]["data"].to_numpy()
@@ -134,20 +139,112 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
             datanode3=[]
             deltaz12wp = np.full((iwpmax+1,), -1,
                                  dtype=np.float64)  # to store for whole profile mesh only wetted at Q1 the closest deltaz
-            def store_mesh_tin1(k,imeshpt3):
+
+
+            xyzh=np.zeros((10,4), dtype=np.float64)
+            ixyzh=np.zeros((10), dtype=np.int64)
+            axyzh=np.zeros((10,4), dtype=np.float64)
+            aixyzh=np.zeros((10), dtype=np.int64)
+            lambda6,lambda7,lambda8,lambda9=0,0,0,0
+            anodelist2=[]
+
+            def getxyzhi(kk):
+
+                for k in range(3):
+                    xyzh[k,0:2]=np.array(xy1[tin1[i11][k]])
+                    xyzh[k,2] = np.array(h1[tin1[i11][k]])
+                    xyzh[k,3] = np.array(z1[tin1[i11][k]])
+                    ixyzh[k] = np.array(tin1[i11][k])
+                    xyzh[kk+k,0:2]=np.array(xy2[tin2[i21][k]])
+                    xyzh[kk+k,2] = np.array(h2[tin2[i21][k]])
+                    xyzh[kk+k,3] = np.array(z2[tin2[i21][k]])
+                    ixyzh[kk + k] = np.array(tin2[i21][k])
+                return
+            def getxyzhi_q2():
+                for k in range(3):
+                    for ki in range(6,9):
+                        if not((np.array(xy2[tin2[i22][k]])==xyzh[ki,0:2]).all()):
+                            xyzh[9,0:2]=np.array(xy2[tin2[i22][k]])
+                            xyzh[9,2] = np.array(h2[tin2[i22][k]])
+                            xyzh[9,3] = np.array(z2[tin2[i22][k]])
+                            ixyzh[9] = np.array(tin2[i22][k])
+                return
+
+            def passa(k1,k2):
+                lrot=[[0,1,2],[1,2,0],[2,0,1]]
+                for k in range(3):
+                    axyzh[k,:] = xyzh[lrot[k1][k],:]
+                    aixyzh[k] = ixyzh[lrot[k1][k]]
+                    axyzh[5+k, :] = xyzh[lrot[k2][k]+5,:]
+                    aixyzh[5 + k] = ixyzh[lrot[k2][k] + 5]
+            def passatq(l1,l2):
+                kk1=1
+                for k in range(3):
+                    if k in l1:
+                        axyzh[kk1,:] = xyzh[k,:]
+                        aixyzh[kk1] = ixyzh[k]
+                        kk1+=1
+                    else:
+                        axyzh[0,:] = xyzh[k,:]
+                        aixyzh[0] = ixyzh[k]
+                kk1,kk2 = 6,8
+                for k in range(6,10):
+                    if k in l2:
+                        axyzh[kk1,:] = xyzh[k,:]
+                        aixyzh[kk1] = ixyzh[k]
+                        kk1+=1
+                    else:
+                        axyzh[kk2,:] = xyzh[k,:]
+                        aixyzh[kk2] = ixyzh[k]
+                        kk2 += 1
+
+
+
+            def store_mesh_tin1(k,imeshpt3,anodelist=[]):
                 i_whole_profile3.append(iwp)
                 max_slope_bottom3.append(max_slope_bottom_whole_profile[iwp])
                 deltaz3.append(deltaz3_)
                 i_split3.append(
                     0)  # even in the case of isplit1=1 ie cut2D have left a triangle part of the mesh that was partially wetted
-
-                for i3 in range(3):
-                    xy3.append(xy1[tin1[sortwp1[rwp1[iwp][0] + k][1]][i3]])
-                    datanode3.append(datanode1[tin1[sortwp1[rwp1[iwp][0] + k][1]][i3]])
+                if len(anodelist)==0:
+                    for i3 in range(3):
+                        xy3.append(xy1[tin1[sortwp1[rwp1[iwp][0] + k][1]][i3]])
+                        datanode3.append(datanode1[tin1[sortwp1[rwp1[iwp][0] + k][1]][i3]])
+                else:
+                    for l3 in anodelist:
+                        if len(l3)==1:
+                            xy3.append(xy1[aixyzh[l3[0]]])
+                            datanode3.append(datanode1[aixyzh[l3[0]]])
+                        else: #(2 index for a and one lambda0)
+                            xy3.append(l3[2]*(axyzh[l3[1],0:2]-axyzh[l3[0],0:2])+axyzh[l3[0],0:2])
+                            datanode3.append(l3[2]*(datanode1[aixyzh[l3[1]]]-datanode1[aixyzh[l3[0]]])+datanode1[aixyzh[l3[0]]])
                 tin3.append([imeshpt3, imeshpt3 + 1, imeshpt3 + 2])
                 datamesh3.append(datamesh1.iloc[sortwp1[rwp1[iwp][0] + k][1]])
-
                 iwholedone[iwp] = 1
+
+            def store_2mesh_tin1(imeshpt3,anodelist2b):
+                for k in range(2):
+                    i_whole_profile3.append(iwp)
+                    max_slope_bottom3.append(max_slope_bottom_whole_profile[iwp])
+                    deltaz3.append(deltaz3_)
+                    i_split3.append(
+                        0)  # even in the case of isplit1=1 ie cut2D have left a triangle part of the mesh that was partially wetted
+                for l3 in anodelist2b:
+                    if len(l3)==2:
+                        for k in range(2):
+                            xy3.append(xy1[aixyzh[l3[k]]])
+                            datanode3.append(datanode1[aixyzh[l3[k]]])
+                    else: #(2 index for a and one lambda0)
+                        xy3.append(l3[2]*(axyzh[l3[1],0:2]-axyzh[l3[0],0:2])+axyzh[l3[0],0:2])
+                        datanode3.append(l3[2]*(datanode1[aixyzh[l3[1]]]-datanode1[aixyzh[l3[0]]])+datanode1[aixyzh[l3[0]]])
+                tin3.append([imeshpt3, imeshpt3 + 1, imeshpt3 + 3])
+                datamesh3.append(datamesh1.iloc[sortwp1[rwp1[iwp][0]][1]])
+                tin3.append([imeshpt3+1, imeshpt3 + 2, imeshpt3 + 3])
+                datamesh3.append(datamesh1.iloc[sortwp1[rwp1[iwp][0]][1]])
+                iwholedone[iwp] = 1
+
+
+
 
             def calculate_deltaz3(iwp, level1=4, minimum_surrounding_wetted_mesh=5): #iwp, locawp, countcontactwp, sortwp1, sortwp2, rwp1, rwp2, tin1, tin2, zsurf1, zsurf2,level=4, minimum_surrounding_mesh=4
                 if countcontactwp[iwp] == 0:
@@ -218,65 +315,177 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                 progress_value.value = progress_value.value + delta_mesh
 
                 if iwholedone[iwp]==0:
-                    if rwp1[iwp][1]==0: #  CASE 0  the tin1 mesh is dryed
+                    if rwp1[iwp][1]==0: #  CASE 0a  the tin1 mesh is dryed
                         if rwp2[iwp][1]==0:
                             iwholedone[iwp]=2
-                        else:
+                        else: # CASE 0b & 0c
                             iwholedone[iwp] = -1
                     elif rwp1[iwp][1]==1:
+                        i11=sortwp1[rwp1[iwp][0]][1]
                         if rwp2[iwp][1]==0: # CASE 1a & 1b the tin1 mesh has been dryed
                             deltaz3_ = calculate_deltaz3(iwp)
                             store_mesh_tin1(0, imeshpt3)
                             imeshpt3 += 3
-
+                            iwholedone[iwp] = 1
                         elif rwp2[iwp][1] ==1:
-                            if i_split1[sortwp1[rwp1[iwp][0]][1]]==1 and i_split2[sortwp2[rwp2[iwp][0]][1]]==1:
+                            i21=sortwp2[rwp2[iwp][0]][1]
+                            if i_split1[i11] == 0 and i_split2[i21] == 1:  # CASE 2a
+                                #Todo FACTORISER *************************************************
+                                getxyzhi(5)
+                                bok=False
+                                for k1 in range( 3):
+                                    for k2 in range(3):
+                                        if np.logical_and( xyzh[k1,0]==xyzh[k2+5,0],  xyzh[k1][1]==xyzh[k2+5,1]):
+                                            bok=True
+                                            break
+                                if not(bok):
+                                    # Todo faire quelque chose
+                                    # print("ca va pas CASE 2a")
+                                    iwholedone[iwp] = -1
+                                    continue
+                                else:
+                                    passa(k1,k2)
+                                    if d0segment(axyzh[0,0:2],axyzh[2,0:2],axyzh[7,0:2])<paramlimdist0:
+                                        if d0segment(axyzh[0,0:2],axyzh[1,0:2],axyzh[6,0:2])<paramlimdist0:
+                                            lambda7=lambda0segment(axyzh[0,0:2],axyzh[2,0:2],axyzh[7,0:2])
+                                            lambda6 = lambda0segment(axyzh[0, 0:2], axyzh[1, 0:2], axyzh[6, 0:2])
+                                            anodelist2 = [[1, 2], [0, 2, lambda7], [0, 1, lambda6]]
+                                        else:
+                                            # Todo faire quelque chose
+                                            # print("ca va pas CASE 2a")
+                                            iwholedone[iwp] = -1
+                                            continue
+                                    elif d0segment(axyzh[0,0:2],axyzh[1,0:2],axyzh[7,0:2])<paramlimdist0:
+                                        if d0segment(axyzh[0,0:2],axyzh[2,0:2],axyzh[6,0:2])<paramlimdist0:
+                                            lambda7=lambda0segment(axyzh[0,0:2],axyzh[1,0:2],axyzh[7,0:2])
+                                            lambda6 = lambda0segment(axyzh[0, 0:2], axyzh[2, 0:2], axyzh[6, 0:2])
+                                            anodelist2 = [[1, 2], [0, 2, lambda6], [0, 1, lambda7]]
+                                        else:
+                                            # Todo faire quelque chose
+                                            # print("ca va pas CASE 2a")
+                                            iwholedone[iwp] = -1
+                                            continue
+                                    # Todo FIN FACTORISER *************************************************
+                                    deltaz3_ = calculate_deltaz3(iwp)
+                                    store_2mesh_tin1(imeshpt3, anodelist2)
+                                    imeshpt3 += 4
+                                    iwholedone[iwp] = 1
+                            elif i_split1[i11] == 1 and i_split2[i21] == 1:
+                                if rwp2[iwp][1] == 2: #CASE 3C
+                                    iwholedone[iwp] = -1
+                                elif  rwp2[iwp][1] == 1: #CASE 3A & 3B
+                                    # Todo FACTORISER *************************************************
+                                    getxyzhi(5)
+                                    bok = False
+                                    for k1 in range(3):
+                                        for k2 in range(3):
+                                            if np.logical_and(xyzh[k1, 0] == xyzh[k2 + 5, 0],
+                                                              xyzh[k1][1] == xyzh[k2 + 5, 1]):
+                                                bok = True
+                                                break
+                                    if not (bok):
+                                        # Todo faire quelque chose
+                                        # print("ca va pas CASE 2a")
+                                        iwholedone[iwp] = -1
+                                        continue
+                                    else:
+                                        passa(k1, k2)
+                                        if d0segment(axyzh[0, 0:2], axyzh[2, 0:2], axyzh[7, 0:2]) < paramlimdist0:
+                                            if d0segment(axyzh[0, 0:2], axyzh[1, 0:2], axyzh[6, 0:2]) < paramlimdist0:
+                                                lambda7 = lambda0segment(axyzh[0, 0:2], axyzh[2, 0:2], axyzh[7, 0:2])
+                                                lambda6 = lambda0segment(axyzh[0, 0:2], axyzh[1, 0:2], axyzh[6, 0:2])
+                                                anodelist2 = [[1, 2], [0, 2, lambda7], [0, 1, lambda6]]
+                                            else:
+                                                # Todo faire quelque chose
+                                                # print("ca va pas CASE 2a")
+                                                iwholedone[iwp] = -1
+                                                continue
+                                        elif d0segment(axyzh[0, 0:2], axyzh[1, 0:2], axyzh[7, 0:2]) < paramlimdist0:
+                                            if d0segment(axyzh[0, 0:2], axyzh[2, 0:2], axyzh[6, 0:2]) < paramlimdist0:
+                                                lambda7 = lambda0segment(axyzh[0, 0:2], axyzh[1, 0:2], axyzh[7, 0:2])
+                                                lambda6 = lambda0segment(axyzh[0, 0:2], axyzh[2, 0:2], axyzh[6, 0:2])
+                                                anodelist2 = [[1, 2], [0, 2, lambda6], [0, 1, lambda7]]
+                                            else:
+                                                # Todo faire quelque chose
+                                                # print("ca va pas CASE 2a")
+                                                iwholedone[iwp] = -1
+                                                continue
+                                        # Todo FIN FACTORISER *************************************************
+                                        if lambda7<=1 and lambda6<=1:
+                                            deltaz3_ = calculate_deltaz3(iwp)
+                                            store_2mesh_tin1(imeshpt3, anodelist2)
+                                            imeshpt3 += 4
+                                            iwholedone[iwp] = 1
+                                        else:
+                                            # Todo faire quelque chose
+                                            # print("ca va pas CASE 2a")
+                                            iwholedone[iwp] = -1
+                                            continue
 
 
 
 
-                                titi=3
-
-
-
-
-                            elif i_split1[sortwp1[rwp1[iwp][0]][1]]==0 and i_split2[sortwp2[rwp2[iwp][0]][1]]==0: #CASE 1a
+                            elif i_split1[i11]==0 and i_split2[i21]==0: #CASE 00
                                 iwholedone[iwp] = 2
                             else:
                                 iwholedone[iwp] = -1
+                        elif rwp2[iwp][1] == 2:
+                            i21 = sortwp2[rwp2[iwp][0]][1]
+                            i22 = sortwp2[rwp2[iwp][0]+1][1]
+                            if i_split1[i11] == 0 and i_split2[i21] == 1:  # CASE 2b we assume that the second triangle of tin2 has also isplit=1
+                                getxyzhi(6) # 0,1,2  6,7,8
+                                getxyzhi_q2() # 0,1,2  6,7,8,9
+                                l1,l2=[],[]
+                                for k1 in range( 3):
+                                    for k2 in range(6,10):
+                                        if np.logical_and( xyzh[k1,0]==xyzh[k2,0],  xyzh[k1,1]==xyzh[k2,1]):
+                                            l1.append(k1)
+                                            l2.append(k2)
+                                if len(l1)!=2:
+                                    # Todo faire quelque chose
+                                    # print("ca va pas CASE 2b")
+                                    continue
+                                else:
+                                    passatq(l1, l2)
+                                    if d0segment(axyzh[0,0:2],axyzh[2,0:2],axyzh[9,0:2])<paramlimdist0:
+                                        if d0segment(axyzh[0,0:2],axyzh[1,0:2],axyzh[8,0:2])<paramlimdist0:
+                                            lambda9=lambda0segment(axyzh[0,0:2],axyzh[2,0:2],axyzh[9,0:2])
+                                            lambda8 = lambda0segment(axyzh[0, 0:2], axyzh[1, 0:2], axyzh[8, 0:2])
+                                            anodelist2b = [[0], [0, 2, lambda9], [0, 1, lambda8]]
+                                            # anodelist2b=[[1,2],[0,2,lambda9],[0,1,lambda8]]
+                                        else:
+                                            # Todo faire quelque chose
+                                            # print("ca va pas CASE 2b")
+                                            continue
+                                    elif d0segment(axyzh[0,0:2],axyzh[1,0:2],axyzh[9,0:2])<paramlimdist0:
+                                        if d0segment(axyzh[0,0:2],axyzh[2,0:2],axyzh[8,0:2])<paramlimdist0:
+                                            lambda9=lambda0segment(axyzh[0,0:2],axyzh[1,0:2],axyzh[9,0:2])
+                                            lambda8 = lambda0segment(axyzh[0, 0:2], axyzh[2, 0:2], axyzh[8, 0:2])
+                                            anodelist2b = [[0], [0, 2, lambda8], [0, 1, lambda9]]
+                                        else:
+                                            # Todo faire quelque chose
+                                            # print("ca va pas CASE 2b")
+                                            continue
+                                    deltaz3_ = calculate_deltaz3(iwp)
+                                    store_mesh_tin1(0, imeshpt3, anodelist2b)
+                                    imeshpt3 += 3
+                                    iwholedone[iwp] = 1
 
-                        # elif rwp2[iwp][1]>1: # the mesh has been partially dryed
-                        #     deltaz3com=calculate_deltaz3(iwp, locawp, countcontactwp, sortwp1, sortwp2, rwp1, rwp2,
-                        #                           tin1, tin2, zsurf1, zsurf2)
-                        #     xyp=[]
-                        #     datameshp=[]
-                        #     for i3 in range(3):
-                        #         xyp.append(xy1[tin1[sortwp1[ rwp1[iwp][0] ][1]][i3]])
-                        #         datameshp.append(datanode1[tin1[sortwp1[rwp1[iwp][0]][1]][i3]])
-                        #     xyp_=np.array(xyp)
-                        #     datameshp_=np.array(datameshp)
-                        #
-                        #     for j in range(rwp2[iwp][1]):
-                        #         tin3.append([imeshpt3, imeshpt3 + 1, imeshpt3 + 2])
-                        #         datamesh3.append(datamesh1.iloc[sortwp1[rwp1[iwp][0] ]]) # ou quelque chose du genre
-                        #         i_whole_profile3.append(iwp)
-                        #         max_slope_bottom3.append(max_slope_bottom_whole_profile[iwp])
-                        #         deltaz3.append(deltaz3com)
-                        #         i_split3.append(1)
-                        #         imeshpt3 += 3
-                        #         xyp=np.array()
-                        #         for i3 in range(3):
-                        #             xy3_=xy2[tin2[sortwp2[rwp2[iwp][0]][1] + j][i3]]
-                        #             xy3.append(xy3_)
-                        #             datanode3_=finite_element_interpolation(xy3_,xyp_,datameshp_)
-                        #             datanode3.append(datanode3_)
-                        #     iwholedone[iwp] = 1
+
+
+
+
+
+
+
+
                     elif rwp1[iwp][1] == 2:
-                        if rwp2[iwp][1] == 0:  # CASE 3a the tin1 2 meshes has been dryed
+                        if rwp2[iwp][1] == 0:  # CASE 1c the tin1 2 meshes has been dryed
                             deltaz3_ =calculate_deltaz3(iwp)
                             for k in range(2):
                                 store_mesh_tin1(k,imeshpt3)
                                 imeshpt3 += 3
+                                iwholedone[iwp] = 1
 
 
                     else: # unknown domain
@@ -349,7 +558,22 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
     # prog
     progress_value.value = 100.0
 
-
+def lambda0segment(xya,xyb,xym):
+    dab=np.sum((xya-xyb)**2)
+    if dab==0:
+        lambda0 = np.nan
+    else:
+        lambda0=np.sum((xym-xya)*(xyb-xya))/dab
+    return lambda0
+def d0segment(xya,xyb,xym):
+    u=xyb[1]-xya[1]
+    v=xya[0]-xyb[0]
+    w=xya[1]*xyb[0]-xya[0]*xyb[1]
+    norm=np.sqrt(u**2+v**2)
+    if norm==0:
+        return np.nan
+    else:
+        return np.abs(u*xym[0]+v*xym[1]+w)/norm
 
 if __name__ == '__main__':
     # set working directory to "C:\habby_dev\habby"
