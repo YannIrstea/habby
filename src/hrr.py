@@ -331,24 +331,28 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                         elif rwp2[iwp][1] ==1:
                             i21=sortwp2[rwp2[iwp][0]][1]
                             if i_split1[i11] == 0 and i_split2[i21] == 1:  # CASE 2a
-                                #Todo FACTORISER *************************************************
+                                # Todo FACTORISER *************************************************
                                 getxyzhi(5)
-                                bok=False
-                                for k1 in range( 3):
+                                bok = False
+                                for k1 in range(3):
+                                    if bok:
+                                        break
                                     for k2 in range(3):
-                                        if np.logical_and( xyzh[k1,0]==xyzh[k2+5,0],  xyzh[k1][1]==xyzh[k2+5,1]):
-                                            bok=True
+                                        if np.logical_and(xyzh[k1, 0] == xyzh[k2 + 5, 0],
+                                                          xyzh[k1][1] == xyzh[k2 + 5, 1]):
+                                            bok = True
+                                            k1ok, k2ok = k1, k2
                                             break
-                                if not(bok):
+                                if not (bok):
                                     # Todo faire quelque chose
                                     # print("ca va pas CASE 2a")
                                     iwholedone[iwp] = -1
                                     continue
                                 else:
-                                    passa(k1,k2)
-                                    if d0segment(axyzh[0,0:2],axyzh[2,0:2],axyzh[7,0:2])<paramlimdist0:
-                                        if d0segment(axyzh[0,0:2],axyzh[1,0:2],axyzh[6,0:2])<paramlimdist0:
-                                            lambda7=lambda0segment(axyzh[0,0:2],axyzh[2,0:2],axyzh[7,0:2])
+                                    passa(k1ok, k2ok)
+                                    if d0segment(axyzh[0, 0:2], axyzh[2, 0:2], axyzh[7, 0:2]) < paramlimdist0:
+                                        if d0segment(axyzh[0, 0:2], axyzh[1, 0:2], axyzh[6, 0:2]) < paramlimdist0:
+                                            lambda7 = lambda0segment(axyzh[0, 0:2], axyzh[2, 0:2], axyzh[7, 0:2])
                                             lambda6 = lambda0segment(axyzh[0, 0:2], axyzh[1, 0:2], axyzh[6, 0:2])
                                             anodelist2 = [[1, 2], [0, 2, lambda7], [0, 1, lambda6]]
                                         else:
@@ -356,9 +360,9 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                             # print("ca va pas CASE 2a")
                                             iwholedone[iwp] = -1
                                             continue
-                                    elif d0segment(axyzh[0,0:2],axyzh[1,0:2],axyzh[7,0:2])<paramlimdist0:
-                                        if d0segment(axyzh[0,0:2],axyzh[2,0:2],axyzh[6,0:2])<paramlimdist0:
-                                            lambda7=lambda0segment(axyzh[0,0:2],axyzh[1,0:2],axyzh[7,0:2])
+                                    elif d0segment(axyzh[0, 0:2], axyzh[1, 0:2], axyzh[7, 0:2]) < paramlimdist0:
+                                        if d0segment(axyzh[0, 0:2], axyzh[2, 0:2], axyzh[6, 0:2]) < paramlimdist0:
+                                            lambda7 = lambda0segment(axyzh[0, 0:2], axyzh[1, 0:2], axyzh[7, 0:2])
                                             lambda6 = lambda0segment(axyzh[0, 0:2], axyzh[2, 0:2], axyzh[6, 0:2])
                                             anodelist2 = [[1, 2], [0, 2, lambda6], [0, 1, lambda7]]
                                         else:
@@ -375,54 +379,56 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                 if rwp2[iwp][1] == 2: #CASE 3C
                                     iwholedone[iwp] = -1
                                 elif  rwp2[iwp][1] == 1: #CASE 3A & 3B
-                                    titi=4
-                                    # # Todo FACTORISER *************************************************
-                                    # getxyzhi(5)
-                                    # bok = False
-                                    # for k1 in range(3):
-                                    #     for k2 in range(3):
-                                    #         if np.logical_and(xyzh[k1, 0] == xyzh[k2 + 5, 0],
-                                    #                           xyzh[k1][1] == xyzh[k2 + 5, 1]):
-                                    #             bok = True
-                                    #             break
-                                    # if not (bok):
-                                    #     # Todo faire quelque chose
-                                    #     # print("ca va pas CASE 2a")
-                                    #     iwholedone[iwp] = -1
-                                    #     continue
-                                    # else:
-                                    #     passa(k1, k2)
-                                    #     if d0segment(axyzh[0, 0:2], axyzh[2, 0:2], axyzh[7, 0:2]) < paramlimdist0:
-                                    #         if d0segment(axyzh[0, 0:2], axyzh[1, 0:2], axyzh[6, 0:2]) < paramlimdist0:
-                                    #             lambda7 = lambda0segment(axyzh[0, 0:2], axyzh[2, 0:2], axyzh[7, 0:2])
-                                    #             lambda6 = lambda0segment(axyzh[0, 0:2], axyzh[1, 0:2], axyzh[6, 0:2])
-                                    #             anodelist2 = [[1, 2], [0, 2, lambda7], [0, 1, lambda6]]
-                                    #         else:
-                                    #             # Todo faire quelque chose
-                                    #             # print("ca va pas CASE 2a")
-                                    #             iwholedone[iwp] = -1
-                                    #             continue
-                                    #     elif d0segment(axyzh[0, 0:2], axyzh[1, 0:2], axyzh[7, 0:2]) < paramlimdist0:
-                                    #         if d0segment(axyzh[0, 0:2], axyzh[2, 0:2], axyzh[6, 0:2]) < paramlimdist0:
-                                    #             lambda7 = lambda0segment(axyzh[0, 0:2], axyzh[1, 0:2], axyzh[7, 0:2])
-                                    #             lambda6 = lambda0segment(axyzh[0, 0:2], axyzh[2, 0:2], axyzh[6, 0:2])
-                                    #             anodelist2 = [[1, 2], [0, 2, lambda6], [0, 1, lambda7]]
-                                    #         else:
-                                    #             # Todo faire quelque chose
-                                    #             # print("ca va pas CASE 2a")
-                                    #             iwholedone[iwp] = -1
-                                    #             continue
-                                    #     # Todo FIN FACTORISER *************************************************
-                                    #     if lambda7<=1 and lambda6<=1:
-                                    #         deltaz3_ = calculate_deltaz3(iwp)
-                                    #         store_2mesh_tin1(imeshpt3)
-                                    #         imeshpt3 += 4
-                                    #         iwholedone[iwp] = 1
-                                    #     else:
-                                    #         # Todo faire quelque chose
-                                    #         # print("ca va pas CASE 2a")
-                                    #         iwholedone[iwp] = -1
-                                    #         continue
+                                    # Todo FACTORISER *************************************************
+                                    getxyzhi(5)
+                                    bok = False
+                                    for k1 in range(3):
+                                        if bok:
+                                            break
+                                        for k2 in range(3):
+                                            if np.logical_and(xyzh[k1, 0] == xyzh[k2 + 5, 0],
+                                                              xyzh[k1][1] == xyzh[k2 + 5, 1]):
+                                                bok = True
+                                                k1ok,k2ok=k1,k2
+                                                break
+                                    if not (bok):
+                                        # Todo faire quelque chose
+                                        # print("ca va pas CASE 2a")
+                                        iwholedone[iwp] = -1
+                                        continue
+                                    else:
+                                        passa(k1ok,k2ok)
+                                        if d0segment(axyzh[0, 0:2], axyzh[2, 0:2], axyzh[7, 0:2]) < paramlimdist0:
+                                            if d0segment(axyzh[0, 0:2], axyzh[1, 0:2], axyzh[6, 0:2]) < paramlimdist0:
+                                                lambda7 = lambda0segment(axyzh[0, 0:2], axyzh[2, 0:2], axyzh[7, 0:2])
+                                                lambda6 = lambda0segment(axyzh[0, 0:2], axyzh[1, 0:2], axyzh[6, 0:2])
+                                                anodelist2 = [[1, 2], [0, 2, lambda7], [0, 1, lambda6]]
+                                            else:
+                                                # Todo faire quelque chose
+                                                # print("ca va pas CASE 2a")
+                                                iwholedone[iwp] = -1
+                                                continue
+                                        elif d0segment(axyzh[0, 0:2], axyzh[1, 0:2], axyzh[7, 0:2]) < paramlimdist0:
+                                            if d0segment(axyzh[0, 0:2], axyzh[2, 0:2], axyzh[6, 0:2]) < paramlimdist0:
+                                                lambda7 = lambda0segment(axyzh[0, 0:2], axyzh[1, 0:2], axyzh[7, 0:2])
+                                                lambda6 = lambda0segment(axyzh[0, 0:2], axyzh[2, 0:2], axyzh[6, 0:2])
+                                                anodelist2 = [[1, 2], [0, 2, lambda6], [0, 1, lambda7]]
+                                            else:
+                                                # Todo faire quelque chose
+                                                # print("ca va pas CASE 2a")
+                                                iwholedone[iwp] = -1
+                                                continue
+                                        # Todo FIN FACTORISER *************************************************
+                                        if lambda7<=1 and lambda6<=1:
+                                            deltaz3_ = calculate_deltaz3(iwp)
+                                            store_2mesh_tin1(imeshpt3)
+                                            imeshpt3 += 4
+                                            iwholedone[iwp] = 1
+                                        else:
+                                            # Todo faire quelque chose
+                                            # print("ca va pas CASE 2a")
+                                            iwholedone[iwp] = -1
+                                            continue
 
 
 
@@ -491,6 +497,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
             deltaz3=np.array(deltaz3)
             with np.errstate(divide='ignore'): # disable zero division warnings
                 hrr3=np.divide(deltaz3,max_slope_bottom3)/(deltat*3600)
+            vrr3=deltaz3/deltat*3600
             xy3=np.array(xy3)
             datanode3=np.array(datanode3)
             #TODO verifier datamesh3
