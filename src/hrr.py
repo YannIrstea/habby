@@ -147,28 +147,52 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
             aixyzh=np.zeros((10), dtype=np.int64)
             lambda6,lambda7,lambda8,lambda9=0,0,0,0
             anodelist,anodelist2=[],[]
+            iwholexy = np.zeros((3, 2), dtype=np.float64)
 
-            def getxyzhi(kk):
+            def getxyiwhole():
+                for  k in range(3):
+                    iwholexy[k]=np.array(xy_whole_profile[tin_whole_profile[iwp,k]])
 
+            def getxyzhi(kk,decal1):
                 for k in range(3):
-                    xyzh[k,0:2]=np.array(xy1[tin1[i11][k]])
-                    xyzh[k,2] = np.array(h1[tin1[i11][k]])
-                    xyzh[k,3] = np.array(z1[tin1[i11][k]])
-                    ixyzh[k] = np.array(tin1[i11][k])
+                    xyzh[k+decal1,0:2]=np.array(xy1[tin1[i11][k]])
+                    xyzh[k+decal1,2] = np.array(h1[tin1[i11][k]])
+                    xyzh[k+decal1,3] = np.array(z1[tin1[i11][k]])
+                    ixyzh[k+decal1] = np.array(tin1[i11][k])
                     xyzh[kk+k,0:2]=np.array(xy2[tin2[i21][k]])
                     xyzh[kk+k,2] = np.array(h2[tin2[i21][k]])
                     xyzh[kk+k,3] = np.array(z2[tin2[i21][k]])
                     ixyzh[kk + k] = np.array(tin2[i21][k])
                 return
+            def getxyzhi_q1():
+                for k in range(3):
+                    bfound=False
+                    for ki in range(1,4):
+                        if (np.array(xy1[tin1[i12][k]])==xyzh[ki,0:2]).all():
+                            bfound=True
+                    if not bfound:
+                        xyzh[4,0:2]=np.array(xy1[tin1[i12][k]])
+                        xyzh[4,2] = np.array(h1[tin1[i12][k]])
+                        xyzh[4,3] = np.array(z1[tin1[i12][k]])
+                        ixyzh[4] = np.array(tin1[i12][k])
+                        return True
+                return False
             def getxyzhi_q2():
                 for k in range(3):
+                    bfound = False
                     for ki in range(6,9):
-                        if not((np.array(xy2[tin2[i22][k]])==xyzh[ki,0:2]).all()):
-                            xyzh[9,0:2]=np.array(xy2[tin2[i22][k]])
-                            xyzh[9,2] = np.array(h2[tin2[i22][k]])
-                            xyzh[9,3] = np.array(z2[tin2[i22][k]])
-                            ixyzh[9] = np.array(tin2[i22][k])
-                return
+                        if (np.array(xy2[tin2[i22][k]])==xyzh[ki,0:2]).all():
+                            bfound = True
+                    if not bfound:
+                        xyzh[9,0:2]=np.array(xy2[tin2[i22][k]])
+                        xyzh[9,2] = np.array(h2[tin2[i22][k]])
+                        xyzh[9,3] = np.array(z2[tin2[i22][k]])
+                        ixyzh[9] = np.array(tin2[i22][k])
+                        return True
+                return False
+            def affecta(ka,kb):
+                axyzh[ka, :] = xyzh[kb, :]
+                aixyzh[ka] = ixyzh[kb]
 
             def passa(k1,k2):
                 lrot=[[0,1,2],[1,2,0],[2,0,1]]
@@ -332,7 +356,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                             i21=sortwp2[rwp2[iwp][0]][1]
                             if i_split1[i11] == 0 and i_split2[i21] == 1:  # CASE 2a
                                 # Todo FACTORISER *************************************************
-                                getxyzhi(5)
+                                getxyzhi(5,0)
                                 bok = False
                                 for k1 in range(3):
                                     if bok:
@@ -380,7 +404,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                     iwholedone[iwp] = -1
                                 elif  rwp2[iwp][1] == 1: #CASE 3A & 3B
                                     # Todo FACTORISER *************************************************
-                                    getxyzhi(5)
+                                    getxyzhi(5,0)
                                     bok = False
                                     for k1 in range(3):
                                         if bok:
@@ -441,8 +465,12 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                             i21 = sortwp2[rwp2[iwp][0]][1]
                             i22 = sortwp2[rwp2[iwp][0]+1][1]
                             if i_split1[i11] == 0 and i_split2[i21] == 1:  # CASE 2b we assume that the second triangle of tin2 has also isplit=1
-                                getxyzhi(6) # 0,1,2  6,7,8
-                                getxyzhi_q2() # 0,1,2  6,7,8,9
+                                getxyzhi(6,0) # 0,1,2  6,7,8
+                                if not getxyzhi_q2(): # 0,1,2  6,7,8,9
+                                    # Todo faire quelque chose
+                                    # print("ca va pas CASE 2b")
+                                    iwholedone[iwp] = -1
+                                    continue
                                 l1,l2=[],[]
                                 for k1 in range( 3):
                                     for k2 in range(6,10):
@@ -452,6 +480,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                 if len(l1)!=2:
                                     # Todo faire quelque chose
                                     # print("ca va pas CASE 2b")
+                                    iwholedone[iwp] = -1
                                     continue
                                 else:
                                     passatq(l1, l2)
@@ -463,6 +492,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                         else:
                                             # Todo faire quelque chose
                                             # print("ca va pas CASE 2b")
+                                            iwholedone[iwp] = -1
                                             continue
                                     elif d0segment(axyzh[0,0:2],axyzh[1,0:2],axyzh[9,0:2])<paramlimdist0:
                                         if d0segment(axyzh[0,0:2],axyzh[2,0:2],axyzh[8,0:2])<paramlimdist0:
@@ -472,12 +502,19 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                         else:
                                             # Todo faire quelque chose
                                             # print("ca va pas CASE 2b")
+                                            iwholedone[iwp] = -1
                                             continue
                                     deltaz3_ = calculate_deltaz3(iwp)
                                     store_mesh_tin1(0, imeshpt3)
                                     imeshpt3 += 3
                                     iwholedone[iwp] = 1
+
+
+
+
                     elif rwp1[iwp][1] == 2:
+                        i11 = sortwp1[rwp1[iwp][0]][1]
+                        i12 = sortwp1[rwp1[iwp][0] + 1][1]
                         if rwp2[iwp][1] == 0:  # CASE 1c the tin1 2 meshes has been dryed
                             deltaz3_ =calculate_deltaz3(iwp)
                             for k in range(2):
@@ -485,6 +522,97 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                 store_mesh_tin1(k,imeshpt3)
                                 imeshpt3 += 3
                                 iwholedone[iwp] = 1
+                        elif rwp2[iwp][1] == 1:  # CASE 4a
+                            i21 = sortwp2[rwp2[iwp][0]][1]
+                            if i_split1[i11] == 1 and i_split2[i21] == 1:
+                                getxyzhi(5, 1)  # 1,2,3  5,6,7
+                                if not getxyzhi_q1():  # 1,2,3,4  5,6,7
+                                    # Todo faire quelque chose
+                                    # print("cas IMPOSSIBLE CASE 4a")
+                                    iwholedone[iwp] = -1
+                                    continue
+                                #Todo factoriser//////////////////////////////////////////////////////////////
+                                getxyiwhole()
+                                l4w=[]
+                                l4=[]
+                                for k in range(3):
+                                    for kk in range(1,5):
+                                        if (iwholexy[k]==xyzh[kk,0:2]).all():
+                                            l4w.append(k)
+                                            l4.append(kk)
+                                if len(l4w) !=2:
+                                    # Todo faire quelque chose
+                                    # print("cas IMPOSSIBLE CASE 4a")
+                                    iwholedone[iwp] = -1
+                                    continue
+                                #rotation of copy of whole profile mesh : numbering the node a fix way
+                                if l4w != [0, 1]:
+                                    iwholexy[[0,1]]=iwholexy[[1,0]]
+                                else:
+                                    affecta(1,l4[0])
+                                    affecta(2, l4[1])
+                                if l4w==[0,2]:
+                                    iwholexy[[0, 2]] = iwholexy[[2, 0]]
+                                    affecta(1,l4[1])
+                                    affecta(2, l4[0])
+                                if l4w == [1, 2]:
+                                    iwholexy[[1, 2]] = iwholexy[[2, 1]]
+                                    affecta(1,l4[0])
+                                    affecta(2, l4[1])
+                                l34=list(set([1,2,3,4])-set(l4))
+                                if d0segment(iwholexy[0],iwholexy[2],xyzh[l34[0],0:2]) < paramlimdist0:
+                                    if d0segment(iwholexy[1],iwholexy[2],xyzh[l34[1],0:2]) < paramlimdist0:
+                                        affecta(3, l34[0])
+                                        affecta(4, l34[1])
+                                    else:
+                                        # Todo faire quelque chose
+                                        # print("ca va pas CASE 4a")
+                                        iwholedone[iwp] = -1
+                                        continue
+                                elif d0segment(iwholexy[0],iwholexy[2],xyzh[l34[1],0:2]) < paramlimdist0:
+                                    if d0segment(iwholexy[1],iwholexy[2],xyzh[l34[2],0:2]) < paramlimdist0:
+                                        affecta(3, l34[1])
+                                        affecta(4, l34[0])
+                                    else:
+                                        # Todo faire quelque chose
+                                        # print("ca va pas CASE 4a")
+                                        iwholedone[iwp] = -1
+                                        continue
+                                # a ce stade a1234
+                                # for k in range(5,8):
+                                #     if
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                            else:
+                                # Todo faire quelque chose
+                                # print("ca va pas CASE 4a")
+                                iwholedone[iwp] = -1
+                                continue
+                        elif rwp2[iwp][1] == 2:  # CASE 4b
+                            i21 = sortwp2[rwp2[iwp][0]][1]
+                            i22 = sortwp2[rwp2[iwp][0] + 1][1]
+                            if i_split1[i11] == 1 and i_split2[i21] == 1:
+                                titi=3
+
+                            else:
+                                # Todo faire quelque chose
+                                # print("ca va pas CASE 4a")
+                                iwholedone[iwp] = -1
+                                continue
 
 
                     else: # unknown domain
@@ -519,6 +647,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
             new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["max_slope_bottom"] = max_slope_bottom3
             new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["delta_level"] = deltaz3
             new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["hrr"] = hrr3
+            new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["vrr"] = vrr3
             new_data_2d[reach_number][unit_counter_3]["node"]["xy"] = xy3b
             new_data_2d[reach_number][unit_counter_3]["node"]["data"] = pd.DataFrame(datanode3, columns=hdf5_1.data_2d[reach_number][unit_number]["node"]["data"].columns)
 
@@ -532,6 +661,11 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
     new_data_2d.hvum.hrr.position = "mesh"
     new_data_2d.hvum.hrr.hdf5 = True
     new_data_2d.hvum.hdf5_and_computable_list.append(new_data_2d.hvum.hrr)
+    # vrr
+    new_data_2d.hvum.vrr.position = "mesh"
+    new_data_2d.hvum.vrr.hdf5 = True
+    new_data_2d.hvum.hdf5_and_computable_list.append(new_data_2d.hvum.vrr)
+
 
     # compute area  # TODO: get original areas
     new_data_2d.compute_variables([new_data_2d.hvum.area])

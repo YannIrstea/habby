@@ -486,6 +486,13 @@ class HydraulicVariableUnitManagement:
                                        descr="",
                                        dtype=np.float64,
                                        index_gui=getframeinfo(currentframe()).lineno)
+        self.vrr = HydraulicVariable(value=None,
+                                       unit="m/h",
+                                       name="vrr",
+                                       name_gui="vertical ramping rate",
+                                       descr="",
+                                       dtype=np.float64,
+                                       index_gui=getframeinfo(currentframe()).lineno)
         self.temp = HydraulicVariable(value=None,
                                       unit="",
                                       name="temp",
