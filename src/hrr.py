@@ -162,6 +162,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                             iwhole_entirely_wetted_q1_q2[iiwp] = True
                             total_area_wp_both += area1[i1]
                             deltaz_mean += area1[i1] * (zsurf1[i1] - zsurf2[i2])
+                            deltaz12wp[iiwp] = zsurf1[i1] - zsurf2[i2]
                 if total_area_wp_both !=0:
                     deltaz_mean=deltaz_mean/total_area_wp_both
                 else:
@@ -336,8 +337,16 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                 breakarm=False
                 while True: # for ilevel in range(level):
                     b = set()
+                    d = []
                     for ij in aa:
                         b = b | set(locawp[ij][:countcontactwp[ij]])
+                    for iwpk in b:
+                        if iwpk < rwp1.shape[0]:
+                            if rwp1[iwpk][1]==0:
+                                d.append(iwpk)
+                        else:
+                            d.append(iwpk)
+                    b= b-set(d)
                     aa = b - a
                     for iwpk in aa:
                         # condition for keeping the mesh
@@ -351,7 +360,11 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                 zsurf2kept.append(zsurf2k)
                     a = a | b
                     c=np.array(list(aa))
-                    nb_new_surronding_wet=np.sum(rwp12[c])
+                    if len(c)==0:
+                        nb_new_surronding_wet =0
+                    else:
+                        nb_new_surronding_wet=np.sum(rwp12[c])
+
                     if nb_new_surronding_wet==0: # case of side arm or puddle isolated and dry at Q2
                         break
                     if len(meshkept) >= minimum_surrounding_wetted_mesh:
@@ -372,12 +385,14 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                     if len(meshkept) != 0:  # minimum value of local deltaz to cope with hydraulic aberrations
                         index_min2 = min(range(len(zsurf2kept)), key=zsurf2kept.__getitem__)
                         deltaz = zsurf1kept[index_min2] - zsurf2kept[index_min2]
+                        deltaz12wp[iwp]=deltaz
                     else:
                         deltaz = deltaz_mean # It's a choice not to use deltaz =  np.nan
                 if nb_new_surronding_wet==0 or level>level1:
                     for iwpk in a:
                         if iwpk<=iwpmax:
-                            deltaz12wp[iwpk]=deltaz
+                            if deltaz12wp[iwpk] == -1 and rwp1[iwpk][1]!=0:
+                                deltaz12wp[iwpk]=deltaz
 
                 return deltaz
 
