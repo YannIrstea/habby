@@ -93,12 +93,6 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
             tin1 = hdf5_1.data_2d[reach_number][unit_number]["mesh"]["tin"]
             tin2 = hdf5_1.data_2d[reach_number][unit_number-1]["mesh"]["tin"]
             datamesh1 = hdf5_1.data_2d[reach_number][unit_number]["mesh"]["data"]  # TODO: pandas_array.iloc
-            # locawp, countcontactwp = connectivity_mesh_table(tin1)
-            # loca1, countcontact1=connectivity_mesh_table(tin1)
-            # loca2, countcontact2 = connectivity_mesh_table(tin2)
-            # countcontact1 = countcontact1.flatten()
-            # countcontact2 = countcontact2.flatten()
-
             hdf5_1.data_2d[reach_number][unit_number].c_mesh_mean_from_node_values('h')
             hmoy1=hdf5_1.data_2d[reach_number][unit_number]["mesh"]["data"]['h'].to_numpy()
             hdf5_1.data_2d[reach_number][unit_number].c_mesh_mean_from_node_values('z')
@@ -115,6 +109,12 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
             h2 = hdf5_1.data_2d[reach_number][unit_number-1]["node"]["data"]["h"].to_numpy()
             z1 = hdf5_1.data_2d[reach_number][unit_number]["node"]["data"]["z"].to_numpy()
             z2 = hdf5_1.data_2d[reach_number][unit_number-1]["node"]["data"]["z"].to_numpy()
+            # Todo ask Quentin
+            area1 = 0.5 * (np.abs(
+                (xy1[tin1[:, 1]][:, 0] - xy1[tin1[:, 0]][:, 0]) * (
+                        xy1[tin1[:, 2]][:, 1] - xy1[tin1[:, 0]][:, 1]) - (
+                        xy1[tin1[:, 2]][:, 0] - xy1[tin1[:, 0]][:, 0]) * (
+                        xy1[tin1[:, 1]][:, 1] - xy1[tin1[:, 0]][:, 1])))
             # TODO: pandas data can have several dtype
             datanode1=hdf5_1.data_2d[reach_number][unit_number]["node"]["data"].to_numpy()
             datanode2 = hdf5_1.data_2d[reach_number][unit_number]["node"]["data"].to_numpy()
@@ -149,10 +149,27 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
             anodelist,anodelist2=[],[]
             iwholexy = np.zeros((3, 2), dtype=np.float64)
 
+
+            def compute_delta_zmean():
+                iwhole_entirely_wetted_q1_q2=np.full((iwpmax + 1), False)
+                deltaz_mean = 0
+                total_area_wp_both = 0
+                for iiwp in range(iwpmax + 1):
+                    if rwp1[iiwp, 1] == 1 and rwp2[iiwp, 1] == 1:
+                        i1 = sortwp1[rwp1[iiwp][ 0]][1]
+                        i2 = sortwp2[rwp2[iiwp][ 0]][1]
+                        if i_split1[i1] == 0 and i_split2[i2] == 0:
+                            iwhole_entirely_wetted_q1_q2[iiwp] = True
+                            total_area_wp_both += area1[i1]
+                            deltaz_mean += area1[i1] * (zsurf1[i1] - zsurf2[i2])
+                if total_area_wp_both !=0:
+                    deltaz_mean=deltaz_mean/total_area_wp_both
+                else:
+                    deltaz_mean=np.nan
+                return iwhole_entirely_wetted_q1_q2, deltaz_mean
             def getxyiwhole():
                 for  k in range(3):
                     iwholexy[k]=np.array(xy_whole_profile[tin_whole_profile[iwp,k]])
-
             def getxyzhi(kk,decal1):
                 for k in range(3):
                     xyzh[k+decal1,0:2]=np.array(xy1[tin1[i11][k]])
@@ -206,7 +223,6 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
             def affecta(ka,kb):
                 axyzh[ka, :] = xyzh[kb, :]
                 aixyzh[ka] = ixyzh[kb]
-
             def passa(k1,k2):
                 lrot=[[0,1,2],[1,2,0],[2,0,1]]
                 for k in range(3):
@@ -234,9 +250,6 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                         axyzh[kk2,:] = xyzh[k,:]
                         aixyzh[kk2] = ixyzh[k]
                         kk2 += 1
-
-
-
             def store_mesh_tin1(k,imeshpt3):
                 i_whole_profile3.append(iwp)
                 max_slope_bottom3.append(max_slope_bottom_whole_profile[iwp])
@@ -258,7 +271,6 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                 tin3.append([imeshpt3, imeshpt3 + 1, imeshpt3 + 2])
                 datamesh3.append(datamesh1.iloc[sortwp1[rwp1[iwp][0] + k][1]])
                 iwholedone[iwp] = 1
-
             def store_2mesh_tin1(imeshpt3,busual=True):
                 for k in range(2):
                     i_whole_profile3.append(iwp)
@@ -282,7 +294,6 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                 tin3.append([imeshpt3+1, imeshpt3 + 2, imeshpt3 + 3])
                 datamesh3.append(datamesh1.iloc[sortwp1[rwp1[iwp][0]][1]])
                 iwholedone[iwp] = 1
-
             def store_3mesh_tin1(imeshpt3):
                 for kk in range(3):
                     i_whole_profile3.append(iwp)
@@ -305,9 +316,13 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                 tin3.append([imeshpt3, imeshpt3 + 3, imeshpt3 + 4])
                 datamesh3.append(datamesh1.iloc[sortwp1[rwp1[iwp][0]][1]])
                 iwholedone[iwp] = 1
-
-
             def calculate_deltaz3(iwp, level1=4, minimum_surrounding_wetted_mesh=5): #iwp, locawp, countcontactwp, sortwp1, sortwp2, rwp1, rwp2, tin1, tin2, zsurf1, zsurf2,level=4, minimum_surrounding_mesh=4
+
+                # for whole profile
+                # locawp  the np array of 3 columns for each line/triangle the 3 index of neighbour triangles (-1 if not)
+                # countcontact for each line/triangle the number of neighbouring triangles maximum (3)
+                # deltaz12wp to store mesh index only wetted at Q1 the closest deltaz -1 if the value has not been founded yet or will never be
+
                 if countcontactwp[iwp] == 0:
                     return np.nan
                 if deltaz12wp[iwp] != -1:
@@ -315,8 +330,8 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                 meshkept = []
                 zsurf1kept = []
                 zsurf2kept = []
-                a = set(locawp[iwp][:countcontactwp[iwp]]) | {iwp}
                 aa = set(locawp[iwp][:countcontactwp[iwp]])
+                a = aa | {iwp}
                 level=0
                 breakarm=False
                 while True: # for ilevel in range(level):
@@ -326,7 +341,8 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                     aa = b - a
                     for iwpk in aa:
                         # condition for keeping the mesh
-                        if iwpk < rwp2.shape[0] and rwp2[iwpk][1] == 1 and rwp1[iwpk][1] == 1:
+                        # if iwpk < rwp2.shape[0] and rwp2[iwpk][1] == 1 and rwp1[iwpk][1] == 1:
+                        if iwpk < rwp2.shape[0] and iwhole_entirely_wetted_q1_q2[iwpk]:
                             zsurf1k = zsurf1[sortwp1[rwp1[iwpk][0]][1]]  # zsurf1[tin1[sortwp1[rwp1[iwpk][0]][1]]]
                             zsurf2k = zsurf2[sortwp2[rwp2[iwpk][0]][1]]  # zsurf2[tin2[sortwp2[rwp2[iwpk][0]][1]]]
                             if zsurf2k < zsurf1k:
@@ -357,7 +373,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                         index_min2 = min(range(len(zsurf2kept)), key=zsurf2kept.__getitem__)
                         deltaz = zsurf1kept[index_min2] - zsurf2kept[index_min2]
                     else:
-                        deltaz =  np.nan
+                        deltaz = deltaz_mean # It's a choice not to use deltaz =  np.nan
                 if nb_new_surronding_wet==0 or level>level1:
                     for iwpk in a:
                         if iwpk<=iwpmax:
@@ -370,6 +386,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
             # progress bar
             delta_mesh = delta_unit / len(iwholedone)
 
+            iwhole_entirely_wetted_q1_q2, deltaz_mean = compute_delta_zmean()
             for iwp in range(len(iwholedone)):
 
                 # progress
@@ -694,9 +711,6 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                 # print("ca va pas CASE 4a or 4b")
                                 iwholedone[iwp] = -1
                                 continue
-
-
-
                     else: # unknown domain
                                 iwholedone[iwp] = 2
 
