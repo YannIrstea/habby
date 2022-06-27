@@ -1,4 +1,5 @@
 import sys
+import os
 from io import StringIO
 from time import sleep
 import numpy as np
@@ -43,7 +44,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
     progress_value.value = 10
 
     # deltatlist = hrr_description["deltatlist"]
-    deltatlist = [0,3.6*3600,2.5*3600,1.8*3600]  # TODO: change it
+    deltatlist = [0,3.6*3600,2.5*3600,1.8*3600]  # TODO: change it with Quentin
     input_filename_1 = hrr_description["hdf5_name"]
     path_prj = project_properties["path_prj"]
 
@@ -55,6 +56,10 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
     unit_list = [["temp"] * (hdf5_1.data_2d[0].unit_number - 1)]  # TODO: multi reach not done
     new_data_2d = Data2d(reach_number=hdf5_1.data_2d.reach_number,
                          unit_list=unit_list)  # new
+    #prepare log
+    hrr_logfile_name= os.path.join(path_prj,'output','text',hdf5_1.filename[:-4] + "_HRR.log")
+    hrr_logfile=''
+
     # get attr
     new_data_2d.__dict__.update(hdf5_1.data_2d.__dict__)  # copy all attr
     # loop
@@ -437,7 +442,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                             break
                                 if not (bok):
                                     # Todo faire quelque chose
-                                    # print("ca va pas CASE 2a")
+                                    hrr_logfile += '['+str(reach_number)+',' +str(reach_number) +']\t'+str(iwp)+'\tCASE_2a_1'+'\n'
                                     iwholedone[iwp] = -1
                                     continue
                                 else:
@@ -458,7 +463,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                     # Todo FIN FACTORISER *************************************************
                                     if not bok:# possible link to paramlimdist0 value
                                         # Todo faire quelque chose
-                                        # print("ca va pas CASE 2a")
+                                        hrr_logfile += '['+str(reach_number)+',' +str(reach_number) +']\t'+str(iwp) + '\tCASE_2a_2' + '\n'
                                         iwholedone[iwp] = -1
                                         continue
                                     deltaz3_ = calculate_deltaz3(iwp)
@@ -484,7 +489,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                                 break
                                     if not (bok):
                                         # Todo faire quelque chose
-                                        # print("ca va pas CASE 2a")
+                                        hrr_logfile += '['+str(reach_number)+',' +str(reach_number) +']\t'+str(iwp) + '\tCASE_2a_3' + '\n'
                                         iwholedone[iwp] = -1
                                         continue
                                     else:
@@ -505,7 +510,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                         # Todo FIN FACTORISER *************************************************
                                         if not bok: # possible link to paramlimdist0 value
                                             # Todo faire quelque chose
-                                            # print("ca va pas CASE 3a")
+                                            hrr_logfile += '['+str(reach_number)+',' +str(reach_number) +']\t'+str(iwp) + '\tCASE_3a_1' + '\n'
                                             iwholedone[iwp] = -1
                                             continue
                                         if lambda7>0 and lambda7<=1 and lambda6>0 and lambda6<=1:
@@ -528,7 +533,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                 getxyzhi(6,0) # 0,1,2  6,7,8
                                 if not getxyzhi_q2(): # 0,1,2  6,7,8,9
                                     # Todo faire quelque chose
-                                    # print("ca va pas CASE 2b")
+                                    hrr_logfile += '['+str(reach_number)+',' +str(reach_number) +']\t'+str(iwp) + '\tCASE_2b_1' + '\n'
                                     iwholedone[iwp] = -1
                                     continue
                                 l1,l2=[],[]
@@ -539,7 +544,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                             l2.append(k2)
                                 if len(l1)!=2:
                                     # Todo faire quelque chose
-                                    # print("ca va pas CASE 2b")
+                                    hrr_logfile += '['+str(reach_number)+',' +str(reach_number) +']\t'+str(iwp) + '\tCASE_2b_2' + '\n'
                                     iwholedone[iwp] = -1
                                     continue
                                 else:
@@ -559,7 +564,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                             bok = True
                                     if not bok:# possible link to paramlimdist0 value
                                         # Todo faire quelque chose
-                                        # print("ca va pas CASE 2b")
+                                        hrr_logfile += '['+str(reach_number)+',' +str(reach_number) +']\t'+str(iwp) + '\tCASE_2b_3' + '\n'
                                         iwholedone[iwp] = -1
                                         continue
                                     deltaz3_ = calculate_deltaz3(iwp)
@@ -583,7 +588,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                 getxyzhi(5, 1)  # 1,2,3  5,6,7
                                 if not getxyzhi_q1():  # 1,2,3,4  5,6,7
                                     # Todo faire quelque chose
-                                    # print("cas IMPOSSIBLE CASE 4a")
+                                    hrr_logfile += '['+str(reach_number)+',' +str(reach_number) +']\t'+str(iwp) + '\tCASE_4a_1' + '\n'
                                     iwholedone[iwp] = -1
                                     continue
                                 #//////////////////////////////////////////////////////////////
@@ -597,7 +602,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                             l4.append(kk)
                                 if len(l4w) !=2:
                                     # Todo faire quelque chose
-                                    # print("cas IMPOSSIBLE CASE 4a or 4b")
+                                    hrr_logfile += '['+str(reach_number)+',' +str(reach_number) +']\t'+str(iwp) + '\tCASE_4a_or_CASE_4b-1' + '\n'
                                     iwholedone[iwp] = -1
                                     continue
                                 #rotation of copy of whole profile mesh : numbering the node a fix way
@@ -628,7 +633,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                         bok = True
                                 if not bok:
                                     # Todo faire quelque chose
-                                    # print("ca va pas CASE 4a or 4b")
+                                    hrr_logfile += '['+str(reach_number)+',' +str(reach_number) +']\t'+str(iwp) + '\tCASE_4a_or_CASE_4b-2' + '\n'
                                     iwholedone[iwp] = -1
                                     continue
                                 # //////////////////////////////////////////////////////////////
@@ -667,7 +672,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                                         break
                                     if not bok:
                                         # Todo faire quelque chose
-                                        # print("ca va pas CASE 4a")
+                                        hrr_logfile += '['+str(reach_number)+',' +str(reach_number) +']\t'+str(iwp) + '\tCASE_4a_2' + '\n'
                                         iwholedone[iwp] = -1
                                         continue
                                 elif rwp2[iwp][1] == 2:  # CASE 4b
@@ -675,7 +680,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                     # a ce stade a1234 on place 5,6,7,8
                                     if not getxyzhi_q2b():  # 1,2,3,4  5,6,7,8
                                         # Todo faire quelque chose
-                                        # print("cas IMPOSSIBLE CASE 4b")
+                                        hrr_logfile += '['+str(reach_number)+',' +str(reach_number) +']\t'+str(iwp) + '\tCASE_4b_1' + '\n'
                                         iwholedone[iwp] = -1
                                         continue
                                     l56=[]
@@ -684,7 +689,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                             l56.append(k)
                                     if len(l56)!=2:
                                         # Todo faire quelque chose
-                                        # print("ca va pas CASE 4b")
+                                        hrr_logfile += '['+str(reach_number)+',' +str(reach_number) +']\t'+str(iwp) + '\tCASE_4b_2' + '\n'
                                         iwholedone[iwp] = -1
                                         continue
                                     l34 = list(set([5, 6, 7, 8]) - set(l56))
@@ -718,12 +723,12 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                             iwholedone[iwp] = 1
                                     if not bok: # possible link to paramlimdist0 value
                                         # Todo faire quelque chose
-                                        # print("ca va pas CASE 4b")
+                                        hrr_logfile += '['+str(reach_number)+',' +str(reach_number) +']\t'+str(iwp) + '\tCASE_4b_3' + '\n'
                                         iwholedone[iwp] = -1
                                         continue
                             else:
                                 # Todo faire quelque chose
-                                # print("ca va pas CASE 4a or 4b")
+                                hrr_logfile += '['+str(reach_number)+',' +str(reach_number) +']\t'+str(iwp) + '\tCASE_4a_or_CASE_4b-3' + '\n'
                                 iwholedone[iwp] = -1
                                 continue
                     else: # unknown domain
@@ -792,6 +797,9 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
     hdf5.create_hdf5_hyd(new_data_2d,
                          hdf5_1.data_2d_whole,
                          project_properties)
+    #log in output txt
+    with open(hrr_logfile_name, "w") as f:
+        f.write(hrr_logfile)
 
     # warnings
     if not print_cmd:
