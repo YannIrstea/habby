@@ -408,7 +408,8 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
 
             iwhole_entirely_wetted_q1_q2, deltaz_mean = compute_delta_zmean()
             for iwp in range(len(iwholedone)):
-
+                if iwp==46355:
+                    titi=7
                 # progress
                 progress_value.value = progress_value.value + delta_mesh
                 if iwholedone[iwp]==0:
@@ -622,14 +623,14 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                 l34=list(set([1,2,3,4])-set(l4))
                                 bok=False
                                 if d0segment(iwholexy[0],iwholexy[2],xyzh[l34[0],0:2]) < paramlimdist0:
-                                    if d0segment(iwholexy[1],iwholexy[2],xyzh[l34[1],0:2]) < paramlimdist0:
-                                        affecta(3, l34[0])
-                                        affecta(4, l34[1])
+                                    if d0segment(iwholexy[0],iwholexy[1],xyzh[l34[1],0:2]) < paramlimdist0:
+                                        affecta(4, l34[0])
+                                        affecta(3, l34[1])
                                         bok=True
                                 elif d0segment(iwholexy[0],iwholexy[2],xyzh[l34[1],0:2]) < paramlimdist0:
-                                    if d0segment(iwholexy[1],iwholexy[2],xyzh[l34[0],0:2]) < paramlimdist0:
-                                        affecta(3, l34[1])
-                                        affecta(4, l34[0])
+                                    if d0segment(iwholexy[0],iwholexy[1],xyzh[l34[0],0:2]) < paramlimdist0:
+                                        affecta(4, l34[1])
+                                        affecta(3, l34[0])
                                         bok = True
                                 if not bok:
                                     # Todo faire quelque chose
