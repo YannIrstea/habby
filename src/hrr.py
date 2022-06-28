@@ -43,8 +43,12 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
     # progress
     progress_value.value = 10
 
+    # TODO: change it with Quentin deltat seconds
     # deltatlist = hrr_description["deltatlist"]
-    deltatlist = [0,3.6*3600,2.5*3600,1.8*3600]  # TODO: change it with Quentin
+    # T345 deltat en s [0,39164,33997,16958,20474,36521,33639,24291,55549] pour Qi : 9.2	25.5	48.4	60	76	110	150	175	259
+    # T2 deltat en s [0,13947,10070,7724,11058,10198,10549,5961,16689] pour Qi : 9.2	21.2	35	48.4	74.7	110	150	175	259
+    deltatlist = [0,13947,10070,7724,11058,10198,10549,5961,16689]  #T2
+    # deltatlist = [0, 39164, 33997, 16958, 20474, 36521, 33639, 24291, 55549]  # T345
     input_filename_1 = hrr_description["hdf5_name"]
     path_prj = project_properties["path_prj"]
 
@@ -518,10 +522,6 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                             store_2mesh_tin1(imeshpt3)
                                             imeshpt3 += 4
                                             iwholedone[iwp] = 1
-
-
-
-
                             elif i_split1[i11]==0 and i_split2[i21]==0: #CASE 00
                                 iwholedone[iwp] = 2
                             else:
@@ -583,8 +583,6 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                 imeshpt3 += 3
                                 iwholedone[iwp] = 1
                         elif rwp2[iwp][1] == 1 or rwp2[iwp][1] == 2:  # CASE 4a & CASE 4b
-                            if iwp == 10511:
-                                titi = 4
                             i21 = sortwp2[rwp2[iwp][0]][1]
                             if i_split1[i11] == 1 and i_split2[i21] == 1:
                                 getxyzhi(5, 1)  # 1,2,3  5,6,7
@@ -744,9 +742,12 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
             i_split3 = np.array(i_split3)
             max_slope_bottom3=np.array(max_slope_bottom3)
             deltaz3=np.array(deltaz3)
-            with np.errstate(divide='ignore'): # disable zero division warnings
-                hrr3=np.divide(deltaz3,max_slope_bottom3)/(deltat*3600)
-            vrr3=deltaz3/deltat*3600
+            with np.errstate(divide='ignore'): # disable zero division warnings we can get infinite values
+                hrr3=np.divide(deltaz3,max_slope_bottom3)/(deltat/3600) #unit="m/h"
+                # Todo change the values of hrr3 in order to get a constant scale for matplotlib, better do it in Habby/matplotlib ????
+
+
+            vrr3=deltaz3/(deltat/3600) #unit="m/h"
             xy3=np.array(xy3)
             datanode3=np.array(datanode3)
             #TODO verifier datamesh3
