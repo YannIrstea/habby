@@ -408,8 +408,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
 
             iwhole_entirely_wetted_q1_q2, deltaz_mean = compute_delta_zmean()
             for iwp in range(len(iwholedone)):
-                if iwp==46355:
-                    titi=7
+
                 # progress
                 progress_value.value = progress_value.value + delta_mesh
                 if iwholedone[iwp]==0:
@@ -584,6 +583,8 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                 imeshpt3 += 3
                                 iwholedone[iwp] = 1
                         elif rwp2[iwp][1] == 1 or rwp2[iwp][1] == 2:  # CASE 4a & CASE 4b
+                            if iwp == 10511:
+                                titi = 4
                             i21 = sortwp2[rwp2[iwp][0]][1]
                             if i_split1[i11] == 1 and i_split2[i21] == 1:
                                 getxyzhi(5, 1)  # 1,2,3  5,6,7
@@ -607,19 +608,19 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                     iwholedone[iwp] = -1
                                     continue
                                 #rotation of copy of whole profile mesh : numbering the node a fix way
-                                if l4w != [0, 1]:
-                                    iwholexy[[0,1]]=iwholexy[[1,0]]
-                                else:
-                                    affecta(1,l4[0])
-                                    affecta(2, l4[1])
-                                if l4w==[0,2]:
-                                    iwholexy[[0, 2]] = iwholexy[[2, 0]]
-                                    affecta(1,l4[1])
-                                    affecta(2, l4[0])
-                                if l4w == [1, 2]:
+                                if l4w != [1, 2]:
+                                    if l4w==[0,1]:
+                                        iwholexy[[0, 2]] = iwholexy[[2, 0]]
+                                    if l4w == [0, 2]:
+                                        iwholexy[[0, 1]] = iwholexy[[1, 0]]
                                     iwholexy[[1, 2]] = iwholexy[[2, 1]]
-                                    affecta(1,l4[0])
+                                if l4w == [0, 2]:
+                                    affecta(1, l4[1])
+                                    affecta(2, l4[0])
+                                else:
+                                    affecta(1, l4[0])
                                     affecta(2, l4[1])
+
                                 l34=list(set([1,2,3,4])-set(l4))
                                 bok=False
                                 if d0segment(iwholexy[0],iwholexy[2],xyzh[l34[0],0:2]) < paramlimdist0:
@@ -639,9 +640,11 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                     continue
                                 # //////////////////////////////////////////////////////////////
                                 if rwp2[iwp][1] == 1:
+
                                     # a ce stade a1234 on place 5,6,7
                                     bok = False
                                     p=[[1,2,3],[2,4,1]]
+                                    pp=[[2,4,3],[4,3,1]]
                                     for k in range(5,8):
                                         if bok:
                                             break
@@ -665,7 +668,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                                     lambda6 = lambda0segment(axyzh[p[ip][0], 0:2], axyzh[p[ip][1], 0:2], axyzh[6, 0:2])
                                                     if (lambda7>0 and lambda7<1) and (lambda6>0 and lambda6<1):
                                                         bok=True
-                                                        anodelist3 = [p[ip], [p[ip][0], p[ip][2], lambda7], [p[ip][0], p[ip][1], lambda6]]
+                                                        anodelist3 = [pp[ip], [p[ip][0], p[ip][2], lambda7], [p[ip][0], p[ip][1], lambda6]]
                                                         deltaz3_ = calculate_deltaz3(iwp)
                                                         store_3mesh_tin1(imeshpt3)
                                                         imeshpt3 += 5
@@ -693,8 +696,9 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                                         hrr_logfile += '['+str(reach_number)+',' +str(reach_number) +']\t'+str(iwp) + '\tCASE_4b_2' + '\n'
                                         iwholedone[iwp] = -1
                                         continue
-                                    l34 = list(set([5, 6, 7, 8]) - set(l56))
+                                    l34 = list(set([5, 6, 7, 8]) - set(l56)) # Todo renommmer ici l78
                                     bbok = False
+
                                     if d0segment(axyzh[1, 0:2], axyzh[3, 0:2],
                                                  xyzh[l34[0], 0:2]) < paramlimdist0:
                                         if d0segment(axyzh[2, 0:2], axyzh[4, 0:2],
