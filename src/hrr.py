@@ -45,11 +45,10 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
 
     # TODO: change it with Quentin deltat seconds
     # deltatlist = hrr_description["deltatlist"]
-    # T345 deltat en s [0,11557,9743,4037,4816,9938,9305,5485,15104] pour Qi : 9.2	25.5	48.4	60	76	110	150	175	259
-    # T2 deltat en s [0,13947,10070,7724,11058,10198,10549,5961,16689] pour Qi : 9.2	21.2	35	48.4	74.7	110	150	175	259
     # T2b1-b3 deltat en s [0,13947,10070,7724,11058,10198,10549,5961,16689] pour Qi : 9.2   35
-    # deltatlist = [0,13947,10070,7724,11058,10198,10549,5961,16689]  #T2
-    deltatlist = [0,11557,9743,4037,4816,9938,9305,5485,15104]   # T345
+    # deltatlist = [0,13947,10070,7724,11058,10198,10549,5961,16689]  #T2 deltat en s pour Qi : 9.2	21.2	35	48.4	74.7	110	150	175	259
+    # deltatlist = [0,11557,9743,4037,4816,9938,9305,5485,15104]   # T345-OLD deltat en s pour Qi : 9.2	25.5	48.4	60	76	110	150	175	259
+    deltatlist = [0,13183,11686,4800,5673,11622,10497,6209,16756]  # T345-2022deltat en s pour Qi : 9.2	25.5	48.4	60	76	110	150	175	259
     input_filename_1 = hrr_description["hdf5_name"]
     path_prj = project_properties["path_prj"]
 
@@ -750,6 +749,8 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                 # Todo change the values of hrr3 in order to get a constant scale for matplotlib and to cope with infinite values
                 # Todo , better do it in Habby/matplotlib !!!!
                 # hrr3[hrr3 > 4] = 4
+
+
             vrr3=deltaz3/(deltat/3600) #unit="m/h"
             xy3=np.array(xy3)
             datanode3=np.array(datanode3)
@@ -770,7 +771,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
             else:
                 deltab3_mean,hrr3_mean =0,0
             #'q1-q2\tdeltat\tmaxslopeBottom_mean\tdeltazsurf_mean\tdeltab3_mean\tVRR_MEAN\tHRR_MEAN\n'
-            #'[m3/s]\t[s]\t[%]\t[m]\t[m]\t[m/h]\t[m/h]\n'
+            #'[m3/s]\t[s]\t[%]\t[m]\t[m]\t[cm/h]\t[cm/h]\n'
             hrr_txtfile += q1+'-' + q2+'\t'+str(deltat)+'\t'+str(max_slope_bottom3_mean*100)+'\t'+str(deltaz_mean)+'\t'+str(deltab3_mean)+'\t'+str(vrr3_mean*3600*100)+'\t'+str(hrr3_mean*3600*100)+'\n'
 
 
@@ -833,7 +834,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
     if len(hrr_txtfile) !=0:
         with open(hrr_txtfile_name, "w") as f:
             f.write('q1-q2\tdeltat\tmaxslopeBottom_mean\tdeltazsurf_mean\tdeltab3_mean\tVRR_MEAN[m/h]\tHRR_MEAN[m/h]\n')
-            f.write('[m3/s]\t[s]\t[%]\t[m]\t[m]\t[m/h]\t[m/h]\n')
+            f.write('[m3/s]\t[s]\t[%]\t[m]\t[m]\t[cm/h]\t[cm/h]\n')
             f.write(hrr_txtfile)
 
     # warnings
