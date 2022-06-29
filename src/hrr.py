@@ -45,10 +45,11 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
 
     # TODO: change it with Quentin deltat seconds
     # deltatlist = hrr_description["deltatlist"]
-    # T345 deltat en s [0,39164,33997,16958,20474,36521,33639,24291,55549] pour Qi : 9.2	25.5	48.4	60	76	110	150	175	259
+    # T345 deltat en s [0,11557,9743,4037,4816,9938,9305,5485,15104] pour Qi : 9.2	25.5	48.4	60	76	110	150	175	259
     # T2 deltat en s [0,13947,10070,7724,11058,10198,10549,5961,16689] pour Qi : 9.2	21.2	35	48.4	74.7	110	150	175	259
+    # T2b1-b3 deltat en s [0,13947,10070,7724,11058,10198,10549,5961,16689] pour Qi : 9.2   35
     # deltatlist = [0,13947,10070,7724,11058,10198,10549,5961,16689]  #T2
-    deltatlist = [0, 39164, 33997, 16958, 20474, 36521, 33639, 24291, 55549]  # T345
+    deltatlist = [0,11557,9743,4037,4816,9938,9305,5485,15104]   # T345
     input_filename_1 = hrr_description["hdf5_name"]
     path_prj = project_properties["path_prj"]
 
@@ -63,6 +64,8 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
     #prepare log
     hrr_logfile_name= os.path.join(path_prj,'output','text',hdf5_1.filename[:-4] + "_HRR.log")
     hrr_logfile=''
+    hrr_txtfile_name= os.path.join(path_prj,'output','text',hdf5_1.filename[:-4] + "_HRR.txt")
+    hrr_txtfile=''
 
     # get attr
     new_data_2d.__dict__.update(hdf5_1.data_2d.__dict__)  # copy all attr
@@ -93,7 +96,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
             delta_unit = delta_reach / len(range(len(hdf5_1.data_2d[0])-1,0,-1))
 
             unit_counter_3 += 1
-            # Todo et recuperer temps depuis deltatlist
+            # Todo et recuperer temps depuis deltatlist + VERIFIER valeur locale non nulle
             deltat=deltatlist[unit_number]
 
             q1 = hdf5_1.data_2d[reach_number][unit_number].unit_name #q1>q2
@@ -746,13 +749,30 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                 hrr3=np.divide(deltaz3,max_slope_bottom3)/(deltat/3600) #unit="m/h"
                 # Todo change the values of hrr3 in order to get a constant scale for matplotlib and to cope with infinite values
                 # Todo , better do it in Habby/matplotlib !!!!
-                hrr3[hrr3 > 4] = 4
-
+                # hrr3[hrr3 > 4] = 4
             vrr3=deltaz3/(deltat/3600) #unit="m/h"
             xy3=np.array(xy3)
             datanode3=np.array(datanode3)
             #TODO verifier datamesh3
             datamesh3 = np.array(datamesh3)
+            # ExportTextHRR
+            # Todo ask Quentin
+            area3 = 0.5 * (np.abs(
+                (xy3[tin3[:, 1]][:, 0] - xy3[tin3[:, 0]][:, 0]) * (
+                        xy3[tin3[:, 2]][:, 1] - xy3[tin3[:, 0]][:, 1]) - (
+                        xy3[tin3[:, 2]][:, 0] - xy3[tin3[:, 0]][:, 0]) * (
+                        xy3[tin3[:, 1]][:, 1] - xy3[tin3[:, 0]][:, 1])))
+            max_slope_bottom3_mean=np.sum(max_slope_bottom3*area3)/np.sum(area3)
+            vrr3_mean =deltaz_mean/deltat
+            if max_slope_bottom3_mean!=0:
+                deltab3_mean=deltaz_mean/max_slope_bottom3_mean
+                hrr3_mean =vrr3_mean/max_slope_bottom3_mean
+            else:
+                deltab3_mean,hrr3_mean =0,0
+            #'q1-q2\tdeltat\tmaxslopeBottom_mean\tdeltazsurf_mean\tdeltab3_mean\tVRR_MEAN\tHRR_MEAN\n'
+            #'[m3/s]\t[s]\t[%]\t[m]\t[m]\t[m/h]\t[m/h]\n'
+            hrr_txtfile += q1+'-' + q2+'\t'+str(deltat)+'\t'+str(max_slope_bottom3_mean*100)+'\t'+str(deltaz_mean)+'\t'+str(deltab3_mean)+'\t'+str(vrr3_mean*3600*100)+'\t'+str(hrr3_mean*3600*100)+'\n'
+
 
             #remove_duplicate_points
             xy3b, indices3, indices2 = np.unique(xy3, axis=0, return_index=True, return_inverse=True)
@@ -809,6 +829,12 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
         with open(hrr_logfile_name, "w") as f:
             f.write('[reach_number,q1-q2]\t'+'i_whole_profile' + '\tHRR_CASE\n')
             f.write(hrr_logfile)
+    # hrr_txtfile
+    if len(hrr_txtfile) !=0:
+        with open(hrr_txtfile_name, "w") as f:
+            f.write('q1-q2\tdeltat\tmaxslopeBottom_mean\tdeltazsurf_mean\tdeltab3_mean\tVRR_MEAN[m/h]\tHRR_MEAN[m/h]\n')
+            f.write('[m3/s]\t[s]\t[%]\t[m]\t[m]\t[m/h]\t[m/h]\n')
+            f.write(hrr_txtfile)
 
     # warnings
     if not print_cmd:
