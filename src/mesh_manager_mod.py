@@ -190,19 +190,26 @@ def mesh_manager(mesh_manager_description, progress_value, q=[], print_cmd=False
         else:
             cell_index = mesh_manager_description["mesh_manager_data"][mm_row_index]
 
-        same_len = len(hdf5_original.data_2d[reach_number][unit_number]["mesh"]["tin"]) == len(cell_index)
+        # TODO: improve check
+        tin_flattened = hdf5_original.data_2d[reach_number][unit_number]["mesh"]["tin"]
+        for cell_index_el in cell_index:
+            if cell_index_el not in tin_flattened:
+                print("Error: specified cell index " + str(cell_index_el) +
+                      " not exist in mesh of unit " + str(unit_number) + " of reach " + str(reach_number) + " of " +hdf5_original.filename)
+                # warnings
+                if not print_cmd:
+                    sys.stdout = sys.__stdout__
+                    if q:
+                        q.put(mystdout)
+                        sleep(0.1)  # to wait q.put() ..
+                return
 
         # change data
         if eliminate:  # eliminate
-            if same_len:
-                print("Warning: All cell of unit " + hdf5_original.data_2d[reach_number][unit_number].unit_name + " are removed.")
-
             hdf5_original.data_2d[reach_number][unit_number]["mesh"]["tin"] = np.delete(hdf5_original.data_2d[reach_number][unit_number]["mesh"]["tin"], cell_index, 0)
             hdf5_original.data_2d[reach_number][unit_number]["mesh"]["i_whole_profile"] = np.delete(hdf5_original.data_2d[reach_number][unit_number]["mesh"]["i_whole_profile"], cell_index, 0)
             hdf5_original.data_2d[reach_number][unit_number]["mesh"]["data"] = hdf5_original.data_2d[reach_number][unit_number]["mesh"]["data"].drop(cell_index)
         else:  # keep
-            if same_len:
-                print("Warning: All selected cell of unit " + hdf5_original.data_2d[reach_number][unit_number].unit_name + " are keep. Nothing happen.")
             hdf5_original.data_2d[reach_number][unit_number]["mesh"]["tin"] = hdf5_original.data_2d[reach_number][unit_number]["mesh"]["tin"][cell_index]
             hdf5_original.data_2d[reach_number][unit_number]["mesh"]["i_whole_profile"] = hdf5_original.data_2d[reach_number][unit_number]["mesh"]["i_whole_profile"][cell_index]
             hdf5_original.data_2d[reach_number][unit_number]["mesh"]["data"] = hdf5_original.data_2d[reach_number][unit_number]["mesh"]["data"].iloc[cell_index]
