@@ -43,6 +43,19 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
     # progress
     progress_value.value = 10
 
+    # # TODO en cas d'erreur
+    # print("Error: All selected units or timestep are under " +
+    #       project_properties['min_height_hyd'] + " water minimum value.")
+    # # warnings
+    # if not print_cmd:
+    #     sys.stdout = sys.__stdout__
+    #     if q:
+    #         q.put(mystdout)
+    #         sleep(0.1)  # to wait q.put() ..
+    # return
+    #
+
+
     # TODO: change it with Quentin deltat seconds
     # deltatlist = hrr_description["deltatlist"]
     deltatlist = [0,24017] #T2b1-b3 deltat en s pour Qi : 9.2   35
