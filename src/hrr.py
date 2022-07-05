@@ -787,6 +787,8 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
             #'[m3/s]\t[s]\t[%]\t[m]\t[m]\t[cm/h]\t[cm/h]\n'
             hrr_txtfile += q1+'-' + q2+'\t'+str(deltat)+'\t'+str(max_slope_bottom3_mean*100)+'\t'+str(deltaz_mean)+'\t'+str(deltab3_mean)+'\t'+str(vrr3_mean*3600*100)+'\t'+str(hrr3_mean*3600*100)+'\n'
 
+            #TODO remove null area
+            #TODO eliminate unusued points
 
             #remove_duplicate_points
             xy3b, indices3, indices2 = np.unique(xy3, axis=0, return_index=True, return_inverse=True)
