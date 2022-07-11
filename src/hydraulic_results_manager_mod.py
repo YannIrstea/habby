@@ -258,20 +258,21 @@ class HydraulicSimulationResultsAnalyzer:
                             continue
 
                         # hdf5 filename
-                        blob2, ext = os.path.splitext(file)
+                        blob2, ext = os.path.splitext(os.path.basename(file))
                         name_hdf5 = blob2.replace(".", "_") + ".hyd"
 
                         # multi description
                         self.hydrau_description_list.append(dict(path_prj=self.path_prj,
                                                                 name_prj=self.name_prj,
                                                                 hydrau_case=self.hydrau_case,
-                                                                filename_source=file,
+                                                                filename_source=os.path.basename(file),
                                                                 path_filename_source=self.folder_path,
                                                                 hdf5_name=name_hdf5,
                                                                 model_type=self.model_type,
                                                                 model_dimension=str(self.nb_dim),
                                                                 unit_list=[list(hsr.timestep_name_list)] * hsr.reach_number,
                                                                 unit_list_full=[list(hsr.timestep_name_list)] * hsr.reach_number,
+                                                                variable_name_unit_dict=hsr.hvum.software_detected_list,
                                                                 unit_list_tf=[[True] * hsr.timestep_nb] * hsr.reach_number,
                                                                 unit_number=str(hsr.timestep_nb),
                                                                 unit_type=hsr.timestep_unit,
