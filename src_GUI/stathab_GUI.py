@@ -98,7 +98,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.mystathab = stathab_mod.Stathab(self.name_prj, self.path_prj)
         self.dir_hdf5 = self.path_prj
         self.typeload = 'txt'  # txt or hdf5
-        self.riverint = 0  # stathab or stathab_steep
+        self.riverint = 0  # Stathab or Stathab_steep
         self.model_type = self.tr('Stathab')
         if steep:
             self.riverint = 1
@@ -133,7 +133,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         loadhdf5b = QPushButton(self.tr("Load data from hdf5"))
         self.runb = QPushButton(self.tr("Run Stathab"))
         if self.riverint == 1:
-            self.runb.setText(self.tr("Run Stathab steep"))
+            self.runb.setText(self.tr("Run Stathab Steep"))
         self.runb.setStyleSheet("background-color: #47B5E6; color: black")
 
         # insist on white background color (for linux, mac)
@@ -313,7 +313,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         if self.riverint == 0:
             self.runb.setText(self.tr("Run Stathab"))
         elif self.riverint == 1:
-            self.runb.setText(self.tr("Run Stathab steep"))
+            self.runb.setText(self.tr("Run Stathab Steep"))
 
         # get the new files
         if self.typeload == 'txt':
@@ -502,8 +502,7 @@ class StathabW(estimhab_GUI.StatModUseful):
                     return
             elif self.riverint == 1:
                 if not file_name_all_reach_here:
-                    self.send_log.emit('Error: Found only a part of the needed STATHAB steep files. '
-                                       'Need to re-load before execution\n')
+                    self.send_log.emit('Error: Found only a part of the needed Stathab Steep files. '                                       'Need to re-load before execution\n')
                     # self.mystathab.save_xml_stathab(True)
                     return
         else:
@@ -850,7 +849,7 @@ class StathabW(estimhab_GUI.StatModUseful):
             self.mystathab.stathab_calc()
             sys.stdout = sys.__stdout__
             self.send_err_log()
-        # run Stathab_steep
+        # run Stathab Steep
         elif self.riverint == 1:
             sys.stdout = self.mystdout = StringIO()
             self.mystathab.stathab_steep_calc(self.path_bio_stathab, by_vol)
