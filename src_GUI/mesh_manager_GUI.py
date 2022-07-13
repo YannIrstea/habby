@@ -189,7 +189,7 @@ class ComputingGroup(QGroupBoxCollapsible):
             if warnings_list:
                 for warning in warnings_list:
                     self.send_log.emit(warning)
-            if self.mesh_manager_description["mesh_manager_data"] is None:
+            if self.mesh_manager_description is None:
                 self.send_log.emit(self.tr("Error: Mesh manager file : ") + os.path.basename(mesh_manager_file) + self.tr(" is not valid."))
                 self.progress_layout.run_stop_button.setEnabled(False)
             else:

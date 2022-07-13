@@ -63,7 +63,26 @@ class ProjectPropertiesDialog(QDialog):
         self.setPalette(p)
 
         """ WIDGETS """
-        """ general widgets """
+        """ general """
+        # erase_data
+        self.erase_data_label = QLabel(self.tr('Erase file if exist'))
+        self.erase_data_checkbox = QCheckBox(self.tr(''))
+
+        """ hyd options """
+        # Hydraulic Aberrations
+        first_supercut = QLabel(self.tr('1st Remove Hydraulic Aberrations'))
+        self.first_supercut_checkbox = QCheckBox(self.tr(''))
+        self.first_supercut_checkbox.stateChanged.connect(self.first_supercut_checkbox_change)
+
+        neighbor_level = QLabel(self.tr('Neighboring Mesh Level'))
+        self.neighbor_level_lineedit = QLineEdit("")
+
+        coeff_std = QLabel(self.tr('Standard Deviation Multiplier'))
+        self.coeff_std_lineedit = QLineEdit("")
+
+        second_supercut = QLabel(self.tr('2nd Remove Hydraulic Aberrations'))
+        self.second_supercut_checkbox = QCheckBox(self.tr(''))
+
         # cut_2d_grid
         self.cut_2d_grid_label = QLabel(self.tr('Cut hydraulic mesh partialy wet'))
         self.cut_2d_grid_checkbox = QCheckBox(self.tr(''))
@@ -72,9 +91,8 @@ class ProjectPropertiesDialog(QDialog):
         min_height_label = QLabel(self.tr('2D minimum water height [m]'))
         self.min_height_lineedit = QLineEdit("")
 
-        # erase_data
-        self.erase_data_label = QLabel(self.tr('Erase file if exist'))
-        self.erase_data_checkbox = QCheckBox(self.tr(''))
+        minimal_mesh_area_label = QLabel(self.tr('Minimal mesh area [m²]'))
+        self.minimal_mesh_area_lineedit = QLineEdit("")
 
         """ outputs widgets """
         self.mesh_whole_profile_hyd = QCheckBox("")
@@ -204,12 +222,20 @@ class ProjectPropertiesDialog(QDialog):
         """ LAYOUT """
         # general options
         layout_general_options = QFormLayout()
-        general_options_group = QGroupBox(self.tr("General"))
-        #general_options_group.setStyleSheet('QGroupBox {font-weight: bold;}')
+        general_options_group = QGroupBox(self.tr("General options"))
         general_options_group.setLayout(layout_general_options)
-        layout_general_options.addRow(self.cut_2d_grid_label, self.cut_2d_grid_checkbox)
-        layout_general_options.addRow(min_height_label, self.min_height_lineedit)
-        layout_general_options.addRow(self.erase_data_label, self.erase_data_checkbox)  # , Qt.AlignLeft
+        layout_general_options.addRow(self.erase_data_label, self.erase_data_checkbox)
+
+        layout_hyd_options = QFormLayout()
+        general_hyd_group = QGroupBox(self.tr("Physical model options"))
+        general_hyd_group.setLayout(layout_hyd_options)
+        layout_hyd_options.addRow(first_supercut, self.first_supercut_checkbox)
+        layout_hyd_options.addRow(neighbor_level, self.neighbor_level_lineedit)
+        layout_hyd_options.addRow(coeff_std, self.coeff_std_lineedit)
+        layout_hyd_options.addRow(second_supercut, self.second_supercut_checkbox)
+        layout_hyd_options.addRow(self.cut_2d_grid_label, self.cut_2d_grid_checkbox)
+        layout_hyd_options.addRow(min_height_label, self.min_height_lineedit)
+        layout_hyd_options.addRow(minimal_mesh_area_label, self.minimal_mesh_area_lineedit)
 
         # exports options
         self.layout_available_exports = QGridLayout()
@@ -296,7 +322,8 @@ class ProjectPropertiesDialog(QDialog):
         # general
         layout = QGridLayout(self)
         layout.addWidget(general_options_group, 0, 0)
-        layout.addWidget(available_exports_group, 1, 0)
+        layout.addWidget(general_hyd_group, 1, 0)
+        layout.addWidget(available_exports_group, 2, 0)
         layout.addWidget(figures_group, 0, 1, 3, 2)
         layout.addWidget(self.reset_by_default_pref, 3, 0, Qt.AlignLeft)
         layout.addWidget(self.save_pref_button, 3, 1)  # , 1, 1
@@ -305,8 +332,23 @@ class ProjectPropertiesDialog(QDialog):
         self.setWindowTitle(self.tr("Project properties"))
         self.setWindowIcon(QIcon(self.name_icon))
 
+    def first_supercut_checkbox_change(self):
+        if self.first_supercut_checkbox.isChecked():
+            self.neighbor_level_lineedit.setEnabled(True)
+            self.coeff_std_lineedit.setEnabled(True)
+            self.second_supercut_checkbox.setEnabled(True)
+        else:
+            self.neighbor_level_lineedit.setEnabled(False)
+            self.coeff_std_lineedit.setEnabled(False)
+            self.second_supercut_checkbox.setEnabled(False)
+
     def connect_modifications_signal(self):
+        self.first_supercut_checkbox.stateChanged.connect(self.set_modification_presence)
+        self.neighbor_level_lineedit.textChanged.connect(self.set_modification_presence)
+        self.coeff_std_lineedit.textChanged.connect(self.set_modification_presence)
+        self.second_supercut_checkbox.stateChanged.connect(self.set_modification_presence)
         self.cut_2d_grid_checkbox.stateChanged.connect(self.set_modification_presence)
+        self.minimal_mesh_area_lineedit.textChanged.connect(self.set_modification_presence)
         self.min_height_lineedit.textChanged.connect(self.set_modification_presence)
         self.erase_data_checkbox.stateChanged.connect(self.set_modification_presence)
         self.pvd_variable_z_combobox.currentIndexChanged.connect(self.set_modification_presence)
@@ -339,11 +381,32 @@ class ProjectPropertiesDialog(QDialog):
         else:
             self.cut_2d_grid_checkbox.setChecked(False)
 
+        # minimal_mesh_area
+        if "minimal_mesh_area" in project_properties.keys():
+            self.minimal_mesh_area_lineedit.setText(str(project_properties['minimal_mesh_area']))
+        else:
+            self.send_log.emit('Warning: ' + self.tr('The current project is outdated. You might recreate a new one.'))
+
         # erase_id
         if project_properties['erase_id']:  # is a string not a boolean
             self.erase_data_checkbox.setChecked(True)
         else:
             self.erase_data_checkbox.setChecked(False)
+
+        # Hydraulic Aberrations
+        if "first_supercut" in project_properties.keys():
+            if project_properties['first_supercut']:  # is a string not a boolean
+                self.first_supercut_checkbox.setChecked(True)
+                self.neighbor_level_lineedit.setText(str(project_properties['neighbors_level']))
+                self.coeff_std_lineedit.setText(str(project_properties['coeff_std']))
+                if project_properties['second_supercut']:  # is a string not a boolean
+                    self.second_supercut_checkbox.setChecked(True)
+                else:
+                    self.second_supercut_checkbox.setChecked(False)
+            else:
+                self.first_supercut_checkbox.setChecked(False)
+        else:
+            self.send_log.emit('Warning: ' + self.tr('The current project is outdated. You might recreate a new one.'))
 
         # pvd_variable_z_combobox
         item_list = [self.hvum.z.name_gui,
@@ -537,6 +600,31 @@ class ProjectPropertiesDialog(QDialog):
             project_properties['cut_mesh_partialy_dry'] = True
         else:
             project_properties['cut_mesh_partialy_dry'] = False
+
+        # Hydraulic Aberrations
+        if self.first_supercut_checkbox.isChecked():
+            project_properties['first_supercut'] = True
+            try:
+                project_properties['neighbors_level'] = int(self.neighbor_level_lineedit.text())
+            except ValueError:
+                self.send_log.emit('Error: ' + self.tr('Neighboring mesh level should be integer'))
+            try:
+                project_properties['coeff_std'] = float(self.coeff_std_lineedit.text())
+            except ValueError:
+                self.send_log.emit('Error: ' + self.tr('The standard deviation multiplier should be a number'))
+        else:
+            project_properties['first_supercut'] = False
+
+        # minimal_mesh_area
+        try:
+            project_properties['minimal_mesh_area'] = float(self.minimal_mesh_area_lineedit.text())
+        except ValueError:
+            self.send_log.emit('Error: ' + self.tr('Minimal mesh area should be float'))
+
+        if self.second_supercut_checkbox.isChecked():
+            project_properties['second_supercut'] = True
+        else:
+            project_properties['second_supercut'] = False
 
         return project_properties
 

@@ -191,7 +191,11 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
     data_2d.remove_null_area()
 
     """ super_cut """
-    # data_2d.super_cut()
+    """ bank hydraulic aberations  """
+    if project_properties['first_supercut']:
+        data_2d.super_cut(project_properties['neighbors_level'], project_properties['coeff_std'])
+        if project_properties['second_supercut']:
+            data_2d.super_cut(level=2, coeff_std=3)
 
     """ semi_wetted_mesh_cutting for only 2d models"""
     if project_properties["cut_mesh_partialy_dry"] and hydrau_description["model_dimension"] != "1":
@@ -208,7 +212,7 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
     else:
         data_2d.hyd_cuted_mesh_partialy_dry = False
 
-    """ bank hydraulic aberations  """
+    """ bank hydraulic aberrations  """
     # data_2d.fix_aberrations(npasses=1, tolerance=0.01, connectedness_criterion=True, bank_depth=0.05)
     # cProfile.runctx("data_2d.fix_aberrations(npasses=1, tolerance=0.01, connectedness_criterion=False, bank_depth=1)",globals={},locals={"data_2d":data_2d},filename="c:/habby_dev/files/cut6.profile")
 
@@ -219,7 +223,17 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
     data_2d.compute_variables([data_2d.hvum.area])
 
     """ remove null area """
-    data_2d.remove_null_area()
+    data_2d.remove_null_area(project_properties['minimal_mesh_area'])
+
+    if len(data_2d[0]) == 0:
+        print("Error: All selected units or timestep has been removed.")
+        # warnings
+        if not print_cmd:
+            sys.stdout = sys.__stdout__
+            if q:
+                q.put(mystdout)
+                sleep(0.1)  # to wait q.put() ..
+        return
 
     """ remove_unused_node """
     data_2d.remove_unused_node()

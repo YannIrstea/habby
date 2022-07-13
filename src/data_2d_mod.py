@@ -116,10 +116,14 @@ class Data2d(list):
                 # data min/max
                 for variable in self.hvum.hdf5_and_computable_list.no_habs():
                     if variable.hdf5:
-                        if min(self[reach_number][unit_number][variable.position]["data"][variable.name]) < variable.min:
-                            variable.min = min(self[reach_number][unit_number][variable.position]["data"][variable.name])
-                        if max(self[reach_number][unit_number][variable.position]["data"][variable.name]) > variable.max:
-                            variable.max = max(self[reach_number][unit_number][variable.position]["data"][variable.name])
+                        if min(self[reach_number][unit_number][variable.position]["data"][
+                                   variable.name]) < variable.min:
+                            variable.min = min(
+                                self[reach_number][unit_number][variable.position]["data"][variable.name])
+                        if max(self[reach_number][unit_number][variable.position]["data"][
+                                   variable.name]) > variable.max:
+                            variable.max = max(
+                                self[reach_number][unit_number][variable.position]["data"][variable.name])
 
         # get extent
         xMin = min(xMin)
@@ -283,7 +287,7 @@ class Data2d(list):
         for unit_index_to_remove in reversed(unit_index_to_remove_list):
             self[reach_number].pop(unit_index_to_remove)
             # unit_name_list updated
-            print("Warning: The mesh of unit " + str(self.unit_list[reach_number][unit_index_to_remove]) + " of reach n°" + str(reach_number) + " is entirely dry.")
+            print("Warning: The mesh of unit " + str(self.unit_list[reach_number][unit_index_to_remove]) + " of reach n°" + str(reach_number) + " is empty.")
             self.unit_list[reach_number].pop(unit_index_to_remove)
         self.get_informations()
 
@@ -381,8 +385,8 @@ class Data2d(list):
                 self[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name] = ind_whole
                 if not self[reach_number][unit_number]["mesh"]["data"].empty:
                     self[reach_number][unit_number]["mesh"]["data"] = \
-                    self[reach_number][unit_number]["mesh"]["data"].iloc[
-                        mikle_keep]
+                        self[reach_number][unit_number]["mesh"]["data"].iloc[
+                            mikle_keep]
 
                 # node data
                 self[reach_number][unit_number]["node"]["data"] = self[reach_number][unit_number]["node"]["data"].iloc[
@@ -604,8 +608,8 @@ class Data2d(list):
 
                     # change all node dataframe
                     self[reach_number][unit_number]["node"]["data"] = \
-                    self[reach_number][unit_number]["node"]["data"].iloc[
-                        ipt_iklenew_unique]
+                        self[reach_number][unit_number]["node"]["data"].iloc[
+                            ipt_iklenew_unique]
                     if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.nodes().names():
                         temp_ok = np.append(self[reach_number][unit_number]["node"]["data"][self.hvum.temp.name],
                                             temp_data,
@@ -623,15 +627,16 @@ class Data2d(list):
                         self[reach_number][unit_number]["node"]["data"][self.hvum.temp.name] = temp_ok
                 else:
                     self[reach_number][unit_number]["node"]["data"] = \
-                    self[reach_number][unit_number]["node"]["data"].iloc[
-                        ipt_iklenew_unique]
+                        self[reach_number][unit_number]["node"]["data"].iloc[
+                            ipt_iklenew_unique]
 
                 # mesh data
                 if not self[reach_number][unit_number]["mesh"]["data"].empty:
                     self[reach_number][unit_number]["mesh"]["data"] = \
-                    self[reach_number][unit_number]["mesh"]["data"].iloc[ind_whole]
+                        self[reach_number][unit_number]["mesh"]["data"].iloc[ind_whole]
                 self[reach_number][unit_number]["mesh"][self.hvum.tin.name] = iklekeep
-                self[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name] = self[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name][ind_whole]
+                self[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name] = \
+                self[reach_number][unit_number]["mesh"][self.hvum.i_whole_profile.name][ind_whole]
                 self[reach_number][unit_number]["mesh"]["data"][self.hvum.i_split.name] = i_split  # i_split
                 if not self.hvum.i_split.name in self.hvum.hdf5_and_computable_list.names():
                     self.hvum.i_split.position = "mesh"
@@ -660,40 +665,45 @@ class Data2d(list):
 
         self.get_informations()
 
-    def super_cut(self, bremoveisolatedmeshes=True, level=3, minimum_surrounding_mesh=4, coeff_max_slope=5, max_slope_limit=10):
+    def super_cut(self, level, coeff_std, bremoveisolatedmeshes=True):
         """
-        :param bremoveisolatedmeshes: every index of loca represent a mesh index of the tin with 3 values in column indexing the mesh indexes in contact ; -1 if not
-        :param level: to be fixed to determine the number of contacts meshes where the reseach is done
-        :param coeff_max_slope: coeff
-        :param max_slope_limit: maximal slope accepted
+        Taking off bank hydraulic aberrations
+        Supercut function returns bmeshinvalid (an array of booleans) TRUE for a mesh index that is considered a Hydraulic Aberration
+        :param bremoveisolatedmeshes: TRUE to remove isolated mesh
+        :param level: to be determined by the user to determine the number of contacts meshes where the research is done (by default 3)
+        :param coeff_std : to be determined by the user (by default 3)
+        every index of loca represents a mesh index of the tin with 3 values in column indexing the mesh indexes in contact ; -1 if not
+        countcontact indicates the number of contacts for each mesh
         """
-        unit_to_remove_list = []
         # for all reach
         for reach_number in range(0, self.reach_number):
+            unit_to_remove_list = []
             # for all units
             for unit_number in range(0, self[reach_number].unit_number):
-                # connectivity_mesh_table
-                loca, countcontact = connectivity_mesh_table(self[reach_number][unit_number]["mesh"]["tin"])  # loca,posfree = connectivity_mesh_table (tin[0:5,:])
+                # connectivity_mesh_table to get the neighbors of the mesh and the number of contact neighbors
+                loca, countcontact = connectivity_mesh_table(self[reach_number][unit_number]["mesh"]["tin"])
                 if loca is None and countcontact is None:
                     unit_to_remove_list.append(unit_number)
                     continue
 
                 # note that if the  value for a mesh index in countcontact is 0 the mesh is isolated
                 countcontact = countcontact.flatten()
-                countcontact12 = (countcontact > 0) & (
-                        countcontact != 3)  # to get the information TRUE if the mesh index is on a edge
+                countcontact12 = (countcontact > 0) & (countcontact != 3)  # to get the information TRUE if the mesh index is on the edge
 
                 # c_mesh_max_slope_surface
                 self[reach_number][unit_number].c_mesh_max_slope_surface()
-                median_slope = np.median(self[reach_number][unit_number]["mesh"]["data"][self.hvum.max_slope_surface.name].to_numpy())
+                #standard deviation method
+                slope_std = self[reach_number][unit_number]["mesh"]["data"][self.hvum.max_slope_surface.name].std()
+                slope_mean = self[reach_number][unit_number]["mesh"]["data"][self.hvum.max_slope_surface.name].mean()
+                anomaly_cut_off = slope_std * coeff_std
+                limit = slope_mean + anomaly_cut_off
+                np_max_slope_surface = self[reach_number][unit_number]["mesh"]["data"][self.hvum.max_slope_surface.name].to_numpy()
                 bmeshinvalid = np.full((len(self[reach_number][unit_number]["mesh"]["tin"]),), False)
+
                 if bremoveisolatedmeshes:
-                    bmeshinvalid = np.logical_xor(bmeshinvalid, (countcontact == 0))
+                    bmeshinvalid = np.logical_xor(bmeshinvalid, (countcontact == 0))  # TO remove isolated mesh
                 for j in range(len(self[reach_number][unit_number]["mesh"]["tin"])):
-                    if self[reach_number][unit_number]["mesh"]["data"][self.hvum.max_slope_surface.name].to_numpy()[
-                        j] >= max_slope_limit:
-                        bmeshinvalid[j] = True
-                    elif countcontact12[j]:
+                    if countcontact12[j]: #only the mesh at the edge
                         a = set(loca[j][:countcontact[j]]) | {j}
                         aa = set(loca[j][:countcontact[j]])
                         for ilevel in range(level):
@@ -702,14 +712,12 @@ class Data2d(list):
                                 b = b | set(loca[ij][:countcontact[ij]])
                             aa = b - a
                             a = a | b
-                        # condition for keeping the mesh
-                        surroundingmesh = list(a - {j})
-                        surroundingmesh3 = np.array(surroundingmesh)[countcontact[surroundingmesh] == 3]
-                        # penta=mesh_max_slope_surface[surroundingmesh]
-                        penta3 = self[reach_number][unit_number]["mesh"]["data"][self.hvum.max_slope_surface.name].to_numpy()[surroundingmesh3]
-                        if len(surroundingmesh3) > minimum_surrounding_mesh and coeff_max_slope * np.max(penta3) < self[reach_number][unit_number]["mesh"]["data"][self.hvum.max_slope_surface.name].to_numpy()[j]:
-                            if self[reach_number][unit_number]["mesh"]["data"][self.hvum.max_slope_surface.name].to_numpy()[j] > median_slope:  # to avoid hole in flat area
-                                bmeshinvalid[j] = True
+                        surroundingmesh = list(a) # the edge mesh and its neighbors up to the indicated level
+                        surroundingmesh3 = np.array(surroundingmesh)
+                        penta3 = np_max_slope_surface[surroundingmesh3]
+                        for i in range(len(penta3)):
+                            if penta3[i] > limit:
+                                bmeshinvalid[surroundingmesh3[i]] = True
 
                 # mesh data
                 self[reach_number][unit_number]["mesh"][self.hvum.tin.name] = self[reach_number][unit_number]["mesh"][self.hvum.tin.name][~bmeshinvalid]
@@ -719,11 +727,6 @@ class Data2d(list):
 
                 if np.sum(bmeshinvalid):
                     print("Warning: The mesh of the unit " + self[reach_number][unit_number].unit_name + " has " + str(np.sum(bmeshinvalid)) + " mesh bank hydraulic aberations(s). The latter has been removed.")
-
-                # # node data
-                # ipt_iklenew_unique = np.unique(self[reach_number][unit_number]["mesh"][self.hvum.tin.name])
-                # self[reach_number][unit_number]["node"]["data"] = self[reach_number][unit_number]["node"]["data"].iloc[ipt_iklenew_unique]
-                # self[reach_number][unit_number]["node"][self.hvum.xy.name] = self[reach_number][unit_number]["node"][self.hvum.xy.name][ipt_iklenew_unique]
 
             if unit_to_remove_list:
                 self.remove_unit_from_unit_index_list(unit_to_remove_list, reach_number)
@@ -822,12 +825,20 @@ class Data2d(list):
                             else:
                                 self[reach_number][unit_number].c_mesh_mean_from_node_values(variable.name)
 
-    def remove_null_area(self):
+    def remove_null_area(self, min_area=0):
         # for all reach
         for reach_number in range(0, self.reach_number):
+            unit_to_remove_list  = []
             # for all units
             for unit_number in range(len(self[reach_number])):
-                self[reach_number][unit_number].remove_null_area()
+                self[reach_number][unit_number].remove_null_area(min_area)
+
+                # all meshes are entirely dry
+                if not self[reach_number][unit_number]["mesh"]["tin"].shape[0]:
+                    unit_to_remove_list.append(unit_number)
+
+            if unit_to_remove_list:
+                self.remove_unit_from_unit_index_list(unit_to_remove_list, reach_number)
 
     def neighbouring_triangles(self, tin, interest_mesh_indices=None):
         """
@@ -1142,15 +1153,16 @@ class Unit(dict):
 
         return data_variable_list
 
-    def remove_null_area(self):
-        index_to_remove = self["mesh"]["data"][self.hvum.area.name].to_numpy() == 0.0
+    def remove_null_area(self, min_area=0):
+        index_to_remove = self["mesh"]["data"][self.hvum.area.name].to_numpy() <= min_area
 
         if True in index_to_remove:
             # update tin
             self["mesh"][self.hvum.tin.name] = self["mesh"][self.hvum.tin.name][~index_to_remove]
 
             # update i_whole_profile
-            self["mesh"][self.hvum.i_whole_profile.name] = self["mesh"][self.hvum.i_whole_profile.name][~index_to_remove]
+            self["mesh"][self.hvum.i_whole_profile.name] = self["mesh"][self.hvum.i_whole_profile.name][
+                ~index_to_remove]
 
             # update mesh data
             self["mesh"]["data"] = self["mesh"]["data"][~index_to_remove]
@@ -1169,7 +1181,8 @@ class Unit(dict):
             self["node"]["xy"] = self["node"]["xy"][i_pt_unique]
             # update node data
             self["node"]["data"] = self["node"]["data"].iloc[i_pt_unique]
-            print("Warning: The unit " + self.unit_name + " has " + str(node_unused_nb) + " unused node(s). The latter has been removed.")
+            print("Warning: The unit " + self.unit_name + " has " + str(
+                node_unused_nb) + " unused node(s). The latter has been removed.")
 
     def is_duplicates_mesh_or_point(self, case, mesh, node):
         """
@@ -1327,7 +1340,7 @@ class Unit(dict):
 
         # change incoherent values to nan
         # with np.errstate(invalid='ignore'):  # ignore warning due to NaN values
-        #     mesh_max_slope_surface[mesh_max_slope_surface > 0.08] = np.NaN  # 0.08
+        # mesh_max_slope_surface[mesh_max_slope_surface > 0.08] = np.NaN  # 0.08
         self["mesh"]["data"][self.hvum.max_slope_surface.name] = mesh_max_slope_surface
 
     def c_mesh_max_slope_energy(self):
@@ -1398,7 +1411,7 @@ class Unit(dict):
                                                                          self["mesh"]["data"][self.hvum.h.name]) + (
                                                                                 (self["mesh"]["data"][
                                                                                      self.hvum.v.name] ** 2) / (
-                                                                                            2 * self.hvum.g.value))
+                                                                                        2 * self.hvum.g.value))
         # compute mesh mean
         else:
             self.c_mesh_mean_from_node_values(self.hvum.hydraulic_head_level.name)
@@ -1560,7 +1573,7 @@ class Unit(dict):
                                                                      self["node"]["data"][self.hvum.h.name]) + (
                                                                             (self["node"]["data"][
                                                                                  self.hvum.v.name] ** 2) / (
-                                                                                        2 * self.hvum.g.value))
+                                                                                    2 * self.hvum.g.value))
 
     def c_node_conveyance(self):
         self["node"]["data"][self.hvum.conveyance.name] = self["node"]["data"][self.hvum.h.name] * self["node"]["data"][
