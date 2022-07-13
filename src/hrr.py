@@ -55,8 +55,8 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
     # return
     #
 
-
     # TODO: change it with Quentin deltat seconds
+    print("hrr_manager_file", hrr_description["hrr_manager_file"])
     # deltatlist = hrr_description["deltatlist"]
     deltatlist = [0,24017] #T2b1-b3 deltat en s pour Qi : 9.2   35
     # deltatlist = [0,13947,10070,7724,11058,10198,10549,5961,16689]  #T2 deltat en s pour Qi : 9.2	21.2	35	48.4	74.7	110	150	175	259

@@ -929,7 +929,7 @@ class MainWindows(QMainWindow):
             self.central_widget.bioinfo_tab.fill_selected_models_listwidets(item_dict)
         elif item_dict["source_str"] == "Stathab":
             self.central_widget.stathab_tab.fill_selected_models_listwidets(item_dict["selected_aquatic_animal_list"])
-        elif item_dict["source_str"] == "Stathab_steep":
+        elif item_dict["source_str"] == "Stathab Steep":
             self.central_widget.stathab_steep_tab.fill_selected_models_listwidets(item_dict["selected_aquatic_animal_list"])
         elif item_dict["source_str"] == "fstress":
             self.central_widget.fstress_tab.fill_selected_models_listwidets(item_dict)
@@ -1425,7 +1425,6 @@ class MainWindows(QMainWindow):
                         self.remove_hdf5_files)
                     self.central_widget.data_explorer_tab.data_explorer_frame.send_rename.connect(
                         self.rename_hdf5_file)
-
                 else:
                     self.central_widget.data_explorer_tab.__init__(self.path_prj, self.name_prj)
                     self.central_widget.data_explorer_tab.data_explorer_frame.send_remove.connect(
@@ -1566,7 +1565,7 @@ class MainWindows(QMainWindow):
                                                          self.tr("Stathab"))  # 7
                 self.central_widget.tab_widget.insertTab(self.central_widget.stathab_steep_tab.tab_position,
                                                          self.central_widget.stathab_steep_tab,
-                                                         self.tr("Stathab_steep"))  # 8
+                                                         self.tr("Stathab Steep"))  # 8
                 self.central_widget.tab_widget.insertTab(self.central_widget.fstress_tab.tab_position,
                                                          self.central_widget.fstress_tab,
                                                          self.tr("FStress"))  # 9
@@ -1670,6 +1669,7 @@ class MainWindows(QMainWindow):
                     shutil.rmtree(os.path.join(self.path_prj, "input", os.path.splitext(file_to_remove)[0]))
                 except PermissionError:
                     print(self.tr("Error: ") + self.tr("Could not remove input project " + os.path.splitext(file_to_remove)[0] + " folder. It might be used by another program."))
+                    return
 
             # refresh .habby project
             filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
@@ -1698,38 +1698,43 @@ class MainWindows(QMainWindow):
         file_to_rename = self.central_widget.data_explorer_tab.data_explorer_frame.file_to_rename
         ext = os.path.splitext(file_to_rename)[1]
         file_renamed = self.central_widget.data_explorer_tab.data_explorer_frame.file_renamed
+        print("rename_hdf5_file", file_to_rename, file_renamed)
 
-        # rename file
-        os.rename(os.path.join(self.path_prj, "hdf5", file_to_rename),
-                  os.path.join(self.path_prj, "hdf5", file_renamed))
+        if file_to_rename != file_renamed:
+            # rename file
+            try:
+                os.rename(os.path.join(self.path_prj, "hdf5", file_to_rename),
+                          os.path.join(self.path_prj, "hdf5", file_renamed))
+            except PermissionError:
+                print(self.tr("Error: ") + self.tr("Could not rename " + file_to_rename + " file. It might be used by another program."))
+                return
+            # change attribute
+            hdf5 = hdf5_mod.Hdf5Management(self.path_prj, file_renamed, new=False, edit=True)
+            hdf5.file_object.attrs[ext[1:] + "_filename"] = file_renamed
+            hdf5.close_file()
 
-        # change attribute
-        hdf5 = hdf5_mod.Hdf5Management(self.path_prj, file_renamed, new=False, edit=True)
-        hdf5.file_object.attrs[ext[1:] + "_filename"] = file_renamed
-        hdf5.close_file()
+            # refresh .habby project
+            filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
+            if os.path.isfile(filename_path_pro):
+                # load
+                project_properties = load_project_properties(self.path_prj)
 
-        # refresh .habby project
-        filename_path_pro = os.path.join(self.path_prj, self.name_prj + '.habby')
-        if os.path.isfile(filename_path_pro):
-            # load
-            project_properties = load_project_properties(self.path_prj)
+                # rename
+                if file_to_rename in project_properties[hdf5.input_type]["hdf5"]:
+                    file_to_rename_index = project_properties[hdf5.input_type]["hdf5"].index(file_to_rename)
+                    project_properties[hdf5.input_type]["hdf5"][file_to_rename_index] = file_renamed
 
-            # rename
-            if file_to_rename in project_properties[hdf5.input_type]["hdf5"]:
-                file_to_rename_index = project_properties[hdf5.input_type]["hdf5"].index(file_to_rename)
-                project_properties[hdf5.input_type]["hdf5"][file_to_rename_index] = file_renamed
+                    # save
+                    save_project_properties(self.path_prj, project_properties)
 
-                # save
-                save_project_properties(self.path_prj, project_properties)
+            # update_combobox_filenames
+            self.central_widget.update_combobox_filenames()
+
+            # log
+            self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('File renamed. <br>'))
 
         # reconnect
         self.central_widget.data_explorer_tab.data_explorer_frame.names_hdf5_QListWidget.blockSignals(False)
-
-        # update_combobox_filenames
-        self.central_widget.update_combobox_filenames()
-
-        # log
-        self.central_widget.tracking_journal_QTextEdit.textCursor().insertHtml(self.tr('File renamed. <br>'))
 
     def remove_all_figure_files(self):
         """
@@ -2095,7 +2100,7 @@ class CentralW(QWidget):
             if go_stat:
                 self.tab_widget.addTab(self.estimhab_tab, "Estimhab")  # 7
                 self.tab_widget.addTab(self.stathab_tab, "Stathab")  # 8
-                self.tab_widget.addTab(self.stathab_steep_tab, "Stathab_steep")  # 9
+                self.tab_widget.addTab(self.stathab_steep_tab, "Stathab Steep")  # 9
                 self.tab_widget.addTab(self.fstress_tab, "FStress")  # 10
             if go_research:
                 self.tab_widget.addTab(self.other_tab, self.tr("Research 1"))  # 11
@@ -2169,7 +2174,7 @@ class CentralW(QWidget):
         # stathab
         if hasattr(self, 'stathab_tab'):
             plt.close("all")
-        # stathab_steep
+        # Stathab_steep
         if hasattr(self, 'stathab_steep_tab'):
             plt.close("all")
 

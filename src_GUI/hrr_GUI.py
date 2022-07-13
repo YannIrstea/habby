@@ -87,6 +87,7 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.name_prj = name_prj
         self.send_log = send_log
         self.pathfile = ""
+        self.hrr_manager_file = ""
         self.path_last_file_loaded = self.path_prj
         self.project_properties = load_project_properties(self.path_prj)
         self.setTitle(title)
@@ -182,8 +183,8 @@ class ComputingGroup(QGroupBoxCollapsible):
         if filename:
             self.pathfile = filename  # source file path
             self.save_xml("hrr_manager_file")
-            self.read_hrr_manager_file(filename)
             self.hrr_manager_file = self.read_attribute_xml("hrr_manager_file")
+            self.hrr_time_label.setText(os.path.basename(self.hrr_manager_file))
 
     def update_gui(self):
         selected_file_names = [selection_el.text() for selection_el in self.file_selection_listwidget.selectedItems()]
@@ -266,7 +267,8 @@ class ComputingGroup(QGroupBoxCollapsible):
         if len(self.file_selection_listwidget.selectedItems()) > 0:
             hrr_description = dict(deltatlist=[],
                               hdf5_name_list=[selection_el.text() for selection_el in
-                                              self.file_selection_listwidget.selectedItems()])
+                                              self.file_selection_listwidget.selectedItems()],
+                                   hrr_manager_file=self.hrr_manager_file)
 
             self.progress_layout.process_manager.set_hrr_hdf5_mode(self.path_prj,
                                                                   hrr_description,
