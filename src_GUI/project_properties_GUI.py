@@ -395,18 +395,20 @@ class ProjectPropertiesDialog(QDialog):
 
         # Hydraulic Aberrations
         if "first_supercut" in project_properties.keys():
+            self.neighbor_level_lineedit.setText(str(project_properties['neighbors_level']))
+            self.coeff_std_lineedit.setText(str(project_properties['coeff_std']))
             if project_properties['first_supercut']:  # is a string not a boolean
                 self.first_supercut_checkbox.setChecked(True)
-                self.neighbor_level_lineedit.setText(str(project_properties['neighbors_level']))
-                self.coeff_std_lineedit.setText(str(project_properties['coeff_std']))
-                if project_properties['second_supercut']:  # is a string not a boolean
-                    self.second_supercut_checkbox.setChecked(True)
-                else:
-                    self.second_supercut_checkbox.setChecked(False)
             else:
                 self.first_supercut_checkbox.setChecked(False)
+            if project_properties['second_supercut']:  # is a string not a boolean
+                self.second_supercut_checkbox.setChecked(True)
+            else:
+                self.second_supercut_checkbox.setChecked(False)
         else:
             self.send_log.emit('Warning: ' + self.tr('The current project is outdated. You might recreate a new one.'))
+
+        self.first_supercut_checkbox_change()
 
         # pvd_variable_z_combobox
         item_list = [self.hvum.z.name_gui,
