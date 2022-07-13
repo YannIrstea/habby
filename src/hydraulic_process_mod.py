@@ -25,6 +25,7 @@ from multiprocessing import Pool, Lock
 from shutil import copy as sh_copy
 
 from src.merge_mod import merge, setup
+from src.dev_tools_mod import copy_hydrau_input_files
 from src.hydrosignature_mod import hscomparison, hydrosignature_calculation_alt, hsexporttxt, \
     check_hs_class_match_hydraulic_values
 from src.translator_mod import get_translator
@@ -299,6 +300,13 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
         hdf5.create_hdf5_hab(data_2d,
                              data_2d_whole_profile,
                              project_properties)
+
+    # copy input files to input project folder
+    if not project_properties["restarted"]:
+        copy_hydrau_input_files(data_2d.path_filename_source,
+                            data_2d.filename_source,
+                            hdf5.filename,
+                            os.path.join(project_properties["path_prj"], "input"))
 
     # create_index_hydrau_text_file
     if not project_properties["restarted"]:

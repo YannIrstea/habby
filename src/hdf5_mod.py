@@ -834,13 +834,6 @@ class Hdf5Management:
         # create_data_2d_info
         self.write_data_2d_info()
 
-        # copy input files to input project folder
-        if not project_properties["restarted"] and self.data_2d.hvum.hydraulic_class.name not in self.data_2d.hvum.hdf5_and_computable_list.names():
-            copy_hydrau_input_files(self.data_2d.path_filename_source,
-                                self.data_2d.filename_source,
-                                self.filename,
-                                os.path.join(project_properties["path_prj"], "input"))
-
         # save XML
         self.save_xml(self.data_2d.hyd_model_type,
                       self.data_2d.path_filename_source)
