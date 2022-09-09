@@ -409,7 +409,7 @@ def write_txt(qmod_all, vh_all, name_inv, path_txt, name_river, timestamp=True):
     This function writes the txt outputs for FStress
 
     :param qmod_all: the modelled discharge for each river
-    :param vh_all: the suitability indoex for each invertebrate species for each river
+    :param vh_all: the suitability index for each invertebrate species for each river
     :param name_inv: The four letter code of each selected invetebrate
     :param path_txt: the path where to save the text file
     :param name_river: the name of the river
@@ -427,7 +427,7 @@ def write_txt(qmod_all, vh_all, name_inv, path_txt, name_river, timestamp=True):
             fname = os.path.join(path_txt, 'Fstress_' + r + '_rre.txt')
             if os.path.isfile(fname):
                 os.remove(fname)
-        header_txt = 'habitat value\n'
+        header_txt = 'OSI\n'
         for n in name_inv:
             header_txt += n + '\t'
         header_txt += '\n'

@@ -1117,7 +1117,7 @@ class Stathab:
 
         return v_dist, v_born
 
-    def savefig_stahab(self, ):
+    def savefig_stahab(self):
         """
         A function to save the results in text and the figure. If the argument show_class is True,
         it shows an extra figure with the size of the different height, granulo, and velocity classes. The optional
@@ -1165,7 +1165,7 @@ class Stathab:
             for index_habmodel in range(nb_models):
                 codefish = dict_pref_stahab['code_bio_model'][index_habmodel] + '-' + dict_pref_stahab['stage'][
                     index_habmodel]
-                header0_list.extend(['hv_hv-' + codefish, 'wua_hv-' + codefish])
+                header0_list.extend(['osi_hv-' + codefish, 'wua_hv-' + codefish])
                 header1_list.extend(['[-]', '[m2/100m]'])
                 jj = np.concatenate((jj, np.stack(
                     (self.j_all['hv_hv'][r, index_habmodel, :], self.j_all['wua_hv'][r, index_habmodel, :]),

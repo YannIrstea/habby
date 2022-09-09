@@ -929,7 +929,7 @@ class MainWindows(QMainWindow):
             self.central_widget.bioinfo_tab.fill_selected_models_listwidets(item_dict)
         elif item_dict["source_str"] == "Stathab":
             self.central_widget.stathab_tab.fill_selected_models_listwidets(item_dict["selected_aquatic_animal_list"])
-        elif item_dict["source_str"] == "Stathab Steep":
+        elif item_dict["source_str"] == "Stathab_steep":
             self.central_widget.stathab_steep_tab.fill_selected_models_listwidets(item_dict["selected_aquatic_animal_list"])
         elif item_dict["source_str"] == "fstress":
             self.central_widget.fstress_tab.fill_selected_models_listwidets(item_dict)
@@ -2236,6 +2236,7 @@ class CentralW(QWidget):
             self.substrate_tab.send_log.connect(self.write_log)
             self.estimhab_tab.send_log.connect(self.write_log)
             self.stathab_tab.send_log.connect(self.write_log)
+            self.stathab_steep_tab.send_log.connect(self.write_log)
             self.bioinfo_tab.send_log.connect(self.write_log)
             self.fstress_tab.send_log.connect(self.write_log)
             self.data_explorer_tab.send_log.connect(self.write_log)

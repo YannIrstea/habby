@@ -285,13 +285,14 @@ class StathabW(estimhab_GUI.StatModUseful):
                 index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
                 model_dict = get_biomodels_informations_for_database(user_preferences.biological_models_dict["path_xml"][index_fish])
                 hydraulic_type_available = model_dict["hydraulic_type_available"][model_dict["stage_and_size"].index(stage)]
-
-                if ("HV"  in hydraulic_type_available) or ("V"  in hydraulic_type_available) or ("H"  in hydraulic_type_available):
+                if ("HV" in hydraulic_type_available) or ("V" in hydraulic_type_available) or ("H" in hydraulic_type_available):
                     # add it to selected
                     self.selected_aquatic_animal_qtablewidget.addItem(item_str)
                     self.fish_selected.append(item_str)
                 else:
-                    self.send_log.emit('Warning: ' + item_str + " has neither height nor velocity in biological model (not usable with Stathab).")
+                    self.send_log.emit('Warning: ' + item_str + " has neither height nor velocity in "
+                                                                "biological model (not usable with " + 
+                                       self.model_type.replace("_", " ") + ").")
         self.save_xml()
 
     def change_riv_type(self):
@@ -507,7 +508,7 @@ class StathabW(estimhab_GUI.StatModUseful):
                     return
         else:
             self.list_needed.addItem('All files found')
-            self.send_log.emit('# Found all STATHAB files. Load Now.')
+            self.send_log.emit('# Found all STATHAB files. Run Now.')
             sys.stdout = self.mystdout = StringIO()
             self.mystathab.load_stathab_from_txt(end_file_reach_here, file_name_all_reach_here,
                                                  self.dir_name)
