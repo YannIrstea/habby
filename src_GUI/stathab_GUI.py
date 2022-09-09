@@ -108,7 +108,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         project_properties = load_project_properties(self.path_prj)
         self.dir_name = project_properties[self.model_type]["path"]
         self.init_iu()
-        self.fill_selected_models_listwidets(project_properties[self.model_type]["fish_selected"])
+        self.fill_selected_models_listwidgets(project_properties[self.model_type]["fish_selected"])
 
     def init_iu(self):
         # see if a directory was selected before for Stathab
@@ -268,7 +268,7 @@ class StathabW(estimhab_GUI.StatModUseful):
     def open_bio_model_explorer(self):
         self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer(self.model_type)
 
-    def fill_selected_models_listwidets(self, new_item_text_list):
+    def fill_selected_models_listwidgets(self, new_item_text_list):
         # add new item if not exist
         for item_str in new_item_text_list:
             if item_str not in self.fish_selected:
@@ -291,7 +291,7 @@ class StathabW(estimhab_GUI.StatModUseful):
                     self.fish_selected.append(item_str)
                 else:
                     self.send_log.emit('Warning: ' + item_str + " has neither height nor velocity in "
-                                                                "biological model (not usable with " + 
+                                                                "biological model (not usable with " +
                                        self.model_type.replace("_", " ") + ").")
         self.save_xml()
 

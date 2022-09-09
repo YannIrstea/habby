@@ -210,7 +210,7 @@ class MainWindows(QMainWindow):
         if hasattr(self.central_widget, "data_explorer_tab"):
             self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon)
             self.bio_model_explorer_dialog.send_log.connect(self.central_widget.write_log)
-            self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
+            self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidgets)
 
         # create the menu bar
         self.my_menu_bar()
@@ -921,18 +921,18 @@ class MainWindows(QMainWindow):
 
     # GUI
 
-    def fill_selected_models_listwidets(self):
+    def fill_selected_models_listwidgets(self):
         # get dict
         item_dict = self.bio_model_explorer_dialog.bio_model_infoselection_tab.item_dict
 
         if item_dict["source_str"] == "calc_hab":
-            self.central_widget.bioinfo_tab.fill_selected_models_listwidets(item_dict)
+            self.central_widget.bioinfo_tab.fill_selected_models_listwidgets(item_dict)
         elif item_dict["source_str"] == "Stathab":
-            self.central_widget.stathab_tab.fill_selected_models_listwidets(item_dict["selected_aquatic_animal_list"])
+            self.central_widget.stathab_tab.fill_selected_models_listwidgets(item_dict["selected_aquatic_animal_list"])
         elif item_dict["source_str"] == "Stathab_steep":
-            self.central_widget.stathab_steep_tab.fill_selected_models_listwidets(item_dict["selected_aquatic_animal_list"])
+            self.central_widget.stathab_steep_tab.fill_selected_models_listwidgets(item_dict["selected_aquatic_animal_list"])
         elif item_dict["source_str"] == "fstress":
-            self.central_widget.fstress_tab.fill_selected_models_listwidets(item_dict)
+            self.central_widget.fstress_tab.fill_selected_models_listwidgets(item_dict)
 
     def setlangue(self, nb_lang):
         """
@@ -1481,13 +1481,13 @@ class MainWindows(QMainWindow):
             if hasattr(self, "bio_model_explorer_dialog"):
                 if not self.bio_model_explorer_dialog:
                     self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon)
-                    self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
+                    self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidgets)
                 else:
                     self.bio_model_explorer_dialog.__init__(self, self.path_prj, self.name_prj, self.name_icon)
-                    self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
+                    self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidgets)
             else:
                 self.bio_model_explorer_dialog = BioModelExplorerWindow(self, self.path_prj, self.name_prj, self.name_icon)
-                self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidets)
+                self.bio_model_explorer_dialog.send_fill.connect(self.fill_selected_models_listwidgets)
 
             if hasattr(self, "preferences_dialog"):
                 if not self.preferences_dialog:

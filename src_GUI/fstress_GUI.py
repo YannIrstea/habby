@@ -673,7 +673,7 @@ class FstressW(estimhab_GUI.StatModUseful):
     def open_bio_model_explorer(self):
         self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer("fstress")
 
-    def fill_selected_models_listwidets(self, new_item_text_list):
+    def fill_selected_models_listwidgets(self, new_item_text_list):
         # add new item if not exist
         for item_str in new_item_text_list["selected_aquatic_animal_list"]:
             if item_str not in self.fish_selected:

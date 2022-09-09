@@ -122,7 +122,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         # the available merged data
         l0 = QLabel(self.tr('Habitat file(s)'))
         self.habitat_file_combobox = QComboBox()
-        self.habitat_file_combobox.currentTextChanged.connect(lambda: self.fill_selected_models_listwidets([]))
+        self.habitat_file_combobox.currentTextChanged.connect(lambda: self.fill_selected_models_listwidgets([]))
         self.habitat_file_combobox.setSizeAdjustPolicy(QComboBox.AdjustToContents)
 
         # create lists with the possible fishes
@@ -514,8 +514,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
             # change in dict
             self.selected_aquatic_animal_dict["substrate_mode_list"][model_index] = new_sub_mode_index
 
-    def fill_selected_models_listwidets(self, new_item_text_dict):
-        #print("fill_selected_models_listwidets", self.sender())
+    def fill_selected_models_listwidgets(self, new_item_text_dict):
         # if new added remove duplicates
         if new_item_text_dict and self.selected_aquatic_animal_dict:  # add models from bio model selector  (default + user if exist)
             self.selected_aquatic_animal_dict["selected_aquatic_animal_list"].extend(new_item_text_dict["selected_aquatic_animal_list"])
@@ -729,7 +728,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
             self.selected_aquatic_animal_dict = sort_homogoeneous_dict_list_by_on_key(self.selected_aquatic_animal_dict,
                                                                                       "selected_aquatic_animal_list")
-            self.fill_selected_models_listwidets([])
+            self.fill_selected_models_listwidgets([])
 
     def get_current_hab_informations(self):
         # create hdf5 class
@@ -754,7 +753,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.selected_aquatic_animal_dict["selected_aquatic_animal_list"] = [self.selected_aquatic_animal_dict["selected_aquatic_animal_list"][i] for i in index_to_keep]
         self.selected_aquatic_animal_dict["hydraulic_mode_list"] = [self.selected_aquatic_animal_dict["hydraulic_mode_list"][i] for i in index_to_keep]
         self.selected_aquatic_animal_dict["substrate_mode_list"] = [self.selected_aquatic_animal_dict["substrate_mode_list"][i] for i in index_to_keep]
-        self.fill_selected_models_listwidets([])
+        self.fill_selected_models_listwidgets([])
 
     def save_selected_aquatic_animal_list_prj(self):
         # if .hab :
@@ -840,7 +839,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.habitat_file_combobox.blockSignals(False)
 
         # check_uncheck_allmodels_presence
-        self.fill_selected_models_listwidets([])
+        self.fill_selected_models_listwidgets([])
 
     def run_habitat_value(self):
         """
