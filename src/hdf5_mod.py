@@ -1229,7 +1229,7 @@ class Hdf5Management:
         self.file_object.create_dataset("w_all", estimhab_dict["w_all"].shape, data=estimhab_dict["w_all"])
         self.file_object.create_dataset("vel_all", estimhab_dict["vel_all"].shape, data=estimhab_dict["vel_all"])
         self.file_object.create_dataset("OSI", estimhab_dict["OSI"].shape, data=estimhab_dict["OSI"])
-        self.file_object.create_dataset("WHU", estimhab_dict["WUA"].shape, data=estimhab_dict["WUA"])
+        self.file_object.create_dataset("WUA", estimhab_dict["WUA"].shape, data=estimhab_dict["WUA"])
 
         # targ
         for k, v in estimhab_dict["qtarg_dict"].items():
