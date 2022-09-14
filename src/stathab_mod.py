@@ -1144,7 +1144,7 @@ class Stathab:
         """
         dict_pref_stahab = self.stahab_get_pref()
         nb_models = len(dict_pref_stahab['code_bio_model'])
-        mode_name = "Stathab Steep" if self.riverint == 1 else "Stathab"
+        mode_name = "Stathab_steep" if self.riverint == 1 else "Stathab"
 
         z0header_txt = '\t'.join(['site', 'esp', 'Q', 'W', 'H', 'V', 'vh_v', 'spu_v', 'vh_h', 'spu_h', 'vh_hv',
                                   'spu_hv']) + '\n' + '\t'.join(
@@ -1196,7 +1196,7 @@ class Stathab:
             if mode_name == "Stathab":
                 nb_h = len(self.lim_all[0]) - 1
                 nb_v = len(self.lim_all[1]) - 1
-            elif mode_name == "Stathab Steep":
+            elif mode_name == "Stathab_steep":
                 nb_h = len(self.hborn_Stahabsteep[0][0])
                 nb_v = len(self.vborn_Stahabsteep[0][0])
             qmod = self.q_all[r]
@@ -1210,7 +1210,7 @@ class Stathab:
                         (z1r, z1q, self.dist_hs_all[r][iq], self.lim_all[0][0: -1], self.lim_all[0][1:]))
                     z2all = np.column_stack(
                         (z2r, z2q, self.dist_vs_all[r][iq], self.lim_all[1][0: -1], self.lim_all[1][1:]))
-                elif mode_name == "Stathab Steep":
+                elif mode_name == "Stathab_steep":
                     deltah, deltav = self.hborn_Stahabsteep[r][iq][0], self.vborn_Stahabsteep[r][iq][0]
                     z1all = np.column_stack(
                         (z1r, z1q, self.dist_hs_all[r][iq], self.hborn_Stahabsteep[r][iq] - deltah,
