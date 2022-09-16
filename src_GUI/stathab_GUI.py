@@ -74,9 +74,12 @@ class StathabW(estimhab_GUI.StatModUseful):
     def __init__(self, path_prj, name_prj, steep=False):
 
         super().__init__()
-
-        self.tab_name = "stathab"
-        self.tab_position = 8
+        if not steep:
+            self.tab_name = "stathab"
+            self.tab_position = 8
+        else:
+            self.tab_name = "stathab_steep"
+            self.tab_position = 9
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.path_im = self.path_prj
@@ -103,7 +106,6 @@ class StathabW(estimhab_GUI.StatModUseful):
         if steep:
             self.riverint = 1
             self.model_type = self.tr('Stathab_steep')
-            self.tab_position = 9
         self.selected_aquatic_animal_list = []
         project_properties = load_project_properties(self.path_prj)
         self.dir_name = project_properties[self.model_type]["path"]
@@ -119,7 +121,10 @@ class StathabW(estimhab_GUI.StatModUseful):
             self.send_log.emit('Warning: Project was not saved. Save the project in the general tab \n')
 
         # prepare QLabel
-        self.l1 = QLabel(self.tr('Stathab Input Files (.txt)'))
+        if self.riverint == 1:
+            self.l1 = QLabel(self.tr('Stathab Steep Input Files (.txt)'))
+        else:
+            self.l1 = QLabel(self.tr('Stathab Input Files (.txt)'))
         loadb = QPushButton(self.tr("Select directory"))
         if len(self.dir_name) > 30:
             self.l0 = QLabel('...' + self.dir_name[-30:])

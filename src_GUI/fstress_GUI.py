@@ -14,13 +14,9 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
-from lxml import etree as ET
-import numpy as np
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QFileDialog, \
-    QSpacerItem, QAbstractItemView, QMessageBox, QComboBox, QInputDialog, QFrame
-from PyQt5.QtGui import QFont
-import matplotlib.pyplot as plt
+    QAbstractItemView, QMessageBox, QFrame, QListWidget, QListWidgetItem
 import sys
 import os
 from io import StringIO
@@ -29,58 +25,77 @@ import src.dev_tools_mod
 import src.tools_mod
 from src_GUI import estimhab_GUI
 from src import fstress_mod
-from src.project_properties_mod import load_project_properties
+from src.project_properties_mod import load_project_properties, save_project_properties
 from src.user_preferences_mod import user_preferences
 from src.bio_info_mod import get_biomodels_informations_for_database
 
 
 class FstressW(estimhab_GUI.StatModUseful):
     """
-    This class provides the graphical user interface for the habby version of Fstress. The Fstress model is described in
-    fstress_mod.py. FstressW just loads the data given by the user. He/She can write this data in the GUI or loads it
-    from files. The following files are needed:
+    The class to load and manage the widget controlling the FStress model.
+    """
 
-    * listriv.txt the list of the river (if the file does not exist, the river is called river1).
-    * rivqwh.txt discharge, width, height for two discharge (measured) for each rivers.
-    * rivdeb.txt max and min discharge.
-
-    FStress inherits from the class StatModUseful. This class is a "parent" class with some functions which are the same
-    for estimhab and fstress. Hence, we can re-use these function without re.writing them (a bit like SubHydroW)
+    send_log = pyqtSignal(str, name='send_log')
+    """
+    A PyQtsignal used to write the log.
     """
 
     def __init__(self, path_prj, name_prj):
+
         super().__init__()
+
         self.tab_name = "fstress"
-        self.tab_position = 9
-        self.pref_found = False
+        self.tab_position = 10
         self.path_prj = path_prj
         self.name_prj = name_prj
-        self.path_fstress = self.path_prj
-        self.defriver = self.tr('Default River')
-        self.name_bio = 'pref_fstress.txt'
-        self.latin_filename = 'AbbrevLatinNameInvertebrate.txt'
-        self.latin_names = []
-        self.found_file = []
-        self.riv_name = []
-        self.save_ok = True  # just to check if the data was saved without problem
-        self.all_inv_name = []
-        self.pref_inver = []
-        self.qrange = []  # for each river [qmin, qmax]
-        self.qhw = []  # for each river [[q1,h1,w1],[q2,h2,w2]]
+        self.path_im = self.path_prj
+        self.fish_selected = []
+        self.mystdout = StringIO()
+        self.msge = QMessageBox()
+        self.firstitemreach = []  # the first item of a reach
+        self.list_file = QListWidget()
+        self.list_needed = QListWidget()
+        self.list_re = QListWidget()
+        # name of all the text file (see stathabinfo.pdf)
+        self.listrivname = 'listriv'
+        self.end_file_reach = ['deb', 'qhw', 'gra', 'dis']  # .txt or .csv
+        self.end_file_reach_trop = ['deb', 'qhw', 'ii']  # .txt or .csv
+        self.name_file_allreach = ['bornh',
+                                   'bornv']  # old :  self.name_file_allreach = ['bornh', 'bornv', 'borng', 'Pref_latin.txt']
+        self.name_file_allreach_trop = []
+        self.hdf5_name = self.tr('No hdf5 selected')
+        self.myfstress = fstress_mod.FStress(self.name_prj, self.path_prj)
+        self.dir_hdf5 = self.path_prj
+        self.typeload = 'txt'  # txt or hdf5
+        self.model_type = self.tr('FStress')
+        self.selected_aquatic_animal_list = []
+        project_properties = load_project_properties(self.path_prj)
+        self.dir_name = project_properties[self.model_type]["path"]
         self.init_iu()
+        self.fill_selected_models_listwidgets(project_properties[self.model_type]["fish_selected"])
 
     def init_iu(self):
-        """
-        This function is used to initialized an instance of the FstressW() class. It is called by __init__().
-        It is very similar to EstihabW but it is possible to get more than one river and it can load the data from
-        folder.
-        """
-        # load data
-        l001 = QLabel(self.tr('Load Data From Files'))
-        self.loadtxt = QPushButton(self.tr('Text File: listriv.txt'))
-        self.loadtxt.clicked.connect(self.load_txt)
-        self.loadh5 = QPushButton(self.tr('Habitat file (.hab)'))
-        self.loadh5.clicked.connect(self.load_hdf5_fstress)
+        # see if a directory was selected before for FStress
+        # see if an hdf5 was selected before for FStress
+        # if both are there, reload as the last time
+        filename_prj = os.path.join(self.path_prj, self.name_prj + '.habby')
+        if not os.path.isfile(filename_prj):
+            self.send_log.emit('Warning: Project was not saved. Save the project in the general tab \n')
+
+        # prepare QLabel
+        self.l1 = QLabel(self.tr('FStress Input Files (.txt)'))
+        loadb = QPushButton(self.tr("Select directory"))
+        if len(self.dir_name) > 30:
+            self.l0 = QLabel('...' + self.dir_name[-30:])
+        else:
+            self.l0 = QLabel(self.dir_name)
+        l2 = QLabel(self.tr("Reaches"))
+        self.l3 = QLabel(self.tr("File found"))
+        self.l4 = QLabel(self.tr("File still needed"))
+        l6 = QLabel(self.tr("Selected models"))
+        # not used anymore (not really helpful). I let it ehre anyway for completness.
+        self.runb = QPushButton(self.tr("Run FStress"))
+        self.runb.setStyleSheet("background-color: #47B5E6; color: black")
 
         # insist on white background color (for linux, mac)
         self.setAutoFillBackground(True)
@@ -88,770 +103,584 @@ class FstressW(estimhab_GUI.StatModUseful):
         p.setColor(self.backgroundRole(), Qt.white)
         self.setPalette(p)
 
-        # select river
-        l002 = QLabel(self.tr('Rivers or Reaches Names'))
-        self.riv = QComboBox()
-        self.riv.setCurrentIndex(0)
-        self.riv.currentIndexChanged.connect(self.show_data_one_river)
-        self.addriv = QPushButton(self.tr('Modify river name'))
-        self.addriv.clicked.connect(self.modify_name)
-        self.errriv = QPushButton(self.tr('Erase river'))
-        self.errriv.clicked.connect(self.erase_name)
-
-        # Data hydrological (QLineEdit in the init of StatModUseful)
-        l1 = QLabel(self.tr('Hydrological Data'))
-        l2 = QLabel('Q [m<sup>3</sup>/s]')
-        l3 = QLabel(self.tr('Width [m]'))
-        l4 = QLabel(self.tr('Height [m]'))
-        l7 = QLabel(self.tr('Discharge range [m<sup>3</sup>/s] (Qmin and Qmax)'))
-
-        # data invertabrate models
-        l10 = QLabel(self.tr('Selected models'))
-
         # explore_bio_model
         self.explore_bio_model_pushbutton = QPushButton(self.tr('Choose biological models'))
         self.explore_bio_model_pushbutton.clicked.connect(self.open_bio_model_explorer)
 
-        # run model
-        self.button1 = QPushButton(self.tr('Run FStress'))
-        self.button1.setStyleSheet("background-color: #47B5E6; color: black")
-        self.button1.clicked.connect(self.runsave_fstress)
-        # self.button2 = QPushButton(self.tr('Save river data'), self)
-        # self.button2.clicked.connect(self.save_river_data)
-        spacer = QSpacerItem(1, 20)
+        # avoid list which look too big or too small
+        size_max = self.frameGeometry().height() / 2.5
+        self.list_needed.setMaximumHeight(size_max)
+        self.list_re.setMaximumHeight(size_max)
+        self.list_file.setMaximumHeight(size_max)
+        self.list_f.setMinimumHeight(size_max)  # self.list_f defined in Estmhab_GUI.py
+        self.list_f.setMinimumHeight(size_max)
 
-        # find the preference file, show the fish name (eith with latin name or abbreviation),
-        # and enable self.button2 if found
-        self.load_all_fish()
-        self.button1.setEnabled(self.pref_found)  # disable as long as no pref is found
+        # connect method with list
+        loadb.clicked.connect(self.select_dir)
+        self.runb.clicked.connect(self.run_fstress_gui)
+        self.list_re.itemClicked.connect(self.reach_selected)
+        self.list_f.itemClicked.connect(self.add_fish)
+        self.list_f.itemActivated.connect(self.add_fish)
+        self.selected_aquatic_animal_qtablewidget.itemClicked.connect(self.remove_fish)
+        self.selected_aquatic_animal_qtablewidget.itemActivated.connect(self.remove_fish)
+        self.selected_aquatic_animal_qtablewidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
+        self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
-        # see if a model was loaded before. if yes, update GUI and variables
-        self.was_loaded_before()
-
-        # add river by default
-        if self.riv.count() == 0:
-            self.riv.addItem(self.defriver)
-            self.riv_name.append(self.defriver)
-            self.found_file = [[None, None]]
+        # update label and list
+        if self.dir_name and self.typeload == 'txt':
+            if os.path.isdir(self.dir_name):
+                self.load_from_txt_gui()
+                if not self.myfstress.load_ok:
+                    self.send_log.emit('Error: FStress file could not be loaded.\n')
+            else:
+                self.msge.setIcon(QMessageBox.Warning)
+                self.msge.setWindowTitle(self.tr("FStress"))
+                self.msge.setText(self.tr("FStress: The selected directory for FStress does not exist."))
+                self.msge.setStandardButtons(QMessageBox.Ok)
+                self.msge.show()
+        elif self.hdf5_name != self.tr('No hdf5 selected') and self.typeload == 'hdf5':
+            if os.path.isfile(self.hdf5_name):
+                if self.typeload == 'txt':
+                    self.load_from_txt_gui()
+                if self.typeload == 'hdf5':
+                    self.load_from_hdf5_gui()
+                if not self.myfstress.load_ok:
+                    self.msge.setIcon(QMessageBox.Warning)
+                    self.msge.setWindowTitle(self.tr("FStress"))
+                    self.msge.setText(self.mystdout.getvalue())
+                    self.msge.setStandardButtons(QMessageBox.Ok)
+                    self.msge.show()
+            else:
+                self.msge.setIcon(QMessageBox.Warning)
+                self.msge.setWindowTitle(self.tr("FStress"))
+                self.msge.setText(self.tr("FStress: The selected hdf5 file for FStress does not exist."))
+                self.msge.setStandardButtons(QMessageBox.Ok)
+                self.msge.show()
 
         # empty frame scrolable
         content_widget = QFrame()
 
-        self.selected_aquatic_animal_qtablewidget.itemClicked.connect(self.remove_fish)
-        self.selected_aquatic_animal_qtablewidget.itemActivated.connect(self.remove_fish)
+        # Layout
+        self.layout = QGridLayout(content_widget)
+        self.layout.addWidget(self.l1, 0, 0)
+        self.layout.addWidget(loadb, 0, 2)
+        self.layout.addWidget(self.l0, 0, 1)
+        self.layout.addWidget(l2, 1, 0)
+        self.layout.addWidget(self.l3, 1, 1)
+        self.layout.addWidget(self.l4, 1, 2)
+        self.layout.addWidget(self.list_re, 2, 0)
+        self.layout.addWidget(self.list_file, 2, 1)
+        self.layout.addWidget(self.list_needed, 2, 2)
+        self.layout.addWidget(l6, 4, 0)
+        self.layout.addWidget(self.selected_aquatic_animal_qtablewidget, 5, 0, 2, 1)
+        self.layout.addWidget(self.runb, 7, 2)
+        self.layout.addWidget(self.explore_bio_model_pushbutton, 7, 0)
 
-        # layout
-        self.layout3 = QGridLayout(content_widget)
-        self.layout3.addItem(spacer, 0, 3)
-        self.layout3.addWidget(l001, 0, 0)
-        self.layout3.addWidget(self.loadtxt, 1, 0)
-        self.layout3.addWidget(self.loadh5, 1, 1)
-        self.layout3.addItem(spacer, 2, 3)
-        self.layout3.addWidget(l002, 3, 0)
-        self.layout3.addWidget(self.riv, 4, 0)
-        self.layout3.addWidget(self.addriv, 4, 1)
-        self.layout3.addWidget(self.errriv, 4, 2)
-        self.layout3.addWidget(l1, 5, 0)
-        self.layout3.addWidget(l2, 6, 0)
-        self.layout3.addWidget(l3, 6, 1)
-        self.layout3.addWidget(l4, 6, 2)
-        self.layout3.addWidget(self.eq1, 7, 0)
-        self.layout3.addWidget(self.ew1, 7, 1)
-        self.layout3.addWidget(self.eh1, 7, 2)
-        self.layout3.addWidget(self.eq2, 8, 0)
-        self.layout3.addWidget(self.ew2, 8, 1)
-        self.layout3.addWidget(self.eh2, 8, 2)
-        self.layout3.addWidget(l7, 9, 0)
-        self.layout3.addWidget(self.eqmin, 10, 0)
-        self.layout3.addWidget(self.eqmax, 10, 1)
-        self.layout3.addWidget(l10, 11, 0)
-        self.layout3.addWidget(self.selected_aquatic_animal_qtablewidget, 12, 0)
-        self.layout3.addWidget(self.explore_bio_model_pushbutton, 13, 0)
-        self.layout3.addWidget(self.button1, 13, 2)
-        # self.layout3.addWidget(self.button2, 13, 1)
-
-        # add layout
         # self.setLayout(self.layout3)
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
 
-    def was_loaded_before(self):
-        """
-        This function looks in the xml project file is an hdf5 exists already. If yes, it loads this data
-        and show it on the GUI.
-        """
+        if self.dir_name and self.typeload == 'txt':
+            if os.path.isdir(self.dir_name):
+                self.change_riv_type()
 
-        # look in the xml project file if an Fstress model exist
-        fnamep = os.path.join(self.path_prj, self.name_prj + '.habby')
-        if not os.path.isfile(fnamep):
-            self.send_log.emit("The project is not saved. Save the project in the Start tab before saving FStress data.")
+    def select_dir(self):
+        """
+        This function is used to select the directory and find the files to laod FStress from txt files. It calls
+        load_from_txt_gui() when done.
+
+        """
+        # load last dir
+        self.project_properties = load_project_properties(self.path_prj)
+        if not self.dir_name:
+            self.dir_name = self.project_properties["path_last_file_loaded"]
+        if not self.dir_name:
+            self.dir_name = self.path_prj
+
+        # get the directory
+        self.dir_name = QFileDialog.getExistingDirectory(self, self.tr("Open Directory"), self.dir_name)
+        if self.dir_name == '':  # cancel case
+            self.send_log.emit("Warning: No selected directory for FStress\n")
             return
 
-        # parser = ET.XMLParser(remove_blank_text=True)
-        # doc = ET.parse(fnamep, parser)
-        # root = doc.getroot()
-        # tree = ET.ElementTree(root)
-        # child = root.find(".//FStress_data")
-        # # if we do not have already a FStress a model
-        # if child is None:
-        #     return
-        # # if not, get the hdf5 name
-        # else:
-        #     hdf5_infoname = child.text
-        # # the name is an absolute path, take it. Otherwise, assume that the file in it the path_hdf5
-        # if os.path.isabs(hdf5_infoname):
-        #     hdf5_path = os.path.dirname(hdf5_infoname)
-        #     hdf5_name = os.path.basename(hdf5_infoname)
-        # else:
-        #     hdf5_path = self.find_path_hdf5_est()
-        #     hdf5_name = hdf5_infoname
-        hdf5_path = ""
-        hdf5_name = ""
+        self.save_xml()
 
-        # if exists, loads the hdf5
-        if os.path.isfile(os.path.join(hdf5_path, hdf5_name)):
-            [self.qhw, self.qrange, self.riv_name, self.fish_selected] = fstress_mod.read_fstress_hdf5(hdf5_name, hdf5_path)
+        # clear all list
+        self.myfstress = fstress_mod.FStress(self.name_prj, self.path_prj)
+        self.list_re.clear()
+        self.list_file.clear()
+        self.list_needed.clear()
+        self.list_f.clear()
+        self.firstitemreach = []
+
+        filename_prj = os.path.join(self.path_prj, self.name_prj + '.habby')
+        if not os.path.isfile(filename_prj):
+            self.send_log.emit('Error: No project saved. Please create a project first in the General tab.')
+            return
         else:
-            return
-
-        # and show the results on the gui if it counld be loaded without problem
-        if len(self.qhw) > 0 and self.qhw != [-99]:
-            self.show_data_one_river()
-            self.update_list_riv()
-
-    def modify_name(self):
-        """
-        This function is used to modify the name of a river. It will only be saved if FStress is run. Otherwise it
-        is not kept in the data.
-        """
-
-        text, ok = QInputDialog.getText(self, self.tr('Change River Name'),
-                                        self.tr('Enter the new river or reach name:'))
-        if ok:
-            self.riv.setItemText(self.riv.currentIndex(), text)
-            try:
-                self.riv_name[self.riv.currentIndex()] = text
-            except IndexError:
-                pass
-
-    def save_river_data(self):
-        """
-        This function save the data for one river based on the data from the GUI (i.e., after modification by the user).
-        It can be used to save the data given directely by the user or modified by him.
-        """
-        riv = self.riv.currentText()
-        ind = self.riv.currentIndex()
-        if not riv:
-            riv = self.riv_name[0]
-            ind = 0
-        # case where the river was not loaded before
-        if len(self.qhw) == 0 and ind == 0:
-            self.qrange.append([])
-            self.qhw.append([[], []])
-        try:
-            self.qrange[ind] = [float(self.eqmin.text()), float(self.eqmax.text())]
-            self.qhw[ind][0] = [float(self.eq1.text()), float(self.eh1.text()), float(self.ew1.text())]
-            self.qhw[ind][1] = [float(self.eq2.text()), float(self.eh2.text()), float(self.ew2.text())]
-        except ValueError:
-            self.send_log.emit("Error: The hydrological data cannot be converted to float.")
-            self.save_ok = False
-            return
-        path_hdf5 = self.find_path_hdf5_est()
-        fstress_mod.save_fstress(path_hdf5, self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name,
-                                 self.qhw,
-                                 self.qrange, self.fish_selected)
-        self.save_ok = True
-
-    def erase_name(self):
-        """
-        This function erases the data from the river selected by the user.
-        """
-        ind = self.riv.currentIndex()
-        del self.riv_name[ind]
-        del self.found_file[ind]
-        if len(self.qrange) > 0:
-            del self.qrange[ind]
-        if len(self.qhw) > 0:
-            del self.qhw[ind]
-
-        if self.riv.count() == 1:
-            self.riv.addItem(self.defriver)
-            self.riv_name.append(self.defriver)
-            self.found_file = [[None, None]]
-            self.qrange = []
-            self.qhw = []
-        self.update_list_riv()
-        self.show_data_one_river()
-        if not self.riv.count() == 1:
-            path_hdf5 = self.find_path_hdf5_est()
-            fstress_mod.save_fstress(path_hdf5, self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name,
-                                     self.qhw,
-                                     self.qrange, self.fish_selected)
-
-    def add_all_fish(self):
-        """
-        This function add the name of all known fish (the ones in Pref.txt) to the QListWidget which cintains selected
-        fish. This function was copied from the one in SStathab_GUI.py
-        """
-        items = []
-        for index in range(self.list_f.count()):
-            items.append(self.list_f.item(index))
-        if items:
-            for i in range(0, len(items)):
-                # avoid to have the same fish multiple times
-                if items[i].text() in self.fish_selected:
-                    pass
-                else:
-                    self.selected_aquatic_animal_qtablewidget.addItem(items[i].text())
-                    self.fish_selected.append(items[i].text())
-
-                    # order the list (careful QLIstWidget do not order as sort from list)
-                    if self.fish_selected:
-                        self.fish_selected.sort()
-                        self.selected_aquatic_animal_qtablewidget.clear()
-                        self.selected_aquatic_animal_qtablewidget.addItems(self.fish_selected)
-                        # bold for selected fish
-                        font = QFont()
-                        font.setItalic(True)
-                        for i in range(0, self.list_f.count()):
-                            for f in self.fish_selected:
-                                if f == self.list_f.item(i).text():
-                                    self.list_f.item(i).setFont(font)
-
-    def update_list_riv(self):
-        """
-        This function is a small function to update the QCombobox which contains the river name
-        """
-        # update the QComboBox
-        self.riv.clear()
-        for r in self.riv_name:
-            self.riv.addItem(r)
-        self.riv.update()
-
-    def load_txt(self):
-        """
-        In this function, the user select  a listriv.txt file. This files are loaded and written on the GUI.
-
-        Before it was also possible to select just one qhw file. This is still part of the code, but it is not advised
-        to do this as the river name tends to mix each other, which is more trouble to maintain that it worths it.
-        If a qhw.txt is loaded and if there are more than one qhw.txt in the folder, we ask the user if all files must
-        be loaded.
-
-        The needed text files are the following:
-
-        * listriv.txt is a text file with one river name by line
-        * rivnameqhw.txt is a text file with minimum two lines which the measured discharge, height and width for
-          2 measureement (necessary)
-        * rivernamedeb.txt is a text file which has two lines. The first line is the minimum discharge and the second is
-          the maximum discharge to be modelled. It is chosen by the user (necessary to run, but can be given by the user
-          on the GUI)
-
-        All data should be in SI unit. We save all the data in the input folder at the end.
-        """
-
-        # open file
-        filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.path_fstress, os.getenv('HOME'))[0]
-        # exeption: you should be able to clik on "cancel"
-        if not filename_path:
-            return
-
-        self.found_file = []
-        self.riv_name = []
-        self.qhw = []
-        self.qrange = []
-
-        # see which type of file we have and get the name of all the files
-        filename = os.path.basename(filename_path)
-        self.path_fstress = os.path.dirname(filename_path)
-
-        # for listriv file
-        if filename.lower() == 'listriv.txt':
-            # get the river name
-            with open(filename_path, 'rt') as f:
-                for line in f:
-                    if len(line) > 0:
-                        self.riv_name.append(line.strip())
-            # add the file names (deb and qhw.txt)
-            for r in self.riv_name:
-                f_found = [None, None]
-                # discharge range
-                debfilename = r + 'deb.txt'
-                if os.path.isfile(os.path.join(self.path_fstress, debfilename)):
-                    f_found[1] = debfilename
-                elif os.path.isfile(os.path.join(self.path_fstress, r + 'DEB.TXT')):
-                    debfilename = r[:-7] + 'DEB.TXT'
-                    f_found[1] = debfilename
-                else:
-                    f_found[1] = None
-                # qhw
-                qhwname = r + 'qhw.txt'
-                if os.path.isfile(os.path.join(self.path_fstress, qhwname)):
-                    f_found[0] = qhwname
-                elif os.path.isfile(os.path.join(self.path_fstress, r + 'QHW.TXT')):
-                    qhwname = r + 'QHW.TXT'
-                    f_found[0] = qhwname
-                else:
-                    self.send_log.emit('Error: qhw file not found for river ' + r + '.')
-                    return
-                self.found_file.append(f_found)
-
-        # for qhw.txt file ---NOT USED ANYMORE "officialy", but can still be useful to let it open
-        # careful there are some bugs if various qwh are loaded one after the others.
-        elif filename[-7:].lower() == 'qhw.txt':
-            files_all = os.listdir(self.path_fstress)
-            nb_found = 0
-            for f in files_all:
-                if f[-7:].lower() == 'qhw.txt':
-                    # get the name of the file and the river name
-                    self.riv_name.append(f[:-7])
-                    debfilename = f[:-7] + 'deb.txt'
-                    if os.path.isfile(os.path.join(self.path_fstress, debfilename)):
-                        found_f = [f, debfilename]
-                    elif os.path.isfile(os.path.join(self.path_fstress, f[:-7] + 'DEB.TXT')):
-                        debfilename = f[:-7] + 'DEB.TXT'
-                        found_f = [f, debfilename]
-                    else:
-                        found_f = [f, None]
-                    self.found_file.append(found_f)
-
-                    # if we have more than one qhw, ask the user if we shoud all load them
-                    if nb_found == 0:
-                        self.msge.setIcon(QMessageBox.Question)
-                        self.msge.setWindowTitle(self.tr("Load all files?"))
-                        self.msge.setText(self.tr("We found more than one qhw file. Do you want to load all rivers?"))
-                        self.msge.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-                        self.msge.setDefaultButton(QMessageBox.Yes)
-                        retval = self.msge.exec_()
-                        self.msge.show()
-                        if retval == QMessageBox.No:
-                            self.msge.close()
-                            if f == filename:
-                                break
-                            else:
-                                self.riv_name = []
-                                self.qhw = []
-                                self.qrange = []
-                        else:
-                            self.msge.close()
-                    nb_found += 1
-
-        else:
-            self.send_log.emit(self.tr('Error: Only listriv file are accepted. Read Fstress documentation for '
-                                       'more info.'))
-            return
-
-        if len(self.riv_name) == 0:
-            self.send_log.emit(self.tr('Warning: No river found in files.'))
-            return
-
-        # update the list with the new river
-        self.update_list_riv()
-
-        # load the data for all the selected rivers and save it in an hdf5
-        for i in range(0, len(self.riv_name)):
-            self.load_data_fstress(i)
-        path_hdf5 = self.find_path_hdf5_est()
-        fstress_mod.save_fstress(path_hdf5, self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name,
-                                 self.qhw,
-                                 self.qrange, self.fish_selected)
-
-        # copy the input in the input folder
-        input_folder = self.find_path_input_est()
-        new_dir = os.path.join(input_folder, 'input_fstress')
-        all_files = os.listdir(self.path_fstress)
-        paths = [self.path_fstress] * len(all_files)
-        if not os.path.exists(new_dir):
-            os.makedirs(new_dir)
-        src.dev_tools_mod.copy_files(all_files, paths, new_dir)
-
-        # show the data for the selected river
-        self.show_data_one_river()
-
-    def load_hdf5_fstress(self):
-        """
-        This function loads an hdf5 file in the fstress format and add it to the project. This hdf5 file was not part of
-        the project previously.
-        """
-
-        # open file
-        filename_path = QFileDialog.getOpenFileName(self, 'Open File', self.path_fstress, os.getenv('HOME'))[0]
-        # exeption: you should be able to clik on "cancel"
-        if not filename_path:
-            return
-
-        # see which type of file we have and get the name of all the files
-        hdf5_name = os.path.basename(filename_path)
-        hdf5_path = os.path.dirname(filename_path)
-
-        # loads this new hdf5
-        [self.qhw, self.qrange, self.riv_name, self.fish_selected] = fstress_mod.read_fstress_hdf5(hdf5_name, hdf5_path)
-
-        # show the results on the gui
-        if len(self.qhw) > 0 and self.qhw != [-99]:
-            self.show_data_one_river()
-
-        # save it in a new name and links this copied hdf5 to the project
-        path_hdf5 = self.find_path_hdf5_est()
-        fstress_mod.save_fstress(path_hdf5, self.path_prj, self.name_prj, self.name_bio, self.path_bio, self.riv_name,
-                                 self.qhw,
-                                 self.qrange, self.fish_selected)
-
-    def show_data_one_river(self):
-        """
-        This function shows the qhw and the [qmin, qmax] data on the GUI for the river selected by the user.
-        The river must have been loaded before. It also show the selected fish
-        """
-
-        riv = self.riv.currentText()
-        ind = self.riv.currentIndex()
-        if not riv:
-            riv = self.riv_name[0]
-            ind = 0
-
-        if len(self.qrange) - 1 >= ind and len(self.qrange[ind]) == 2:
-            qmin = self.qrange[ind][0]
-            qmax = self.qrange[ind][1]
-            self.eqmin.setText(str(qmin))
-            self.eqmax.setText(str(qmax))
-        else:
-            self.eqmin.clear()
-            self.eqmax.clear()
-
-        if len(self.qhw) - 1 >= ind:
-            data_qhw = self.qhw[ind]
-            self.eq1.setText(str(data_qhw[0][0]))
-            self.eh1.setText(str(data_qhw[0][1]))
-            self.ew1.setText(str(data_qhw[0][2]))
-            self.eq2.setText(str(data_qhw[1][0]))
-            self.eh2.setText(str(data_qhw[1][1]))
-            self.ew2.setText(str(data_qhw[1][2]))
-
-        else:
-            self.eq1.clear()
-            self.ew1.clear()
-            self.eh1.clear()
-            self.eq2.clear()
-            self.ew2.clear()
-            self.eh2.clear()
-
-        for ind, f in enumerate(self.fish_selected):
-            for ind2 in range(0, self.list_f.count()):
-                item = self.list_f.item(ind2)
-                if f == item.text():
-                    self.list_f.setCurrentItem(item)
-                    self.add_fish()
-
-    def load_data_fstress(self, rind):
-        """
-        This function loads the data for fstress and add it to the variable self.qrange and self.qhw for the river
-        rind.
-        :param rind: The indices of the river is self.river_name. So it is which river should be loaded
-        """
-
-        # river and file name
-        ind = rind
-        riv = self.riv_name[ind]
-
-        if not riv:
-            riv = self.riv_name[0]
-            ind = 0
-        if len(self.found_file) == 0 or self.found_file[0][0] is None:
-            self.eqmin.clear()
-            self.eqmax.clear()
-            self.eq1.clear()
-            self.ew1.clear()
-            self.eh1.clear()
-            self.eq2.clear()
-            self.ew2.clear()
-            self.eh2.clear()
-            return
-
-        fnames = self.found_file[ind]
-
-        # discharge range
-        if fnames[1] is not None:
-            fname_path = os.path.join(self.path_fstress, fnames[1])
-            if os.path.isfile(fname_path):
-                with open(fname_path, 'rt') as f:
-                    data_deb = f.read()
-                data_deb = data_deb.split()
-                try:
-                    data_deb = list(map(float, data_deb))
-                except ValueError:
-                    self.send_log.emit('Error: Data cannot be converted to float in deb.txt.')
-                    return
-                qmin = min(data_deb)
-                qmax = max(data_deb)
-
-                self.qrange.append([qmin, qmax])
-            else:
-                self.send_log.emit(self.tr('Warning: deb.txt file not found.(1)'))
-                self.qrange.append([])
-
-        else:
-            self.send_log.emit(self.tr('Warning: deb.txt file not found.(2)'))
-            self.qrange.append([])
-
-        # qhw
-        fname_path = os.path.join(self.path_fstress, fnames[0])
-        if os.path.isfile(fname_path):
-            with open(fname_path, 'rt') as f:
-                data_qhw = f.read()
-            data_qhw = data_qhw.split()
-            # useful to pass in float to check taht we have float
-            try:
-                data_qhw = list(map(float, data_qhw))
-            except ValueError:
-                self.send_log.emit('Error: Data cannot be concerted to float in qhw.txt.')
-                return
-            if len(data_qhw) < 6:
-                self.send_log.emit('Error: FStress needs at least two discharge measurement.')
-                return
-            if len(data_qhw) % 3 != 0:
-                self.send_log.emit('Error: One discharge measurement must be composed of three data (q,w, and h).')
-                return
-
-            self.qhw.append([[data_qhw[0], data_qhw[1], data_qhw[2]], [data_qhw[3], data_qhw[4], data_qhw[5]]])
-        else:
-            self.send_log.emit('Error: qhw.txt file not found.(2)')
-            self.qhw.append([])
-
-    def load_all_fish(self):
-        """
-        This function find the preference file, load the preference coefficient for each invertebrate and show their name
-        on QListWidget. It is run at the start of the program. FStress cannot be run as long as a preference file is not
-        found.
-        """
-
-        sys.stdout = mystdout = StringIO()
-        [self.pref_inver, self.all_inv_name] = fstress_mod.read_pref(self.path_bio, self.name_bio)
-        sys.stdout = sys.__stdout__
-        if self.pref_inver != [-99]:
-            self.pref_found = True
-        else:
-            return
-
-        # log
-        str_found = mystdout.getvalue()
-        str_found = str_found.split('\n')
-        for i in range(0, len(str_found)):
-            if len(str_found[i]) > 1:
-                self.send_log.emit(str_found[i])
-
-        # see if we can use latin name instead of acronym
-        filename_bio = os.path.join(self.path_bio, self.latin_filename)
-        if not os.path.isfile(filename_bio):
-            self.send_log.emit(self.tr('Warning: Latin name of invertebrate could not be read (1).'))
-            # show the fish name as acronym
-            self.list_f.addItems(self.all_inv_name)
-        else:
-            with open(filename_bio, 'rt') as f:
-                data_name = f.read()
-            data_name = data_name.split('\n')
-            data_name = [x for x in data_name if x.strip()]  # erase empty lines or lines with just tab
-            for d in range(0, len(data_name)):
-                data_name[d] = data_name[d].split('\t')
-                if len(data_name[d]) != 2:
-                    self.list_f.addItems(self.all_inv_name)
-                    self.send_log.emit(self.tr('Warning: Latin name of invertebrate could not be read (2).'))
-                    return
-            data_name = np.array(data_name)
-            names_latin = []
-            for abbrev in self.all_inv_name:
-                name_latin_here = data_name[data_name[:, 0] == abbrev]
-                if len(name_latin_here) > 1:
-                    # each name is repeated many time in the data but there are the same name,
-                    # so let's just take the first
-                    name_latin_here = abbrev + ' ' + name_latin_here[0, 1]
-                    names_latin.append(name_latin_here)
-                else:
-                    names_latin.append(abbrev)
-            self.list_f.addItems(names_latin)
-            self.latin_names = names_latin
+            # fill the lists with the existing files
+            self.load_from_txt_gui()
 
     def open_bio_model_explorer(self):
-        self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer("fstress")
+        self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer(self.model_type)
 
     def fill_selected_models_listwidgets(self, new_item_text_list):
         # add new item if not exist
-        for item_str in new_item_text_list["selected_aquatic_animal_list"]:
+        for item_str in new_item_text_list:
             if item_str not in self.fish_selected:
                 # filter : remove HEM bio models
                 splited_item_str = item_str.split()
                 code_bio_model = splited_item_str[-1]
                 stage = splited_item_str[-3]
+
+                # check if user pref curve file has been removed by user (AppData) to remove it in
+                if not code_bio_model in user_preferences.biological_models_dict["code_biological_model"]:
+                    # remove it
+                    continue
+
                 index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
-                model_dict = get_biomodels_informations_for_database(user_preferences.biological_models_dict["path_xml"][index_fish])
-                hydraulic_type_available = model_dict["hydraulic_type_available"][model_dict["stage_and_size"].index(stage)]
-                if "HEM" in hydraulic_type_available:
+                model_dict = get_biomodels_informations_for_database(
+                    user_preferences.biological_models_dict["path_xml"][index_fish])
+                hydraulic_type_available = model_dict["hydraulic_type_available"][
+                    model_dict["stage_and_size"].index(stage)]
+                if ("HV" in hydraulic_type_available) or ("V" in hydraulic_type_available) or (
+                        "H" in hydraulic_type_available):
                     # add it to selected
                     self.selected_aquatic_animal_qtablewidget.addItem(item_str)
                     self.fish_selected.append(item_str)
                 else:
-                    self.send_log.emit('Warning: ' + item_str + " don't have HEM in biological model (not usable with FStress).")
+                    self.send_log.emit('Warning: ' + item_str + " has neither height nor velocity in "
+                                                                "biological model (not usable with " +
+                                       self.model_type.replace("_", " ") + ").")
+        self.save_xml()
 
-    def runsave_fstress(self):
+    def load_from_txt_gui(self):
         """
-        This function save the data related to FStress and call the model Fstress. It is the method which makes the
-        link between the GUI and fstress_mod.py.
+        The main roles of load_from_text_gui() are to call the load_function of the FStress class (which is in
+        stathab_mod.py in the folder src) and to call the function which create an hdf5 file. However, it does some
+        modifications to the GUI before.
         """
+        # update the labels
+        if len(self.dir_name) > 30:
+            self.l0.setText('...' + self.dir_name[-30:])
+        else:
+            self.l0.setText(self.dir_name)
+        self.l1.setText(self.tr('FStress Input Files (.txt)'))
+        self.l3.setText(self.tr("File found"))
+        self.l4.setText(self.tr("File still needed"))
 
-        self.send_log.emit(self.tr('#  Running: FStress'))
-
-        self.save_river_data()
-        if not self.save_ok:
-            self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("FStress"))
-            self.msge.setText(self.tr("FStress data could not be transformed to float. Cannot run FStress."))
-            self.msge.setStandardButtons(QMessageBox.Ok)
-            self.msge.show()
-            return
-
-        # get the name of the selected fish
-        fish_list = []
-        for i in range(0, self.selected_aquatic_animal_qtablewidget.count()):
-            fish_item = self.selected_aquatic_animal_qtablewidget.item(i)
-            # if latin name
-            fish_item_latin = fish_item.text()
-            foundlatin = False
-            for idx, d in enumerate(self.latin_names):
-                if d == fish_item_latin:
-                    fish_list.append(self.all_inv_name[idx])
-                    foundlatin = True
-                    break
-            # if abbrev
-            if not foundlatin:
-                fish_item_str = fish_item.text()
-                fish_list.append(fish_item_str)
-
-        # check internal logic ( a bit like estihab)
-        if not fish_list:
-            self.msge.setIcon(QMessageBox.Warning)
-            self.msge.setWindowTitle(self.tr("run FStress"))
-            self.msge.setText(self.tr("No fish selected. Cannot run FStress."))
-            self.msge.setStandardButtons(QMessageBox.Ok)
-            self.msge.show()
-            return
-
-        for i in range(0, len(self.riv_name)):
-            if len(self.qrange[i]) < 2:
-                self.msge.setIcon(QMessageBox.Warning)
-                self.msge.setWindowTitle(self.tr("run FStress"))
-                self.msge.setText(self.tr("No discharge range. Cannot run FStress."))
-                self.msge.setStandardButtons(QMessageBox.Ok)
-                self.msge.show()
-                return
-            if self.qrange[i][0] >= self.qrange[i][1]:
-                self.msge.setIcon(QMessageBox.Warning)
-                self.msge.setWindowTitle(self.tr("run FStress"))
-                self.msge.setText(self.tr("Minimum dicharge bigger or equal to max discharge. Cannot run FStress."))
-                self.msge.setStandardButtons(QMessageBox.Ok)
-                self.msge.show()
-                return
-            if self.qhw[i][1][0] == self.qhw[i][0][0]:
-                self.msge.setIcon(QMessageBox.Warning)
-                self.msge.setWindowTitle(self.tr("run FStress"))
-                self.msge.setText(self.tr("FStress needs two different measured discharge."))
-                self.msge.setStandardButtons(QMessageBox.Ok)
-                self.msge.show()
-                return
-            if self.qhw[i][0][2] == self.qhw[i][1][2]:
-                self.msge.setIcon(QMessageBox.Warning)
-                self.msge.setWindowTitle(self.tr("run FStress"))
-                self.msge.setText(self.tr("FStress needs two different measured height."))
-                self.msge.setStandardButtons(QMessageBox.Ok)
-                self.msge.show()
-                return
-            if self.qhw[i][0][1] == self.qhw[i][1][1]:
-                self.msge.setIcon(QMessageBox.Warning)
-                self.msge.setWindowTitle(self.tr("run FStress"))
-                self.msge.setText(self.tr("FStress needs two different measured width."))
-                self.msge.setStandardButtons(QMessageBox.Ok)
-                self.msge.show()
-                return
-            if any(i < 0 for i in self.qhw[i][0]) or any(i < 0 for i in self.qhw[i][1]) \
-                    or self.qrange[i][0] < 0 or self.qrange[i][1] < 0:
-                self.msge.setIcon(QMessageBox.Warning)
-                self.msge.setWindowTitle(self.tr("run FStress"))
-                self.msge.setText(self.tr("FStress do not accept negative value"))
-                self.msge.setStandardButtons(QMessageBox.Ok)
-                self.msge.show()
-                return
-            # check than one qhw is bigger than the other qhw
-            if (self.qhw[i][0][0] > self.qhw[i][1][0] and self.qhw[i][0][1] < self.qhw[i][1][1]) \
-                    or (self.qhw[i][0][0] > self.qhw[i][1][0] and self.qhw[i][0][2] < self.qhw[i][1][2]) \
-                    or (self.qhw[i][1][0] > self.qhw[i][0][0] and self.qhw[i][1][1] < self.qhw[i][0][1]) \
-                    or (self.qhw[i][1][0] > self.qhw[i][0][0] and self.qhw[i][1][2] < self.qhw[i][0][2]):
-                self.msge.setIcon(QMessageBox.Warning)
-                self.msge.setWindowTitle(self.tr("run FSTRESS"))
-                self.msge.setText(self.tr("Discharge, width, and height data are not coherent \n"))
-                self.msge.setStandardButtons(QMessageBox.Ok)
-                self.msge.show()
-                return
-
-            # check if the discharge range is realistic with the result
-            self.qall = [self.qhw[i][0][0], self.qhw[i][1][0], self.qrange[i][0], self.qrange[i][1], -99]
-            self.check_all_q()
-
-        # run
+        # read the reaches name
         sys.stdout = self.mystdout = StringIO()
-        [vh, qmod, inv_select] = fstress_mod.run_fstress(self.qhw, self.qrange, self.riv_name, fish_list, self.pref_inver,
-                                                         self.all_inv_name, self.name_prj, self.path_prj)
+        # name_reach = stathab_mod.load_namereach(self.dir_name)
         sys.stdout = sys.__stdout__
         self.send_err_log()
-        if isinstance(qmod, int):
-            if qmod == -99:
+        if name_reach == [-99]:
+            self.list_re.clear()
+            return
+        for r in range(0, len(name_reach)):
+            itemr = QListWidgetItem(name_reach[r])
+            self.list_re.addItem(itemr)
+
+        # see if the needed file are available
+
+        # first let's look for the files where one file by reach is needed
+        c = -1
+        file_name_all_reach_here = []
+        end_file_reach_here = []
+        for r in range(0, len(name_reach)):
+            # see which files are need based on the current river type
+            if self.riverint == 0:  # temperate rivers
+                end_file_reach_here = copy.deepcopy(self.end_file_reach)
+                file_name_all_reach_here = copy.deepcopy(self.name_file_allreach)
+            # tropical rivers
+            elif self.riverint == 1 or self.riverint == 2:
+                end_file_reach_here = copy.deepcopy(self.end_file_reach_trop)
+                file_name_all_reach_here = copy.deepcopy(self.name_file_allreach_trop)
+            else:
+                end_file_reach_here = copy.deepcopy(self.end_file_reach)
+                file_name_all_reach_here = copy.deepcopy(self.name_file_allreach)
+
+            for i in range(0, len(end_file_reach_here)):
+                file = os.path.join(self.dir_name, name_reach[r] + end_file_reach_here[i] + '.txt')
+                file2 = os.path.join(self.dir_name, name_reach[r] + end_file_reach_here[i] + '.csv')
+                if os.path.isfile(file):
+                    itemf = QListWidgetItem(name_reach[r] + end_file_reach_here[i] + '.txt')
+                    end_file_reach_here[i] += '.txt'
+                    self.list_file.addItem(itemf)
+                    c += 1
+                elif os.path.isfile(file2):
+                    itemf = QListWidgetItem(name_reach[r] + end_file_reach_here[i] + '.csv')
+                    end_file_reach_here[i] += '.csv'
+                    self.list_file.addItem(itemf)
+                    c += 1
+                else:
+                    itemf = QListWidgetItem(name_reach[r] + end_file_reach_here[i])
+                    self.list_needed.addItem(itemf)
+                if i == 0:  # note the first item to be able to highlight it afterwards
+                    self.firstitemreach.append([itemf, c])
+
+            self.list_file.addItem('----------------')
+            c += 1
+
+        # files for all reaches
+        # for the preference file in the case of temperate river:
+        # first choice> Pref.txt in dir_name is used.
+        # default choice: Pref.txt in the biology folder.
+        for i in range(0, len(file_name_all_reach_here)):
+            file = os.path.join(self.dir_name, file_name_all_reach_here[i] + '.txt')
+            file2 = os.path.join(self.dir_name, file_name_all_reach_here[i] + '.csv')
+            if os.path.isfile(file):
+                itemf = QListWidgetItem(file_name_all_reach_here[i] + '.txt')
+                file_name_all_reach_here[i] += '.txt'
+                self.list_file.addItem(itemf)
+                itemf.setBackground(Qt.lightGray)
+                # if a custom Pref.txt is present (for FStress temperate)
+                if i == len(self.name_file_allreach) and self.riverint == 0:
+                    self.path_bio_stathab = self.dir_name
+            elif os.path.isfile(file2):
+                itemf = QListWidgetItem(file_name_all_reach_here[i] + '.csv')
+                file_name_all_reach_here[i] += '.csv'
+                self.list_file.addItem(itemf)
+                itemf.setBackground(Qt.lightGray)
+                # if a custom Pref.txt is present (for FStress temperate)
+                if i == len(self.name_file_allreach) and self.riverint == 0:
+                    self.path_bio_stathab = self.dir_name
+            else:
+                # case 1: a file is missing
+                if i != len(file_name_all_reach_here) - 1:
+                    self.list_needed.addItem(file_name_all_reach_here[i])
+                # Or: if Pref.txt is missing, let's use the default file (temperate river)
+                elif self.riverint == 0:
+                    file = os.path.join(self.path_bio_stathab, self.name_file_allreach[i])
+                    if os.path.join(file):
+                        itemf = QListWidgetItem(self.name_file_allreach[i] + ' (default)')
+                        self.list_file.addItem(itemf)
+                        itemf.setBackground(Qt.lightGray)
+                    else:
+                        self.list_needed.addItem(self.name_file_allreach[i])
+
+        # # read the name of the available fish
+        # name_fish = []
+        # if self.riverint == 0:
+        #     sys.stdout = self.mystdout = StringIO()
+        #     [name_fish, blob] = stathab_mod.load_pref(self.name_file_allreach[-1], self.path_bio_stathab)
+        #     sys.stdout = sys.__stdout__
+        #     self.send_err_log()
+        # if self.riverint == 1:  # univariate
+        #     filenames = hdf5_mod.get_all_filename(self.path_bio_stathab, '.csv')
+        #     for f in filenames:
+        #         if 'uni' in f and f[-7:-4] not in name_fish:
+        #             name_fish.append(f[-7:-4])
+        # if self.riverint == 2:
+        #     filenames = hdf5_mod.get_all_filename(self.path_bio_stathab, '.csv')
+        #     for f in filenames:
+        #         if 'biv' in f:
+        #             name_fish.append(f[-7:-4])
+        #
+        # if name_fish == [-99]:
+        #     return
+        # self.list_f.clear()
+        # for r in range(0, len(name_fish)):
+        #     self.list_f.addItem(name_fish[r])
+
+        # load now the text data, create the hdf5 and write in the project file
+        if self.list_needed.count() > 0:
+            if self.riverint == 0:
+                if not file_name_all_reach_here or not end_file_reach_here:
+                    self.send_log.emit('Error: Found only a part of the needed FStress files. '
+                                       'Need to re-load before execution\n')
+                    self.myfstress.save_xml_stathab(True)
+                    return
+            elif self.riverint == 1:
+                if not file_name_all_reach_here:
+                    self.send_log.emit(
+                        'Error: Found only a part of the needed FStress Steep files. '                                       'Need to re-load before execution\n')
+                    self.myfstress.save_xml_stathab(True)
+                    return
+        else:
+            self.list_needed.addItem('All files found')
+            self.send_log.emit('# Found all FStress files. Run Now.')
+            sys.stdout = self.mystdout = StringIO()
+            self.myfstress.load_stathab_from_txt(end_file_reach_here, file_name_all_reach_here,
+                                                 self.dir_name)
+            self.myfstress.create_hdf5()
+            self.myfstress.save_xml_stathab()
+            sys.stdout = sys.__stdout__
+            self.send_err_log()
+
+            # copy the input in the input folder
+            input_folder = self.find_path_input_est()
+            new_dir = os.path.join(input_folder, 'input_' + self.model_type.lower())
+            all_files = os.listdir(self.dir_name)
+            paths = [self.dir_name] * len(all_files)
+            if not os.path.exists(new_dir):
+                os.makedirs(new_dir)
+            src.dev_tools_mod.copy_files(all_files, paths, new_dir)
+
+            # log info
+            if not self.myfstress.load_ok:
+                self.send_log.emit('Error: Could not load FStress data.\n')
                 return
+            var1 = 'py    var1 = ['
+            if self.riverint == 0:
+                for i in range(0, len(self.end_file_reach) - 1):  # Pref by default
+                    if '.txt' in self.end_file_reach[i]:
+                        var1 += "'" + self.end_file_reach[i] + "',"
+                    else:
+                        var1 += "'" + self.end_file_reach[i] + ".txt',"
+            else:
+                for i in range(0, len(self.end_file_reach_trop)):
+                    var1 += "'" + self.end_file_reach_trop[i] + ".csv',"
+            var1 = var1[:-1] + "]"
+            self.send_log.emit(var1)
+            if self.riverint == 0:
+                var2 = 'py    var2 = ['
+                for i in range(0, len(self.name_file_allreach)):
+                    if '.txt' in self.name_file_allreach[i]:
+                        var2 += "'" + self.name_file_allreach[i] + "',"
+                    else:
+                        var2 += "'" + self.name_file_allreach[i] + ".txt',"
+                var2 = var2[:-1] + "]"
+            else:
+                var2 = 'py    var2 = []'
+            self.send_log.emit(var2)
+            self.send_log.emit("py    dir_name = '" + self.dir_name + "'")
+            self.send_log.emit('py    mystathab = stathab_c.FStress(name_prj, path_prj)')
+            self.send_log.emit("py    mystathab.riverint = " + str(self.riverint))
+            self.send_log.emit("py    mystathab.load_stathab_from_txt( var1, var2, dir_name)")
+            self.send_log.emit("py    mystathab.create_hdf5()")
+            self.send_log.emit("py    mystathab.save_xml_stathab()")
 
-        # find the latin name again (might be different as FStress might have failed on some species)
-        inv_select_latin = []
-        for n in inv_select:
-            for idx, n2 in enumerate(self.all_inv_name):
-                if n == n2:
-                    inv_select_latin.append(self.latin_names[idx])
-                    break
+    def load_from_hdf5_gui(self):
+        """
+        This function calls from the GUI the load_stathab_from_hdf5 function. In addition to call the function to load
+        the hdf5, it also updates the GUI according to the info contained in the hdf5.
+        """
+        # update QLabel
+        self.l1.setText(self.tr('FStress Input Files (.hdf5)'))
+        if len(self.dir_name) > 30:
+            self.l0.setText(self.hdf5_name[-30:])
+        else:
+            self.l0.setText(self.hdf5_name)
+        self.l3.setText(self.tr("Data found"))
+        self.l4.setText(self.tr("Data still needed"))
 
-        # figures
-        self.path_im = self.find_path_im_est()
-        project_properties = load_project_properties(self.path_prj)
-        fstress_mod.figure_fstress(qmod, vh, inv_select_latin, self.path_im, self.riv_name, project_properties)
-        plt.show()
-        #self.show_fig.emit()
-        path_txt = self.find_path_text_est()
+        # load data
+        self.send_log.emit('# Loading FStress from hdf5...')
+        sys.stdout = self.mystdout = StringIO()
+        self.myfstress.load_stathab_from_hdf5()
 
-        # text file
-        # abbreviation written in the textfile so no space in invertebrate name
-        fstress_mod.write_txt(qmod, vh, inv_select, path_txt, self.riv_name)
+        # log info
+        sys.stdout = sys.__stdout__
+        self.send_err_log()
+        if self.riverint != self.myfstress.riverint:
+            self.send_log.emit('Warning: This river type could not be selected with the current hdf5.')
+            self.riverint = self.myfstress.riverint
+            self.change_riv_type()
+        if not self.myfstress.load_ok:
+            self.send_log.emit('Error: Data from  hdf5 not loaded.\n')
+            return
+        self.send_log.emit('py    mystathab = stathab_c.FStress(name_prj, path_prj)')
+        self.send_log.emit('py    mystathab.load_stathab_from_hdf5()')
+        self.send_log.emit('restart LOAD_STATHAB_FROM_HDF5')
 
-        # log
+        # update list with name reach
+        if len(self.myfstress.name_reach) == 0:
+            self.send_log.emit('Error: No name of reach found. \n')
+            return
+        for r in range(0, len(self.myfstress.name_reach)):
+            itemr = QListWidgetItem(self.myfstress.name_reach[r])
+            self.list_re.addItem(itemr)
+
+        # update list with name of data
+        if self.riverint == 0:
+            data_reach = [self.myfstress.qlist, self.myfstress.qwh, self.myfstress.disthmes,
+                          self.myfstress.qhmoy, self.myfstress.dist_gran]
+            data_reach_str = ['qlist', 'qwh', 'dishhmes', 'qhmoy', 'dist_granulo']
+        else:
+            data_reach = [self.myfstress.qlist, self.myfstress.qwh, self.myfstress.data_ii]
+            data_reach_str = ['qlist', 'qwh', 'data_ii']
+        c = -1
+        for r in range(0, len(self.myfstress.name_reach)):
+            for i in range(0, len(data_reach)):
+                if data_reach[i]:
+                    itemr = QListWidgetItem(data_reach_str[i])
+                    self.list_file.addItem(itemr)
+                    c += 1
+                else:
+                    self.list_needed.addItem(data_reach_str[i])
+                if i == 0:  # note the first item to be able to highlight it afterwards
+                    self.firstitemreach.append([itemr, c])
+            c += 1
+            self.list_file.addItem('----------------')
+
+        # update list with bornes of velocity, height and granola
+        if self.riverint == 0:
+            lim_str = ['limits height', 'limits velocity', 'limits granulometry']
+            for i in range(0, 3):
+                if len(self.myfstress.lim_all[i]) > 1:
+                    itemr = QListWidgetItem(lim_str[i])
+                    self.list_file.addItem(itemr)
+                    itemr.setBackground(Qt.lightGray)
+                else:
+                    self.list_needed.addItem(lim_str[i])
+
+            # # see if a preference file is available in the same folder than the hdf5 file
+            # preffile = os.path.join(self.dir_hdf5, self.name_file_allreach[3])
+            # if os.path.isfile(preffile):
+            #     self.path_bio_stathab = self.dir_hdf5
+            #     itemp = QListWidgetItem(self.name_file_allreach[3])
+            #     self.list_file.addItem(itemp)
+            #     itemp.setBackground(Qt.lightGray)
+            # else:
+            #     itemp = QListWidgetItem(self.name_file_allreach[3] + '(default)')
+            #     self.list_file.addItem(itemp)
+            #     itemp.setBackground(Qt.lightGray)
+
+        # read the available fish
+        name_fish = []
+        # if self.riverint == 0:
+        #     sys.stdout = self.mystdout = StringIO()
+        #     [name_fish, blob] = stathab_mod.load_pref(self.name_file_allreach[-1], self.path_bio_stathab)
+        #     sys.stdout = sys.__stdout__
+        #     self.send_err_log()
+        if self.riverint == 1:  # univariate
+            filenames = src.dev_tools_mod.get_all_filename(self.path_bio_stathab, '.csv')
+            for f in filenames:
+                if 'uni' in f and f[-7:-4] not in name_fish:
+                    name_fish.append(f[-7:-4])
+        if self.riverint == 2:
+            filenames = src.dev_tools_mod.get_all_filename(self.path_bio_stathab, '.csv')
+            for f in filenames:
+                if 'biv' in f:
+                    name_fish.append(f[-7:-4])
+
+        if name_fish == [-99]:
+            return
+        self.list_f.clear()
+        for r in range(0, len(name_fish)):
+            self.list_f.addItem(name_fish[r])
+
+        # final check
+        if self.list_needed.count() == 1 and self.list_needed.item(0).text() == 'All files found':
+            self.list_needed.addItem('All hdf5 data found')
+            self.send_log.emit('# Found all FStress files.')
+        else:
+            self.send_log.emit('# Warning: Could not read all the hdf5 data from FStress.\n')
+            return
+
+    def reach_selected(self):
+        """
+        A function which indcates which files are linked with which reach.
+
+        **Technical comment**
+
+        This is a small function which only impacts the GUI. When a FStress model has more than one reach,
+        the user can click on the name of the reach. When he does this, HABBY selects the first file linked
+        with this reach and shows it in self.list_f. This first file is highlighted and the list is scrolled
+        down so that the files linked with the selected reach are shown. This function manages this. It is connected
+        with the list self.list_re, which is the list with the name of the reaches.
+
+        """
+        [item_sel, r] = self.firstitemreach[self.list_re.currentRow()]
+        self.list_file.setCurrentRow(r)
+        self.list_file.scrollToItem(item_sel)
+
+    def send_err_log(self):
+        """
+        Send the errors and warnings to the logs. It is useful to note that the stdout was redirected to self.mystdout.
+        """
         str_found = self.mystdout.getvalue()
         str_found = str_found.split('\n')
         for i in range(0, len(str_found)):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
-        strhydro = np.array_repr(np.array(self.qhw))
-        strhydro = strhydro[6:-1]
-        self.send_log.emit("py    data = " + strhydro)
-        strhydro2 = np.array_repr(np.array(self.qrange))
-        strhydro2 = strhydro2[6:-1]
-        self.send_log.emit("py    qrange =" + strhydro2)
-        fish_list_str = "py    fish_list = ["
-        for i in range(0, len(fish_list)):
-            fish_list_str += "'" + fish_list[i] + "',"
-        fish_list_str = fish_list_str[:-1] + ']'
-        self.send_log.emit(fish_list_str)
-        riv_name_str = "py    riv_name = ["
-        for i in range(0, len(self.riv_name)):
-            riv_name_str += "'" + self.riv_name[i] + "',"
-        riv_name_str = riv_name_str[:-1] + ']'
-        self.send_log.emit(riv_name_str)
-        self.send_log.emit("py    [pref_inver, all_inv_name] = fstress.read_pref(path_bio, 'pref_fstress.txt')")
-        self.send_log.emit("py    [vh, qmod, inv_select] = fstress.run_fstress(data, qrange, riv_name, fish_list, "
-                           "pref_inver, all_inv_name, name_prj, path_prj)")
-        self.send_log.emit("py    fstress.figure_fstress(qmod, vh, inv_select,'.', riv_name)")
-        self.send_log.emit("restart RUN_FSTRESS")
-        self.send_log.emit("restart    path_fstress: " + self.path_fstress)
+
+    def save_xml(self):
+        # save the name and the path in the xml .prj file
+        if not os.path.isfile(os.path.join(self.path_prj, self.name_prj + ".habby")):
+            self.send_log.emit('Error: The project is not saved. '
+                               'Save the project in the General tab before saving hydrological data. \n')
+        else:
+            # change path_last_file_loaded, model_type (path)
+            project_properties = load_project_properties(self.path_prj)  # load_project_properties
+            project_properties["path_last_file_loaded"] = self.dir_name  # change value
+            project_properties[self.model_type]["path"] = self.dir_name  # change value
+            project_properties[self.model_type]["fish_selected"] = self.fish_selected  # change value
+            save_project_properties(self.path_prj, project_properties)  # save_project_properties
+
+    def run_fstress_gui(self):
+        """
+        This is the function which calls the function to run the FStress model.  First it read the list called
+        self.selected_aquatic_animal_qtablewidget. This is the list with the fishes selected by the user. Then, it calls the function to run
+        FStress and the one to create the figure if the figures were asked by the user. Finally, it writes the log.
+        """
+        self.send_log.emit('# Run ' + self.model_type + ' from loaded data')
+
+        # get the chosen fish
+        self.myfstress.fish_chosen = []
+        self.myfstress.data_list = []
+
+        by_vol = True
+        if self.selected_aquatic_animal_qtablewidget.count() == 0:
+            self.msge.setIcon(QMessageBox.Warning)
+            self.msge.setWindowTitle(self.model_type)
+            self.msge.setText(self.tr("Unable to load the " + self.model_type + " data !"))
+            self.msge.setStandardButtons(QMessageBox.Ok)
+            self.msge.show()
+            self.send_log.emit('Error: no fish chosen')
+            return
+        for i in range(0, self.selected_aquatic_animal_qtablewidget.count()):
+            fish_item = self.selected_aquatic_animal_qtablewidget.item(i)
+            fish_item_str = fish_item.text()
+            self.myfstress.fish_chosen.append(fish_item_str)
+        self.myfstress.path_txt = self.find_path_text_est()
+
+        # check
+        for r in range(0, len(self.myfstress.qwh)):
+            if self.myfstress.qwh[r][1, 0] < self.myfstress.qwh[r][0, 0] * 2:
+                self.send_log.emit('Warning: Measured discharge are too close to each other.'
+                                   'Results might be unrealisitc. \n')
+            if self.myfstress.qwh[r][1, 0] > 50 or self.myfstress.qwh[r][0, 0] > 50:
+                self.send_log.emit('Warning: Discharge is higher then 50m3/s. Results might be unrealisitc \n')
+            if self.riverint == 1 or self.riverint == 2:
+                if self.myfstress.data_ii[r][0] < 1:
+                    self.send_log.emit('Warning: Slope is lower than 1%. Results might be unrealisitc \n')
+                if self.myfstress.data_ii[r][0] > 24:
+                    self.send_log.emit('Warning: Slope is higher than 24%. Results might be unrealisitc \n')
+
+        # run FStress
+        if self.riverint == 0:
+            sys.stdout = self.mystdout = StringIO()
+            self.myfstress.stathab_calc()
+            sys.stdout = sys.__stdout__
+            self.send_err_log()
+        else:
+            self.send_log.emit("The river type is not recognized. " + self.model_type + " could not be run.")
+            return
+
+        # caught some errors, special cases.
+        if self.riverint == 0:
+            if len(self.myfstress.disthmes) == 0:  # you cannot use seld.list_needed.count()
+                self.send_log.emit("Error: " + self.model_type + " could not be run. Are all files available?")
+                return
+            if len(self.myfstress.disthmes[0]) == 1:
+                if self.myfstress.disthmes[0] == -99:
+                    return
+        else:
+            if len(self.myfstress.data_ii) == 0:
+                self.send_log.emit('Error: ' + self.model_type + ' could not be run. Are all files available?')
+        if not self.myfstress.load_ok:
+            self.send_log.emit('Error: ' + self.model_type + ' could not be run. \n')
+            return
+
+        # save data and fig
+        self.myfstress.savetxt_stathab()
+        self.myfstress.savefig_stahab()
+
+        # log information
+        self.send_err_log()
 
 
 if __name__ == '__main__':

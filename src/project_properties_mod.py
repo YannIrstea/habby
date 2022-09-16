@@ -129,7 +129,7 @@ def create_default_project_properties_dict(all_export_enabled=False):
     project_properties['Estimhab'] = dict()
     project_properties['Stathab'] = dict(path="", fish_selected=[])
     project_properties['Stathab_steep'] = dict(path="", fish_selected=[])
-    project_properties['FStress'] = dict(path="")
+    project_properties['FStress'] = dict(path="", fish_selected=[])
     project_properties['SUBSTRATE'] = dict(path="", hdf5=[])
     project_properties['HABITAT'] = dict(path="", hdf5=[])
 

@@ -1250,12 +1250,6 @@ class Stathab:
         return path_hdf5
 
 
-
-
-
-
-
-
 def check_stahab_files(filename,check_neg,lchkcolhead,lchklines,check_sumone):
     '''
     A function to load and check stahab and stahab_steep files and extract list of floats
@@ -1349,6 +1343,7 @@ def check_stahab_files(filename,check_neg,lchkcolhead,lchklines,check_sumone):
             return [-99]
     return myfloatdata2
 
+
 def is_number(n):
     try:
         float(n)  # Type-casting the string to `float`.
@@ -1357,13 +1352,6 @@ def is_number(n):
     except ValueError:
         return False
     return True
-
-
-
-
-
-
-
 
 
 def load_namereach(path):
@@ -1405,10 +1393,3 @@ def load_namereach(path):
                         name_reach.append(reach)
 
     return name_reach
-
-
-
-
-
-if __name__ == '__main__':
-    main()

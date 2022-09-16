@@ -1545,7 +1545,7 @@ class MainWindows(QMainWindow):
 
     def open_close_stat(self):
         #print("open_close_stat", self.sender())
-        stat_tabs_list = ["estimhab", "stathab", "fstress"]
+        stat_tabs_list = ["estimhab", "stathab", "stathab_steep", "fstress"]
         if self.stat_tabs:
             if self.name_prj:
                 if not self.physic_tabs:

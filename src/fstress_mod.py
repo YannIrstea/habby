@@ -20,490 +20,503 @@ import h5py
 import os
 import time
 import numpy as np
-from src import stathab_mod
 from scipy import stats
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+import copy
+
 from src.project_properties_mod import create_default_project_properties_dict
 
 
-def save_fstress(path_hab, path_prj, name_prj, name_bio, path_bio, riv_name, data_hydro, qrange, fish_list):
+class FStress:
     """
-    This function saves the data related to the fstress model in an hab file and write the name of this hab file
-    in the xml project file.
-
-    :param path_hab: the path where to sdave the hab-> string
-    :param path_prj: the path to the project-> string
-    :param name_prj: the name of the project-> string
-    :param name_bio: the name of the preference file-> string
-    :param path_bio: the path to the preference file-> string
-    :param riv_name: the name of the river-> string
-    :param data_hydro: the hydrological data (q,w,h for each river in riv name) -> list of list
-    :param qrange: the qmin and qmax for each river [qmin,qmax] -> list of list
-    :param fish_list: the name of the selected invertebrate (! no fish) -> list of string
+    The class for the Stathab model
     """
 
-    # create the hdf5 file
-    fname_no_path = 'FStress_' + name_prj + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.hab'
-    fname = os.path.join(path_hab, fname_no_path)
-    file = h5py.File(fname, 'w')
+    def __init__(self, name_prj, path_prj):
+        self.qlist = []  # the list of dicharge for each reach, usually in rivdis.txt
+        self.qwh = []  # the discharge, the width and height
+        # at least at two different dicharges (rivqvh.txt) a list of np.array
+        self.disthmes = []  # the measured distribution of height (rivdist.txt) a list of np.array
+        self.qhmoy = []  # the mean height and q (2 first llines of rivdis.txt)
+        self.dist_gran = []  # the distribution of granulo (rivgra.txt)-only used by temperate river, a list of np.array
+        self.data_ii = []  # only used by tropical river. The slope, waterfall height and length of river
+        self.fish_chosen = []  # the name of the fish to be studied, the name should also be in pref.txt
+        self.lim_all = []  # the limits or bornes of h,q and granulio (born*.txt)
+        self.name_reach = []  # the list with the name of the reaches
+        self.j_all = dict()  # habitat values
+        self.data_list = list()  # list by reach of dict of all reach data values
+        self.granulo_mean_all = []  # average granuloa
+        self.vclass_all = []  # volume of each velocity classes
+        self.hclass_all = []  # surface height for all classes
+        self.rclass_all = []  # granulo surface for all classes
+        self.h_all = []  # mean height of all the reaches
+        self.v_all = []  # mean velocity of all the reaches
+        self.w_all = []  # mean width of all the reaches
+        self.q_all = []  # discharge
+        self.hborn_Stahabsteep = []  # only for Stahab_steep the mean values of h for each class of height per reach X discharge
+        self.vborn_Stahabsteep = []  # only for Stahab_steep the mean values of v for each class of velocity per reach X discharge
+        self.dist_hs_all = []  # frequency distribution for height per reach X discharge
+        self.dist_vs_all = []  # frequency distribution for velocity per reach X discharge
+        self.fish_chosen = []  # the name of the fish
+        self.riverint = 0  # the river type (0 stahab, 1 stahtab steep)
+        self.path_im = os.path.join(path_prj, "output", "figures")  # path where to save the image
+        self.path_hdf5 = os.path.join(path_prj, "hdf5")
+        self.load_ok = False  # a boolean to manage the errors
+        #  during the load of the files and the hdf5 creation and calculation
+        self.path_prj = path_prj
+        self.name_prj = name_prj
+        # get the option for the figure in a dict
+        self.project_properties = []
+        self.path_txt = path_prj  # path where to save the text
 
-    # create general attribute
+    def save_fstress(self, path_hab, path_prj, name_prj, name_bio, path_bio, riv_name, data_hydro, qrange, fish_list):
+        """
+        This function saves the data related to the fstress model in an hab file and write the name of this hab file
+        in the xml project file.
 
-    file.attrs['HDF5_version'] = h5py.version.hdf5_version
-    file.attrs['h5py_version'] = h5py.version.version
-    file.attrs['name_prj'] = name_prj
-    file.attrs['path_prj'] = path_prj
-    file.attrs['path_bio'] = path_bio
-    file.attrs['file_bio'] = name_bio
+        :param path_hab: the path where to sdave the hab-> string
+        :param path_prj: the path to the project-> string
+        :param name_prj: the name of the project-> string
+        :param name_bio: the name of the preference file-> string
+        :param path_bio: the path to the preference file-> string
+        :param riv_name: the name of the river-> string
+        :param data_hydro: the hydrological data (q,w,h for each river in riv name) -> list of list
+        :param qrange: the qmin and qmax for each river [qmin,qmax] -> list of list
+        :param fish_list: the name of the selected invertebrate (! no fish) -> list of string
+        """
 
-    # write the data in it (similar to save_estimhab in Main_Windows_1.py)
-    i = 0
-    nb_riv = file.create_group('Nb_river')
-    nb_riv.create_dataset(fname_no_path, [1, 1], data=len(riv_name))
-    for r in riv_name:
-        # hydro data
-        [q1, w1, h1] = data_hydro[i][0]
-        [q2, w2, h2] = data_hydro[i][1]
-        rivhere = file.create_group('River_' + str(i))
-        rivname = rivhere.create_group('River_name')
-        rivname.create_dataset(fname_no_path, data=r.encode("ascii", "ignore"))
-        qmesg = rivhere.create_group(r + '_qmes')
-        qmesg.create_dataset(fname_no_path, [2, 1], data=[q1, q2])
-        wmesg = rivhere.create_group(r + '_wmes')
-        wmesg.create_dataset(fname_no_path, [2, 1], data=[w1, w2])
-        hmesg = rivhere.create_group(r + '_hmes')
-        hmesg.create_dataset(fname_no_path, [2, 1], data=[h1, h2])
-        qrangeg = rivhere.create_group(r + '_qrange')
-        if len(qrange[i]) == 2:
-            [qmin, qmax] = qrange[i]
-            qrangeg.create_dataset(fname_no_path, [2, 1], data=[qmin, qmax])
-        i += 1
-    # fish data
-    ascii_str = [n.encode("ascii", "ignore") for n in fish_list]  # unicode is not ok with hdf5
-    fish_typeg = file.create_group('fish_type')
-    fish_typeg.create_dataset(fname_no_path, (len(fish_list), 1), data=ascii_str)
-    file.close()
+        # create the hdf5 file
+        fname_no_path = 'FStress_' + name_prj + '_' + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.hab'
+        fname = os.path.join(path_hab, fname_no_path)
+        file = h5py.File(fname, 'w')
 
-    # save the new hdf5 name in the xml project file
-    fnamep = os.path.join(path_prj, name_prj + '.habby')
-    if not os.path.isfile(fnamep):
-        print("The project is not saved. Save the project in the Start tab before saving FStress data")
-    else:
-        parser = ET.XMLParser(remove_blank_text=True)
-        doc = ET.parse(fnamep, parser)
-        root = doc.getroot()
-        tree = ET.ElementTree(root)
-        child = root.find(".//FStress_data")
-        # test if there is already estimhab data in the project
-        if child is None:
-            child = ET.SubElement(root, "FStress_data")
-            child.text = fname_no_path
+        # create general attribute
+
+        file.attrs['HDF5_version'] = h5py.version.hdf5_version
+        file.attrs['h5py_version'] = h5py.version.version
+        file.attrs['name_prj'] = name_prj
+        file.attrs['path_prj'] = path_prj
+        file.attrs['path_bio'] = path_bio
+        file.attrs['file_bio'] = name_bio
+
+        # write the data in it (similar to save_estimhab in Main_Windows_1.py)
+        i = 0
+        nb_riv = file.create_group('Nb_river')
+        nb_riv.create_dataset(fname_no_path, [1, 1], data=len(riv_name))
+        for r in riv_name:
+            # hydro data
+            [q1, w1, h1] = data_hydro[i][0]
+            [q2, w2, h2] = data_hydro[i][1]
+            rivhere = file.create_group('River_' + str(i))
+            rivname = rivhere.create_group('River_name')
+            rivname.create_dataset(fname_no_path, data=r.encode("ascii", "ignore"))
+            qmesg = rivhere.create_group(r + '_qmes')
+            qmesg.create_dataset(fname_no_path, [2, 1], data=[q1, q2])
+            wmesg = rivhere.create_group(r + '_wmes')
+            wmesg.create_dataset(fname_no_path, [2, 1], data=[w1, w2])
+            hmesg = rivhere.create_group(r + '_hmes')
+            hmesg.create_dataset(fname_no_path, [2, 1], data=[h1, h2])
+            qrangeg = rivhere.create_group(r + '_qrange')
+            if len(qrange[i]) == 2:
+                [qmin, qmax] = qrange[i]
+                qrangeg.create_dataset(fname_no_path, [2, 1], data=[qmin, qmax])
+            i += 1
+        # fish data
+        ascii_str = [n.encode("ascii", "ignore") for n in fish_list]  # unicode is not ok with hdf5
+        fish_typeg = file.create_group('fish_type')
+        fish_typeg.create_dataset(fname_no_path, (len(fish_list), 1), data=ascii_str)
+        file.close()
+
+        # save the new hdf5 name in the xml project file
+        fnamep = os.path.join(path_prj, name_prj + '.habby')
+        if not os.path.isfile(fnamep):
+            print("The project is not saved. Save the project in the Start tab before saving FStress data")
         else:
-            child.text = fname_no_path
-        tree.write(fnamep)
+            parser = ET.XMLParser(remove_blank_text=True)
+            doc = ET.parse(fnamep, parser)
+            root = doc.getroot()
+            tree = ET.ElementTree(root)
+            child = root.find(".//FStress_data")
+            # test if there is already estimhab data in the project
+            if child is None:
+                child = ET.SubElement(root, "FStress_data")
+                child.text = fname_no_path
+            else:
+                child.text = fname_no_path
+            tree.write(fnamep)
 
+    def read_fstress_hdf5(self, hdf5_name, hdf5_path):
+        """
+        This functions reads an hdf5 file related to FStress and extract the relevant information.
 
-def read_fstress_hdf5(hdf5_name, hdf5_path):
-    """
-    This functions reads an hdf5 file related to FStress and extract the relevant information.
+        :param hdf5_name: the name of the hdf5 file with the information realted to FStress
+        :param hdf5_path: the path to this file
 
-    :param hdf5_name: the name of the hdf5 file with the information realted to FStress
-    :param hdf5_path: the path to this file
+        :return:[[q,w,h], [q,w,h]] for each river, [qmin,qmax] for each river, the river names, and the selected fish
 
-    :return:[[q,w,h], [q,w,h]] for each river, [qmin,qmax] for each river, the river names, and the selected fish
+        """
+        river_name = []
+        qhw = []
+        qrange = []
+        fish_name = []
 
-    """
-    river_name = []
-    qhw = []
-    qrange = []
-    fish_name = []
+        # open hdf5 with check
+        h5file, failload = hdf5_mod.open_hdf5_(hdf5_name, hdf5_path, "read")
+        if failload:
+            print('Error: hdf5 file could not be open. \n')
+            return failload
+        else:
+            failload = [-99], [-99], ['-99'], ['-99']
 
-    # open hdf5 with check
-    h5file, failload = hdf5_mod.open_hdf5_(hdf5_name, hdf5_path, "read")
-    if failload:
-        print('Error: hdf5 file could not be open. \n')
-        return failload
-    else:
-        failload = [-99], [-99], ['-99'], ['-99']
-
-    # read the number of rivers
-    try:
-        gen_dataset = h5file["/Nb_river"]
-    except KeyError:
-        print('Error: the number of river is missing from the hdf5 file. Is ' + hdf5_name + ' an FStress input? \n')
-        return failload
-    try:
-        nb_riv = list(gen_dataset.values())[0]
-        nb_riv = int(np.array(nb_riv))  # you do need the np.array()
-    except ValueError:
-        print('Error: the number of river is missing from the hdf5 file. Is ' + hdf5_name + ' an FStress input? (2) \n')
-        return failload
-
-    # read the hydrological data
-    for i in range(0, nb_riv):
-        # qhw
-        qhw1 = []
-        qhw2 = []
-        basename = 'River_' + str(i)
+        # read the number of rivers
         try:
-            gen_dataset = h5file[basename + "/River_name"]
+            gen_dataset = h5file["/Nb_river"]
         except KeyError:
-            print('Error: the river name is missing from the FStress hdf5 file. \n')
+            print('Error: the number of river is missing from the hdf5 file. Is ' + hdf5_name + ' an FStress input? \n')
             return failload
         try:
-            r = list(gen_dataset.values())[0]
-            r = str(np.array(r))[2:-1]
-            river_name.append(r)
-        except IndexError:
-            print('Error: the river name is missing from the FStress hdf5 file. (2) \n')
+            nb_riv = list(gen_dataset.values())[0]
+            nb_riv = int(np.array(nb_riv))  # you do need the np.array()
+        except ValueError:
+            print('Error: the number of river is missing from the hdf5 file. Is ' + hdf5_name + ' an FStress input? (2) \n')
             return failload
-        try:
-            gen_dataset = h5file[basename + '/' + r + '_qmes']
-        except KeyError:
-            print('Error: the discharge is missing from the FStress hdf5 file. \n')
-            return failload
-        qmes = list(gen_dataset.values())[0]
-        qhw1.append(float(qmes[0]))
-        qhw2.append(float(qmes[1]))
-        try:
-            gen_dataset = h5file[basename + '/' + r + '_hmes']
-        except KeyError:
-            print('Error: the height is missing from the FStress hdf5 file. \n')
-            return failload
-        hmes = list(gen_dataset.values())[0]
-        qhw1.append(float(hmes[0]))
-        qhw2.append(float(hmes[1]))
-        try:
-            gen_dataset = h5file[basename + '/' + r + '_wmes']
-        except KeyError:
-            print('Error: the width is missing from the FStress hdf5 file. \n')
-            return failload
-        wmes = list(gen_dataset.values())[0]
-        qhw1.append(float(wmes[0]))
-        qhw2.append(float(wmes[1]))
-        qhw.append([qhw1, qhw2])
-        # discharge range
-        try:
-            gen_dataset = h5file[basename + '/' + r + '_qrange']
-        except KeyError:
-            print('Error: the discharge range is missing from the FStress hdf5 file. \n')
-            return failload
-        qr = list(gen_dataset.values())[0]
-        qrange.append([float(qr[0]), float(qr[1])])
 
-    # read the fish name
-    dataset = h5file['fish_type']
-    dataset = list(dataset.values())[0]
-    for i in range(0, len(dataset)):
-        dataset_i = str(dataset[i])
-        fish_name.append(dataset_i[3:-2])  # because hdf5 give the string b'sdfsd', no it is not a binary!
-
-    return qhw, qrange, river_name, fish_name
-
-
-def read_pref(path_bio, name_bio):
-    """
-    This function loads and read the preference file for FStress.
-
-    :param path_bio: the path to the preference file
-    :param name_bio: the name of the preference file
-    :return: the name invertebrate and their preference coefficient
-    """
-    failload = [-99], [-99]
-    pref_inver = []
-    all_inv_name = []
-    # open file
-    filenamebio = os.path.join(path_bio, name_bio)
-    if os.path.isfile(filenamebio):
-        with open(filenamebio, 'rt') as f:
-            data_inv = f.read()
-    else:
-        print('Error: No preference file for FStress. To use FStress, add a preference file and restart '
-              'HABBY.')
-        return failload
-    data_inv = data_inv.split('\n')
-
-    # get the data by invertebrate species
-    if len(data_inv) == 0:
-        print('Error: No invertebrate found in the preference file for FStress. To use FStress, add a '
-              'correct preference file and restart HABBY.')
-        return failload
-    for i in range(0, len(data_inv)):
-        data_this_inv = data_inv[i]
-        if len(data_this_inv) > 0:
-            data_this_inv = data_this_inv.split()
-            if len(data_this_inv) != 21:  # number of FStress point + name
-                print('Warning: A preference curve for FStress is not composed of 20 data')
-            # get the invertebrate name
-            all_inv_name.append(data_this_inv[0].strip())
-            # get the pref
+        # read the hydrological data
+        for i in range(0, nb_riv):
+            # qhw
+            qhw1 = []
+            qhw2 = []
+            basename = 'River_' + str(i)
             try:
-                data_this_inv = list(map(float, data_this_inv[1:]))
-            except ValueError:
-                print(
-                    'Error: The preference file for FStress could not be read. To use FStress, add a correct '
-                    'preference file and restart HABBY.')
+                gen_dataset = h5file[basename + "/River_name"]
+            except KeyError:
+                print('Error: the river name is missing from the FStress hdf5 file. \n')
                 return failload
-            pref_inver.append(data_this_inv)
+            try:
+                r = list(gen_dataset.values())[0]
+                r = str(np.array(r))[2:-1]
+                river_name.append(r)
+            except IndexError:
+                print('Error: the river name is missing from the FStress hdf5 file. (2) \n')
+                return failload
+            try:
+                gen_dataset = h5file[basename + '/' + r + '_qmes']
+            except KeyError:
+                print('Error: the discharge is missing from the FStress hdf5 file. \n')
+                return failload
+            qmes = list(gen_dataset.values())[0]
+            qhw1.append(float(qmes[0]))
+            qhw2.append(float(qmes[1]))
+            try:
+                gen_dataset = h5file[basename + '/' + r + '_hmes']
+            except KeyError:
+                print('Error: the height is missing from the FStress hdf5 file. \n')
+                return failload
+            hmes = list(gen_dataset.values())[0]
+            qhw1.append(float(hmes[0]))
+            qhw2.append(float(hmes[1]))
+            try:
+                gen_dataset = h5file[basename + '/' + r + '_wmes']
+            except KeyError:
+                print('Error: the width is missing from the FStress hdf5 file. \n')
+                return failload
+            wmes = list(gen_dataset.values())[0]
+            qhw1.append(float(wmes[0]))
+            qhw2.append(float(wmes[1]))
+            qhw.append([qhw1, qhw2])
+            # discharge range
+            try:
+                gen_dataset = h5file[basename + '/' + r + '_qrange']
+            except KeyError:
+                print('Error: the discharge range is missing from the FStress hdf5 file. \n')
+                return failload
+            qr = list(gen_dataset.values())[0]
+            qrange.append([float(qr[0]), float(qr[1])])
 
-    return pref_inver, all_inv_name
+        # read the fish name
+        dataset = h5file['fish_type']
+        dataset = list(dataset.values())[0]
+        for i in range(0, len(dataset)):
+            dataset_i = str(dataset[i])
+            fish_name.append(dataset_i[3:-2])  # because hdf5 give the string b'sdfsd', no it is not a binary!
 
+        return qhw, qrange, river_name, fish_name
 
-def run_fstress(data_hydro, qrange, riv_name, inv_select, pref_all, name_all, name_prj, path_prj):
-    """
-    This function run the model FStress for HABBY. FStress is based on the model of Nicolas Lamouroux. This model
-    estimates suitability indices for invertebrate in relation with shear stress distributions. However, shear stress
-    do not needs to be measured. It is statistically estimated based on velocity and height measurement.
+    def read_pref(self, path_bio, name_bio):
+        """
+        This function loads and read the preference file for FStress.
 
-    :param riv_name: the name of the river-> string
-    :param data_hydro: the hydrological data (q,w,h for each river in riv name) -> list of list
-    :param qrange: the qmin and qmax for each river [qmin,qmax] -> list of list
-    :param inv_select: the name of the selected invetebrate
-    :param pref_all: the preference data for all invertebrate
-    :param name_all: the four letter code of all possible invertebrate
-    :param path_prj: the path to the project-> string
-    :param name_prj: the name of the project-> string
-    """
-    # initalisation
-    nbclaq = 50  # number of discharge point where the data have to be calculate
-    data_hydro = np.array(data_hydro)  # qhw
-    pref_all = np.array(pref_all)
-    # this is the constraint value on dyn/cm2, empirical data probably
-    tau = [0.771, 0.828, 0.945, 1.18, 1.41, 1.66, 2.18, 2.72, 3.93, 5.29, 6.82, 8.26, 10.9, 15.9, 22.7, 31.7, 44.8, 63.4
-        , 89.5, 127.]
-    qmod_all = []
-    nb_inv = len(inv_select)
-    vh = []
-    pref_select = np.zeros((nb_inv, len(tau)))  # preference coeff for the selected invertebrate
-    find_one_inv = False
-
-    # there are some functions from FStress which have already be done by Stathab.
-    # so we create a 'dummy" instance of Stathab to be able to use the methods of Stathab when useful
-    blob_stathab = stathab_mod.Stathab(name_prj, path_prj)
-
-    # get the fish name
-    for f in range(0, nb_inv):
-        # if invertebrate exist
-        if inv_select[f] in name_all:
-            ind_fish = name_all.index(inv_select[f])
-            pref_select[f, :] = pref_all[ind_fish, :]
-            find_one_inv = True
-        # if not found
+        :param path_bio: the path to the preference file
+        :param name_bio: the name of the preference file
+        :return: the name invertebrate and their preference coefficient
+        """
+        failload = [-99], [-99]
+        pref_inver = []
+        all_inv_name = []
+        # open file
+        filenamebio = os.path.join(path_bio, name_bio)
+        if os.path.isfile(filenamebio):
+            with open(filenamebio, 'rt') as f:
+                data_inv = f.read()
         else:
-            if len(vh) == 0:
-                print('Error: No fish species have been given or the fish species could not be found.\n')
-                return -99, -99, -99
-            nb_inv -= 1
-            vh = np.delete(vh, (f), axis=1)
-            pref_select = np.delete(pref_select, (f), axis=0)
-            del inv_select[f]
-            print('Warning: One fish species was not found in the '
-                  'Preference file. Fish name: ' + inv_select[f] + '\n')
-    if not find_one_inv:
-        print('Error: No fish species have been given or the fish species could not be found.\n')
-        return -99, -99, -99
+            print('Error: No preference file for FStress. To use FStress, add a preference file and restart '
+                  'HABBY.')
+            return failload
+        data_inv = data_inv.split('\n')
 
-    # for each river
-    for i in range(0, len(riv_name)):
-        vh_riv = np.zeros((nbclaq, nb_inv))
-        qmod = np.zeros(nbclaq, )
-        hmod = np.zeros(nbclaq, )
-        wmod = np.zeros(nbclaq, )
+        # get the data by invertebrate species
+        if len(data_inv) == 0:
+            print('Error: No invertebrate found in the preference file for FStress. To use FStress, add a '
+                  'correct preference file and restart HABBY.')
+            return failload
+        for i in range(0, len(data_inv)):
+            data_this_inv = data_inv[i]
+            if len(data_this_inv) > 0:
+                data_this_inv = data_this_inv.split()
+                if len(data_this_inv) != 21:  # number of FStress point + name
+                    print('Warning: A preference curve for FStress is not composed of 20 data')
+                # get the invertebrate name
+                all_inv_name.append(data_this_inv[0].strip())
+                # get the pref
+                try:
+                    data_this_inv = list(map(float, data_this_inv[1:]))
+                except ValueError:
+                    print(
+                        'Error: The preference file for FStress could not be read. To use FStress, add a correct '
+                        'preference file and restart HABBY.')
+                    return failload
+                pref_inver.append(data_this_inv)
 
-        # calculate the rating curve
-        # CAREFUL, we exchange here between h and w
-        [w_coeff, h_coeff] = blob_stathab.power_law(data_hydro[i])
+        return pref_inver, all_inv_name
 
-        if qrange[i][0] == 0:
-            qrange[i][0] = 1e-2
-        if qrange[i][1] == 0:
-            qrange[i][0] = 1e-2
-        # for each discharge
-        for qind in range(0, nbclaq):
-            # discharge
-            lnqs = np.log(min(qrange[i])) + (qind + 0.5) * (np.log(max(qrange[i])) - np.log(min(qrange[i]))) / nbclaq
-            qmod[qind] = np.exp(lnqs)
-            # height and width and vm
-            hs = np.exp(h_coeff[1] + lnqs * h_coeff[0])
-            hmod[qind] = hs
-            ws = np.exp(w_coeff[1] + lnqs * w_coeff[0])
-            wmod[qind] = ws
-            vm = np.exp(lnqs) / (hs * ws)
-            # stress distribution
-            diststress = func_stress(vm, hs, tau)
-            # habitat value
-            for ii in range(0, nb_inv):
-                vh_riv[qind, ii] = np.sum(diststress * pref_select[ii, :])
-        vh.append(vh_riv)
-        qmod_all.append(qmod)
+    def run_fstress(self, data_hydro, qrange, riv_name, inv_select, pref_all, name_all, name_prj, path_prj):
+        """
+        This function run the model FStress for HABBY. FStress is based on the model of Nicolas Lamouroux. This model
+        estimates suitability indices for invertebrate in relation with shear stress distributions. However, shear stress
+        do not needs to be measured. It is statistically estimated based on velocity and height measurement.
 
-    return vh, qmod_all, inv_select
+        :param riv_name: the name of the river-> string
+        :param data_hydro: the hydrological data (q,w,h for each river in riv name) -> list of list
+        :param qrange: the qmin and qmax for each river [qmin,qmax] -> list of list
+        :param inv_select: the name of the selected invetebrate
+        :param pref_all: the preference data for all invertebrate
+        :param name_all: the four letter code of all possible invertebrate
+        :param path_prj: the path to the project-> string
+        :param name_prj: the name of the project-> string
+        """
+        # initalisation
+        nbclaq = 50  # number of discharge point where the data have to be calculate
+        data_hydro = np.array(data_hydro)  # qhw
+        pref_all = np.array(pref_all)
+        # this is the constraint value on dyn/cm2, empirical data probably
+        tau = [0.771, 0.828, 0.945, 1.18, 1.41, 1.66, 2.18, 2.72, 3.93, 5.29, 6.82, 8.26, 10.9, 15.9, 22.7, 31.7, 44.8, 63.4
+            , 89.5, 127.]
+        qmod_all = []
+        nb_inv = len(inv_select)
+        vh = []
+        pref_select = np.zeros((nb_inv, len(tau)))  # preference coeff for the selected invertebrate
+        find_one_inv = False
 
+        # there are some functions from FStress which have already be done by Stathab.
+        # so we create a 'dummy" instance of Stathab to be able to use the methods of Stathab when useful
+        # Stathab(name_prj, path_prj)
 
-def func_stress(vm, h, tau):
-    """
-    This functions calculates the distrbution of stress on the bottom of the river based of height and velocity
-    at one discharge. In other word, it calculate the distrbution of the "hemispheres".
-    This function is mainly a copy of stress function contains in the vitess2.c of the C source of FStress.
+        # get the fish name
+        for f in range(0, nb_inv):
+            # if invertebrate exist
+            if inv_select[f] in name_all:
+                ind_fish = name_all.index(inv_select[f])
+                pref_select[f, :] = pref_all[ind_fish, :]
+                find_one_inv = True
+            # if not found
+            else:
+                if len(vh) == 0:
+                    print('Error: No fish species have been given or the fish species could not be found.\n')
+                    return -99, -99, -99
+                nb_inv -= 1
+                vh = np.delete(vh, (f), axis=1)
+                pref_select = np.delete(pref_select, (f), axis=0)
+                del inv_select[f]
+                print('Warning: One fish species was not found in the '
+                      'Preference file. Fish name: ' + inv_select[f] + '\n')
+        if not find_one_inv:
+            print('Error: No fish species have been given or the fish species could not be found.\n')
+            return -99, -99, -99
 
-    :param vm: the velocity for this diacharge value
-    :param h: the height for this discharge value
-    :param tau: the constraint values
-    :return: the stress distribution for this discharge
+        # for each river
+        for i in range(0, len(riv_name)):
+            vh_riv = np.zeros((nbclaq, nb_inv))
+            qmod = np.zeros(nbclaq, )
+            hmod = np.zeros(nbclaq, )
+            wmod = np.zeros(nbclaq, )
 
-    """
-    # froude and other parameters
-    fr2 = vm ** 2. / (9.81 * h)
-    k = -0.123 * np.log(fr2) - 0.132  # the first parameter of the stress distribution
-    if k > 1:
-        k = 1
-    if k < 0:
-        k = 0
-    lntaum = 2.61 + 0.319 * np.log(fr2)
-    nbst = len(tau)
+            # calculate the rating curve
+            # CAREFUL, we exchange here between h and w
+            [w_coeff, h_coeff] = power_law(data_hydro[i])
 
-    # estimate the m parameter by dichotomy m is between 2 and 18 (why?)
-    # m is the seconc parameter fo the stress distribution
-    mmin = 2.
-    msup = 18.
-    for p in range(1, 20):
-        m = (mmin + msup) / 2.0
+            if qrange[i][0] == 0:
+                qrange[i][0] = 1e-2
+            if qrange[i][1] == 0:
+                qrange[i][0] = 1e-2
+            # for each discharge
+            for qind in range(0, nbclaq):
+                # discharge
+                lnqs = np.log(min(qrange[i])) + (qind + 0.5) * (np.log(max(qrange[i])) - np.log(min(qrange[i]))) / nbclaq
+                qmod[qind] = np.exp(lnqs)
+                # height and width and vm
+                hs = np.exp(h_coeff[1] + lnqs * h_coeff[0])
+                hmod[qind] = hs
+                ws = np.exp(w_coeff[1] + lnqs * w_coeff[0])
+                wmod[qind] = ws
+                vm = np.exp(lnqs) / (hs * ws)
+                # stress distribution
+                diststress = func_stress(vm, hs, tau)
+                # habitat value
+                for ii in range(0, nb_inv):
+                    vh_riv[qind, ii] = np.sum(diststress * pref_select[ii, :])
+            vh.append(vh_riv)
+            qmod_all.append(qmod)
+
+        return vh, qmod_all, inv_select
+
+    def func_stress(self, vm, h, tau):
+        """
+        This functions calculates the distrbution of stress on the bottom of the river based of height and velocity
+        at one discharge. In other word, it calculate the distrbution of the "hemispheres".
+        This function is mainly a copy of stress function contains in the vitess2.c of the C source of FStress.
+
+        :param vm: the velocity for this diacharge value
+        :param h: the height for this discharge value
+        :param tau: the constraint values
+        :return: the stress distribution for this discharge
+
+        """
+        # froude and other parameters
+        fr2 = vm ** 2. / (9.81 * h)
+        k = -0.123 * np.log(fr2) - 0.132  # the first parameter of the stress distribution
+        if k > 1:
+            k = 1
+        if k < 0:
+            k = 0
+        lntaum = 2.61 + 0.319 * np.log(fr2)
+        nbst = len(tau)
+
+        # estimate the m parameter by dichotomy m is between 2 and 18 (why?)
+        # m is the seconc parameter fo the stress distribution
+        mmin = 2.
+        msup = 18.
+        for p in range(1, 20):
+            m = (mmin + msup) / 2.0
+            diststress = denstress(k, m, nbst)
+            fit = np.sum(tau * diststress)
+            if np.log(fit) > lntaum:
+                msup = m
+            else:
+                mmin = m
         diststress = denstress(k, m, nbst)
-        fit = np.sum(tau * diststress)
-        if np.log(fit) > lntaum:
-            msup = m
-        else:
-            mmin = m
-    diststress = denstress(k, m, nbst)
 
-    return diststress
+        return diststress
 
+    def write_txt(self, qmod_all, vh_all, name_inv, path_txt, name_river, timestamp=True):
+        """
+        This function writes the txt outputs for FStress
 
-def denstress(k, m, nbst):
-    """
-    This function calulates the stress distrbution function for FStress. This distribution has generally the form
-    of k*exp() + (1-k)* \Sigma(x-m)
+        :param qmod_all: the modelled discharge for each river
+        :param vh_all: the suitability index for each invertebrate species for each river
+        :param name_inv: The four letter code of each selected invetebrate
+        :param path_txt: the path where to save the text file
+        :param name_river: the name of the river
+        :param timestamp: If True, the file is saved with time stamp. Otherwise, it is not.
 
-    :param k: the first parameter of the distribution
-    :param m: the second parameter of the disitribution
-    :param nbst: the number of stress class in the distribution
-    :return: the stress disitrbution for the (m,k) parameters
-    """
+        """
+        i = 0
+        r = 'Default River'
+        for r in name_river:
+            qmod = qmod_all[i]
+            vh = vh_all[i]
+            if timestamp:
+                fname = os.path.join(path_txt, 'Fstress_' + r + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '_rre.txt')
+            else:
+                fname = os.path.join(path_txt, 'Fstress_' + r + '_rre.txt')
+                if os.path.isfile(fname):
+                    os.remove(fname)
+            header_txt = 'OSI\n'
+            for n in name_inv:
+                header_txt += n + '\t'
+            header_txt += '\n'
+            for n in name_inv:
+                header_txt += '[]\t'
+            np.savetxt(fname, vh, delimiter='\t', header=header_txt)
+            if timestamp:
+                fname = os.path.join(path_txt, 'Fstress_' + r + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '_discharge.txt')
+            else:
+                fname = os.path.join(path_txt, 'Fstress_' + r + '_discharge.txt')
+                if os.path.isfile(fname):
+                    os.remove(fname)
+            np.savetxt(fname, qmod, delimiter='\t', header='discharge [m3/sec]')
+        # fname = os.path.join(path_txt, 'Fstress_' + r + time.strftime("%d_%m_%Y_at_%H_%M_%S")+ '_code_inv.txt')
+        # name_inv_str = ''
+        # for i in range(0, len(name_inv)):
+        #     name_inv_str += name_inv[i] + "\n"
+        # with open(fname,'w') as f:
+        #     f.write(name_inv_str)
 
-    diststress = np.zeros(nbst, )
+    def figure_fstress(self, qmod_all, vh_all, name_inv, path_im, name_river, project_properties={}):
+        """
+        This function creates the figures for Fstress, notably the suitability index as a function of discharge for all
+        rivers
 
-    # the first and the last class takes all until the end of the distribution
-    diststress[0] = k * (1. - np.exp(-1.)) + (1. - k) * stats.norm.cdf((1. - m) / 2.5)
-    diststress[-1] = k * np.exp(-nbst + 1) + (1. - k) * (1. - stats.norm.cdf((nbst - 1. - m) / 2.5))
+        :param qmod_all: the modelled discharge for each river
+        :param vh_all: the suitability indoex for each invertebrate species for each river
+        :param name_inv: The four letter code of each selected invetebrate
+        :param path_im: the path where to save the figure
+        :param name_river: the name of the river
+        :param project_properties: the figure option in a dictionnary
 
-    for cla in range(1, nbst - 1):
-        diststress[cla] = k * (np.exp(-cla) - np.exp(-(cla + 1.))) + (1. - k) * (stats.norm.cdf((cla + 1. - m) / 2.5) -
-                                                                                 stats.norm.cdf((cla - m) / 2.5))
+        """
 
-    return diststress
+        if not project_properties:
+            project_properties = create_default_project_properties_dict()
+        plt.rcParams['figure.figsize'] = project_properties['width'], project_properties['height']
+        plt.rcParams['font.size'] = project_properties['font_size']
+        plt.rcParams['lines.linewidth'] = project_properties['line_width']
+        format = int(project_properties['format'])
+        plt.rcParams['axes.grid'] = project_properties['grid']
+        mpl.rcParams['pdf.fonttype'] = 42
+        name_fig = 'test_fig'
 
-
-def write_txt(qmod_all, vh_all, name_inv, path_txt, name_river, timestamp=True):
-    """
-    This function writes the txt outputs for FStress
-
-    :param qmod_all: the modelled discharge for each river
-    :param vh_all: the suitability index for each invertebrate species for each river
-    :param name_inv: The four letter code of each selected invetebrate
-    :param path_txt: the path where to save the text file
-    :param name_river: the name of the river
-    :param timestamp: If True, the file is saved with time stamp. Otherwise, it is not.
-
-    """
-    i = 0
-    r = 'Default River'
-    for r in name_river:
-        qmod = qmod_all[i]
-        vh = vh_all[i]
-        if timestamp:
-            fname = os.path.join(path_txt, 'Fstress_' + r + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '_rre.txt')
-        else:
-            fname = os.path.join(path_txt, 'Fstress_' + r + '_rre.txt')
-            if os.path.isfile(fname):
-                os.remove(fname)
-        header_txt = 'OSI\n'
-        for n in name_inv:
-            header_txt += n + '\t'
-        header_txt += '\n'
-        for n in name_inv:
-            header_txt += '[]\t'
-        np.savetxt(fname, vh, delimiter='\t', header=header_txt)
-        if timestamp:
-            fname = os.path.join(path_txt, 'Fstress_' + r + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '_discharge.txt')
-        else:
-            fname = os.path.join(path_txt, 'Fstress_' + r + '_discharge.txt')
-            if os.path.isfile(fname):
-                os.remove(fname)
-        np.savetxt(fname, qmod, delimiter='\t', header='discharge [m3/sec]')
-    # fname = os.path.join(path_txt, 'Fstress_' + r + time.strftime("%d_%m_%Y_at_%H_%M_%S")+ '_code_inv.txt')
-    # name_inv_str = ''
-    # for i in range(0, len(name_inv)):
-    #     name_inv_str += name_inv[i] + "\n"
-    # with open(fname,'w') as f:
-    #     f.write(name_inv_str)
-
-
-def figure_fstress(qmod_all, vh_all, name_inv, path_im, name_river, project_properties={}):
-    """
-    This function creates the figures for Fstress, notably the suitability index as a function of discharge for all
-    rivers
-
-    :param qmod_all: the modelled discharge for each river
-    :param vh_all: the suitability indoex for each invertebrate species for each river
-    :param name_inv: The four letter code of each selected invetebrate
-    :param path_im: the path where to save the figure
-    :param name_river: the name of the river
-    :param project_properties: the figure option in a dictionnary
-
-    """
-
-    if not project_properties:
-        project_properties = create_default_project_properties_dict()
-    plt.rcParams['figure.figsize'] = project_properties['width'], project_properties['height']
-    plt.rcParams['font.size'] = project_properties['font_size']
-    plt.rcParams['lines.linewidth'] = project_properties['line_width']
-    format = int(project_properties['format'])
-    plt.rcParams['axes.grid'] = project_properties['grid']
-    mpl.rcParams['pdf.fonttype'] = 42
-    name_fig = 'test_fig'
-
-    i = 0
-    for r in name_river:
-        qmod = qmod_all[i]
-        j = vh_all[i].T
-        fig = plt.figure()
-        ax = plt.subplot(111)
-        for e in range(0, len(name_inv)):
-            plt.plot(qmod, j[e, :], '-', label=name_inv[e])
-        plt.xlabel('Q [m$^{3}$/sec]')
-        plt.ylabel('Index J [ ]')
-        if project_properties['language'] == 0:
-            plt.title('Suitability index J - River: ' + r)
-        elif project_properties['language'] == 1:
-            plt.title('Index de suitabilité J - Rivère: ' + r)
-        else:
-            plt.title('Suitability index J - River: ' + r)
-        box = ax.get_position()
-        ax.set_position([box.x0, box.y0, box.width * 0.7, box.height])
-        lgd = plt.legend(bbox_to_anchor=(1.60, 1), loc='upper right', ncol=1)
-        if format == 0:
-            name_fig = os.path.join(path_im, 'Fstress_' + r +
-                                    "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf')
-        if format == 1:
-            name_fig = os.path.join(path_im, 'Fstress_' + r +
-                                    "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png')
-        if format == 2:
-            name_fig = os.path.join(path_im, 'Fstress_' + r +
-                                    "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
-        fig.savefig(os.path.join(path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
-                    dpi=project_properties['resolution'], transparent=True)
-        i += 1
+        i = 0
+        for r in name_river:
+            qmod = qmod_all[i]
+            j = vh_all[i].T
+            fig = plt.figure()
+            ax = plt.subplot(111)
+            for e in range(0, len(name_inv)):
+                plt.plot(qmod, j[e, :], '-', label=name_inv[e])
+            plt.xlabel('Q [m$^{3}$/sec]')
+            plt.ylabel('Index J [ ]')
+            if project_properties['language'] == 0:
+                plt.title('Suitability index J - River: ' + r)
+            elif project_properties['language'] == 1:
+                plt.title('Index de suitabilité J - Rivère: ' + r)
+            else:
+                plt.title('Suitability index J - River: ' + r)
+            box = ax.get_position()
+            ax.set_position([box.x0, box.y0, box.width * 0.7, box.height])
+            lgd = plt.legend(bbox_to_anchor=(1.60, 1), loc='upper right', ncol=1)
+            if format == 0:
+                name_fig = os.path.join(path_im, 'Fstress_' + r +
+                                        "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.pdf')
+            if format == 1:
+                name_fig = os.path.join(path_im, 'Fstress_' + r +
+                                        "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.png')
+            if format == 2:
+                name_fig = os.path.join(path_im, 'Fstress_' + r +
+                                        "_suitability_index" + time.strftime("%d_%m_%Y_at_%H_%M_%S") + '.jpg')
+            fig.savefig(os.path.join(path_im, name_fig), bbox_extra_artists=(lgd,), bbox_inches='tight',
+                        dpi=project_properties['resolution'], transparent=True)
+            i += 1
 
 
 def fstress_test(qmod_all, vh_all, name_inv, name_river, path_rre, project_properties={}):
@@ -553,6 +566,30 @@ def fstress_test(qmod_all, vh_all, name_inv, name_river, path_rre, project_prope
         ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
         lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
         i += 1
+
+
+def denstress(k, m, nbst):
+    """
+    This function calulates the stress distrbution function for FStress. This distribution has generally the form
+    of k*exp() + (1-k)* \Sigma(x-m)
+
+    :param k: the first parameter of the distribution
+    :param m: the second parameter of the disitribution
+    :param nbst: the number of stress class in the distribution
+    :return: the stress disitrbution for the (m,k) parameters
+    """
+
+    diststress = np.zeros(nbst, )
+
+    # the first and the last class takes all until the end of the distribution
+    diststress[0] = k * (1. - np.exp(-1.)) + (1. - k) * stats.norm.cdf((1. - m) / 2.5)
+    diststress[-1] = k * np.exp(-nbst + 1) + (1. - k) * (1. - stats.norm.cdf((nbst - 1. - m) / 2.5))
+
+    for cla in range(1, nbst - 1):
+        diststress[cla] = k * (np.exp(-cla) - np.exp(-(cla + 1.))) + (1. - k) * (stats.norm.cdf((cla + 1. - m) / 2.5) -
+                                                                                 stats.norm.cdf((cla - m) / 2.5))
+
+    return diststress
 
 
 def main():
