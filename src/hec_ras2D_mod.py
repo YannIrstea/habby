@@ -166,7 +166,11 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
             ikle_all.append(ikle)
             elev_c_all.append(elev_c)
             # water depth by mesh
-            water_depth = reach_name_result_group['Depth'][self.timestep_name_wish_list_index, :]
+            if "Depth" in reach_name_geometry_group: #seems that this group no longer exist in HEC-RAS 2D version 6.2 at least ???
+                water_depth = reach_name_result_group['Depth'][self.timestep_name_wish_list_index, :]
+            else:
+                water_surface = reach_name_result_group['Water Surface'][self.timestep_name_wish_list_index, :]
+                water_depth =water_surface-elev_c.reshape(water_surface.shape)
             water_depth_c_all.append(water_depth)
 
             # velocity is given on the side of the cells.
@@ -179,7 +183,11 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
             face_unit_vec = face_unit_vec[:, :2]
             # face_variables
             velocity = reach_name_result_group[self.hvum.v.software_attributes_list[0]][self.timestep_name_wish_list_index, :].T  # timestep_name_wish_list_index
-            shear_stress = reach_name_result_group[self.hvum.shear_stress.software_attributes_list[0]][self.timestep_name_wish_list_index, :].T  # timestep_name_wish_list_index
+            #TODO seems that this group 'Face Shear Stress' no longer exist in HEC-RAS 2D version 6.2 at least ???
+            if self.hvum.shear_stress.software_attributes_list[0] in reach_name_result_group:
+                shear_stress = reach_name_result_group[self.hvum.shear_stress.software_attributes_list[0]][self.timestep_name_wish_list_index, :].T  # timestep_name_wish_list_index
+            else:
+                shear_stress =np.zeros(velocity.shape)
             new_shear_stress = np.hstack((face_unit_vec, shear_stress))  # for optimization (looking for face is slow)
             new_vel = np.hstack((face_unit_vec, velocity))  # for optimization (looking for face is slow)
             # new_elev = np.hstack((face_unit_vec, elevation.reshape(elevation.shape[0], 1)))
