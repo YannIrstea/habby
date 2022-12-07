@@ -489,8 +489,11 @@ def load_sub_sig(sub_description, progress_value):
     header_list = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
     sub_array = np.empty(shape=(len(layer), len(header_list)), dtype=np.int)
     for feature_ind, feature in enumerate(layer):
-        sub_array[feature_ind] = [feature.GetField(j) for j in header_list]
-
+        try:
+            sub_array[feature_ind] = [feature.GetField(j) for j in header_list]
+        except TypeError:
+            print("Error: Substrate feature number " + str(feature_ind) + " is not substrate data type.")
+            return None
     # prog (read done)
     progress_value.value = 50
 
@@ -683,7 +686,8 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
             shape_geom = feature.geometry()
             regions_points.append([*shape_geom.PointOnSurface().GetPoint()[:2], feature_ind, 0])
             shape_geom.SetCoordinateDimension(2)  # never z values
-            if shape_geom.GetGeometryCount() > 1:  # polygon a trous
+            # polygon a trous
+            if shape_geom.GetGeometryCount() > 1:
                 # index_hole = list(shapes[i].parts) + [len(shapes[i].points)]
                 index_hole = [0]
                 all_coord = []
@@ -694,8 +698,7 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
                     if part_num == shape_geom.GetGeometryCount() - 1:  # last
                         index_hole.append(index_hole[-1] + len(coord_part))
                     else:
-                        index_hole.append(len(coord_part))
-
+                        index_hole.append(len(all_coord))
                 new_points = []
                 lnbptspolys = []
                 for j in range(len(index_hole) - 1):
@@ -713,6 +716,7 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
                         p2 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][1]].tolist()
                         p3 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][2]].tolist()
                         holes_array.append([(p1[0] + p2[0] + p3[0]) / 3, (p1[1] + p2[1] + p3[1]) / 3])
+            # polygon sans trous
             else:
                 new_points = shape_geom.GetGeometryRef(0).GetPoints()
                 lnbptspolys = [len(new_points)]
@@ -731,11 +735,11 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
                                                                                      holes_array)
 
         # triangulate on polygon
-        if holes_array.size == 0:
+        if holes_array.size == 0:  # polygon a trous
             polygon_from_shp = dict(vertices=vertices_array2,
                                     segments=segments_array2,
                                     regions=regions_points)
-        else:
+        else:  # polygon sans trous
             polygon_from_shp = dict(vertices=vertices_array2,
                                     segments=segments_array2,
                                     holes=holes_array,
