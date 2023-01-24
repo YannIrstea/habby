@@ -381,8 +381,11 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh,
             decalnewpointmerge += len(nxynewpoint)
 
         # progress
-        with lock:
-            progress_value.value = progress_value.value + delta_mesh
+        try: # in ordre that the main can fucntion
+            with lock:
+                progress_value.value = progress_value.value + delta_mesh
+        except:
+            pass
 
     # get rid of duplicate points
     merge_xy = np.array(xymerge)
@@ -749,13 +752,11 @@ def build_hyd_data(hyd_xy, hyd_tin, seedhyd1, seedhyd2, seedhyd3):
     '''
     nbnode = hyd_xy.size // 2
     nbmesh = hyd_tin.size // 3
-    iwholeprofile = np.zeros((nbmesh, 2), dtype=np.int64)
     hyd_data_c = np.zeros((nbmesh, 2), dtype=np.float64)
     hyd_data = np.zeros((nbnode, 3), dtype=np.float64)
-    iwholeprofile[:, 0] = np.arange(nbmesh)
     if seedhyd1 != None:
         np.random.seed(seedhyd1)
-    iwholeprofile[:, 1] = np.random.randint(0, 2, nbmesh)
+    iwholeprofile = np.random.randint(0, 2, nbmesh)
     if seedhyd2 != None:
         np.random.seed(seedhyd2)
     d2 = np.random.randint(0, 11, nbmesh)
@@ -837,7 +838,7 @@ if __name__ == '__main__':
     coeffgrid = 10  # at first approach 10 is a optimal value  according to Leonardo DA COSTA LIMA XAVIER MENDONCA the more the  coeffgrid is high the more the grid is dense
 
     hyd_data, iwholeprofile, hyd_data_c = build_hyd_data(hyd_xy, hyd_tin, 7, 22, 33)
-    i_split = None  # TODO: if need modify build_hyd_data function to return  i_split variable
+    i_split=np.zeros(iwholeprofile.shape)
     ti = datetime.now()
     merge_xy1, merge_data_node, merge_tin1, iwholeprofilemerge, merge_data_mesh, merge_data_sub_mesh = merge(hyd_xy,
                                                                                                              hyd_data,
