@@ -494,8 +494,6 @@ def load_sub_sig(sub_description, progress_value):
         except TypeError:
             print("Error: Substrate feature number " + str(feature_ind) + " is not substrate data type.")
             return None
-    # prog (read done)
-    progress_value.value = 50
 
     # check data validity
     data_validity, sub_description_system = data_substrate_validity(header_list,
@@ -503,8 +501,8 @@ def load_sub_sig(sub_description, progress_value):
                                                                     sub_mapping_method,
                                                                     sub_classification_code)
 
-    # prog (read done)
-    progress_value.value = 60
+    # prog
+    progress_value.value = 10
 
     sub_description_system["filename_source"] = filename
     sub_description_system["sub_class_number"] = str(len(sub_array[0]))
@@ -518,7 +516,7 @@ def load_sub_sig(sub_description, progress_value):
 
     if data_validity:
         # before loading substrate shapefile data : create shapefile triangulated mesh from shapefile polygon
-        if polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_system):
+        if polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_system, progress_value):
             # prog (triangulation done)
             progress_value.value = 90
 
@@ -550,7 +548,10 @@ def load_sub_sig(sub_description, progress_value):
             # get point coordinates and connectivity table in two lists
             sub_array = np.empty(shape=(len(layer), len(header_list)),
                                  dtype=HydraulicVariableUnitManagement().sub_dom.dtype)
+            delta_poly = 10 / len(layer)
+
             for feature_ind, feature in enumerate(layer):
+                progress_value.value = progress_value.value + delta_poly
                 sub_array[feature_ind] = [feature.GetField(j) for j in header_list]
                 shape_geom = feature.geometry()
                 shape_geom.SetCoordinateDimension(2)  # never z values
@@ -602,7 +603,7 @@ def load_sub_cst(sub_description, progress_value):
     return data_2d
 
 
-def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_system):
+def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_system, progress_value):
     """
     Convert a polygon shapefile to a polygon triangle shapefile
     with a constrained Delaunay triangulation
@@ -686,7 +687,10 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
         layer_polygon.ResetReading()
         shape_geom = None
         hole_presence = False
+        delta_poly = 40 / len(layer_polygon)
+
         for feature_ind, feature in enumerate(layer_polygon):
+            progress_value.value = progress_value.value + delta_poly
             regions_values[feature_ind] = [feature.GetField(j) for j in header_list]
             shape_geom = feature.geometry()
             shape_geom.SetCoordinateDimension(2)  # never z values
@@ -756,18 +760,21 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
         if vertices_array.size != 0:
             vertices_array2, segments_array2 = remove_duplicates_points_to_triangulate(vertices_array,
                                                                                      segments_array)
-        if vertices_array_with_hole.size != 0:
+        if type(vertices_array_with_hole) != list:
             vertices_array2_with_hole, segments_array2_with_hole = remove_duplicates_points_to_triangulate(vertices_array_with_hole,
                                                                                                     segments_array_with_hole)
 
-        # triangulate on polygon
+        # triangulate on polygon without hole
         if vertices_array.size != 0:
+            # print("triangulate on polygon without hole")
             polygon_from_shp = dict(vertices=vertices_array2,
                                     segments=segments_array2,
                                     regions=regions_points)
             polygon_triangle = tr.triangulate(polygon_from_shp, "pA")  # 'pA' if we use regions key
 
-        if vertices_array_with_hole.size != 0:
+        # triangulate on polygon with hole
+        if type(vertices_array_with_hole) != list:
+            # print("triangulate on polygon with hole")
             polygon_from_shp_with_hole = dict(vertices=vertices_array2_with_hole,
                                     segments=segments_array2_with_hole,
                                     holes=holes_array,
@@ -782,7 +789,7 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
         else:
             triangle_geom_list = np.array([])
             triangle_records_list = np.array([])
-        if vertices_array_with_hole.size != 0:
+        if type(vertices_array_with_hole) != list:
             triangle_geom_list = np.concatenate((triangle_geom_list, polygon_triangle_with_hole["vertices"][polygon_triangle_with_hole["triangles"]]), axis=0)
             triangle_records_list = np.concatenate((triangle_records_list, regions_values[polygon_triangle_with_hole['triangle_attributes'].flatten().astype(np.int64)]), axis=0)
 
@@ -886,7 +893,9 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
 
         defn = layer_triangle.GetLayerDefn()
         layer_triangle.StartTransaction()  # faster
+        delta_poly = 40 / len(triangle_geom_list)
         for i in range(len(triangle_geom_list)):
+            progress_value.value = progress_value.value + delta_poly
             ring = ogr.Geometry(ogr.wkbLinearRing)
             for point_ind in [0, 1, 2, 0]:
                 ring.AddPoint(triangle_geom_list[i][point_ind][0], triangle_geom_list[i][point_ind][1])
