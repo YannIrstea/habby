@@ -36,7 +36,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh,
     (based on the hydraulic one) by partitionning each hydraulic triangle/mesh if necessary into smaller
     triangles/meshes that contain a substrate from the substrate TIN or a default substrate. Additional nodes inside
     or on the edges of an hydraulic mesh will be given hydraulic data by interpolation of the hydraulic data from the
-    hydraulic mesh nodes.Flat hydraulic or substrates triangles will not been taken inot account.
+    hydraulic mesh nodes.Flat hydraulic or substrates triangles will not been taken into account.
     TAKE CARE during the merge a translation is done to minimise numericals problems 
      Using numpy arrays as entry and returning numpy arrays.
     :param hyd_xy: The x,y nodes coordinates of a hydraulic TIN (Triangular Irregular Network)
@@ -57,11 +57,11 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh,
     :param sub_default: substrate data given by default to a merge mesh if no substrate
     :param coeffgrid: a special coefficient for defining a grid build in  the area surrounding the TINs  and used for
     the grid algorithm this grid is used to select substrate meshes that are just in the surrounding of an hydraulic
-    mesh in order to define all the segments from hydraulix substrate edges that are intersecting the hydraulic mesh
+    mesh in order to define all the segments from substrate mesh edges that are intersecting the hydraulic mesh
     considered. At first approach 10 is a optimal value  according to Leonardo DA COSTA LIMA XAVIER MENDONCA the more the  coeffgrid is high the more the grid is dense
     :return:
             merge_xy1 : the x,y nodes coordinates of a hydraulic TIN
-            merge_data_node : the hydraulic data of the merge nodes (eg : z, wather depth, mean velocity...)
+            merge_data_node : the hydraulic data of the merge nodes (eg : z, water depth, mean velocity...)
             merge_tin1 : the merge TIN (Triangular Irregular Network) 3 columns of nodes indexes each line is a
                         mesh/triangle
             iwholeprofilemerge : similar to iwholeprofile describing each hydraulic mesh
@@ -79,8 +79,6 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh,
     hyd_xy -= translationxy
     sub_xy -= translationxy
     gridelt = griddef(hyd_xy, sub_xy, hyd_tin, sub_tin, coeffgrid)  # building the grid
-    # print(gridelt)
-    # print ("titi")
     celltriangleindexsub, celltrianglelistsub = gridtin(sub_xy, sub_tin,
                                                         gridelt,
                                                         True)  # indexing the substrate ikle (list of mesh/triangles) in reference to the grid
@@ -110,7 +108,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh,
             setofmeshsubindex = set()  # the list of substrate mesh that are in the same grid area of the hydraulic triangle
             for c in listcells:
                 if celltriangleindexsub[c][
-                    0] != -1:  # the surrounding of a substrate mesh/triangle is in a grid cell (that is surrounding our hydraulic mesh)
+                    0] != -1:  # at least the surrounding of a substrate mesh/triangle is in a grid cell (that is surrounding our hydraulic mesh)
                     for k in range(celltriangleindexsub[c][0], celltriangleindexsub[c][1] + 1):
                         isub = celltrianglelistsub[k][1]
                         setofmeshsubindex.add(isub)
