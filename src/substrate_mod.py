@@ -673,29 +673,124 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
 
     # not all_polygon_triangle_tf
     else:
+        # # Extract list of points and segments from shp
+        # inextpoint = 0
+        # triangle_geom_list = []
+        # triangle_records_list = []
+        # regions_values = np.empty(shape=(len(layer_polygon), len(header_list)), dtype=np.int)
+        # layer_polygon.ResetReading()
+        # shape_geom = None
+        # delta_poly = 40 / len(layer_polygon)
+        #
+        # for feature_ind, feature in enumerate(layer_polygon):
+        #     inextpoint = 0
+        #     #print(feature_ind)
+        #     regions_points = []
+        #     segments_array = []  # segment index or connectivity table
+        #     holes_array = []
+        #     progress_value.value = progress_value.value + delta_poly
+        #     regions_values[feature_ind] = [feature.GetField(j) for j in header_list]
+        #     shape_geom = feature.geometry()
+        #     shape_geom.SetCoordinateDimension(2)  # never z values
+        #     # polygon a trous
+        #     if shape_geom.GetGeometryCount() > 1:
+        #         hole_presence = True
+        #         regions_points.append([*shape_geom.PointOnSurface().GetPoint()[:2], feature_ind, 0])
+        #         # index_hole = list(shapes[i].parts) + [len(shapes[i].points)]
+        #         index_hole = [0]
+        #         all_coord = []
+        #         for part_num, part in enumerate(range(shape_geom.GetGeometryCount())):
+        #             geom_part = shape_geom.GetGeometryRef(part_num)
+        #             coord_part = geom_part.GetPoints()
+        #             all_coord.extend(coord_part)
+        #             if part_num == shape_geom.GetGeometryCount() - 1:  # last
+        #                 index_hole.append(index_hole[-1] + len(coord_part))
+        #             else:
+        #                 index_hole.append(len(all_coord))
+        #         new_points = []
+        #         lnbptspolys = []
+        #         for j in range(len(index_hole) - 1):
+        #             new_points.extend(all_coord[index_hole[j]:index_hole[j + 1] - 1])
+        #             lnbptspolys.append(index_hole[j + 1] - 1 - index_hole[j])
+        #             if j > 0:  # hole presence : creating a single point inside the hole using triangulation
+        #                 vertices_hole = np.array(all_coord[index_hole[j]:index_hole[j + 1] - 1])
+        #                 segments_hole = []
+        #                 for k in range(lnbptspolys[-1]):
+        #                     segments_hole.append([k % lnbptspolys[-1], (k + 1) % lnbptspolys[-1]])
+        #                 segments_hole = np.array(segments_hole)
+        #                 polygon_hole = dict(vertices=vertices_hole, segments=segments_hole)
+        #                 polygon_hole_triangle = tr.triangulate(polygon_hole, "p")
+        #                 p1 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][0]].tolist()
+        #                 p2 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][1]].tolist()
+        #                 p3 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][2]].tolist()
+        #                 holes_array.append([(p1[0] + p2[0] + p3[0]) / 3, (p1[1] + p2[1] + p3[1]) / 3])
+        #     # polygon sans trous
+        #     else:
+        #         hole_presence = False
+        #         regions_points.append([*shape_geom.PointOnSurface().GetPoint()[:2], feature_ind, 0])
+        #         new_points = shape_geom.GetGeometryRef(0).GetPoints()
+        #         lnbptspolys = [len(new_points)]
+        #
+        #     # add
+        #     for j in range(len(lnbptspolys)):  # add the segments to list
+        #         for k in range(lnbptspolys[j]):
+        #             segments_array.append([k % lnbptspolys[j] + inextpoint, (k + 1) % lnbptspolys[j] + inextpoint])
+        #         inextpoint += lnbptspolys[j]
+        #
+        #     # change type
+        #     vertices_array = np.array(new_points)
+        #     segments_array = np.array(segments_array)
+        #
+        #     # Remove duplicates
+        #     vertices_array2, segments_array2 = remove_duplicates_points_to_triangulate(vertices_array,
+        #                                                                                  segments_array)
+        #     # triangulate on polygon
+        #     # print(vertices_array2.size, vertices_array2.shape)
+        #     # print(segments_array2.size, segments_array2.shape)
+        #     # print(min(regions_points), max(regions_points), len(regions_points))
+        #     polygon_from_shp = dict(vertices=vertices_array2,
+        #                             segments=segments_array2,
+        #                             regions=regions_points)
+        #     polygon_triangle = tr.triangulate(polygon_from_shp, "pA")  # 'pA' if we use regions key
+        #
+        #     # print(polygon_triangle.keys())
+        #     # get geometry and attributes of triangles
+        #     triangle_geom = polygon_triangle["vertices"][polygon_triangle["triangles"]]
+        #     triangle_records = regions_values[polygon_triangle['triangle_attributes'].flatten().astype(np.int64)]
+        #
+        #     # append
+        #     triangle_geom_list.extend(triangle_geom)
+        #     triangle_records_list.extend(triangle_records)
+        #
+        # triangle_geom_list = np.array(triangle_geom_list)
+        # triangle_records_list = np.array(triangle_records_list)
+        #
+        # # TODO: Remove duplicates after merging all triangles?
+
         # Extract list of points and segments from shp
+        vertices_array = []  # point
+        segments_array = []  # segment index or connectivity table
+        vertices_array_with_hole = []  # point
+        segments_array_with_hole = []  # segment index or connectivity table
+        holes_array = []
         inextpoint = 0
-        triangle_geom_list = []
-        triangle_records_list = []
+        inextpoint_with_hole = 0
         regions_values = np.empty(shape=(len(layer_polygon), len(header_list)), dtype=np.int)
+        regions_points = []
+        regions_points_with_hole = []
         layer_polygon.ResetReading()
         shape_geom = None
+        hole_presence = False
         delta_poly = 40 / len(layer_polygon)
 
         for feature_ind, feature in enumerate(layer_polygon):
-            inextpoint = 0
-            #print(feature_ind)
-            regions_points = []
-            segments_array = []  # segment index or connectivity table
-            holes_array = []
             progress_value.value = progress_value.value + delta_poly
             regions_values[feature_ind] = [feature.GetField(j) for j in header_list]
             shape_geom = feature.geometry()
             shape_geom.SetCoordinateDimension(2)  # never z values
             # polygon a trous
             if shape_geom.GetGeometryCount() > 1:
-                hole_presence = True
-                regions_points.append([*shape_geom.PointOnSurface().GetPoint()[:2], feature_ind, 0])
+                regions_points_with_hole.append([*shape_geom.PointOnSurface().GetPoint()[:2], feature_ind, 0])
                 # index_hole = list(shapes[i].parts) + [len(shapes[i].points)]
                 index_hole = [0]
                 all_coord = []
@@ -713,6 +808,7 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
                     new_points.extend(all_coord[index_hole[j]:index_hole[j + 1] - 1])
                     lnbptspolys.append(index_hole[j + 1] - 1 - index_hole[j])
                     if j > 0:  # hole presence : creating a single point inside the hole using triangulation
+                        hole_presence = True
                         vertices_hole = np.array(all_coord[index_hole[j]:index_hole[j + 1] - 1])
                         segments_hole = []
                         for k in range(lnbptspolys[-1]):
@@ -732,40 +828,64 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
                 lnbptspolys = [len(new_points)]
 
             # add
-            for j in range(len(lnbptspolys)):  # add the segments to list
-                for k in range(lnbptspolys[j]):
-                    segments_array.append([k % lnbptspolys[j] + inextpoint, (k + 1) % lnbptspolys[j] + inextpoint])
-                inextpoint += lnbptspolys[j]
+            if not hole_presence:
+                vertices_array.extend(new_points)  # add the points to list
+                for j in range(len(lnbptspolys)):  # add the segments to list
+                    for k in range(lnbptspolys[j]):
+                        segments_array.append([k % lnbptspolys[j] + inextpoint, (k + 1) % lnbptspolys[j] + inextpoint])
+                    inextpoint += lnbptspolys[j]
+            if hole_presence:
+                vertices_array_with_hole.extend(new_points)  # add the points to list
+                for j in range(len(lnbptspolys)):  # add the segments to list
+                    for k in range(lnbptspolys[j]):
+                        segments_array_with_hole.append([k % lnbptspolys[j] + inextpoint_with_hole, (k + 1) % lnbptspolys[j] + inextpoint_with_hole])
+                    inextpoint_with_hole += lnbptspolys[j]
 
-            # change type
-            vertices_array = np.array(new_points)
+        # change type
+        if vertices_array:
+            vertices_array = np.array(vertices_array)
             segments_array = np.array(segments_array)
+        if vertices_array_with_hole:
+            vertices_array_with_hole = np.array(vertices_array_with_hole)
+            segments_array_with_hole = np.array(segments_array_with_hole)
+            holes_array = np.array(holes_array)
 
-            # Remove duplicates
+        # Remove duplicates
+        if vertices_array.size != 0:
             vertices_array2, segments_array2 = remove_duplicates_points_to_triangulate(vertices_array,
-                                                                                         segments_array)
-            # triangulate on polygon
-            # print(vertices_array2.size, vertices_array2.shape)
-            # print(segments_array2.size, segments_array2.shape)
-            # print(min(regions_points), max(regions_points), len(regions_points))
+                                                                                     segments_array)
+        if type(vertices_array_with_hole) != list:
+            vertices_array2_with_hole, segments_array2_with_hole = remove_duplicates_points_to_triangulate(vertices_array_with_hole,
+                                                                                                    segments_array_with_hole)
+
+        # triangulate on polygon without hole
+        if vertices_array.size != 0:
+            # print("triangulate on polygon without hole")
             polygon_from_shp = dict(vertices=vertices_array2,
                                     segments=segments_array2,
                                     regions=regions_points)
             polygon_triangle = tr.triangulate(polygon_from_shp, "pA")  # 'pA' if we use regions key
 
-            # print(polygon_triangle.keys())
-            # get geometry and attributes of triangles
-            triangle_geom = polygon_triangle["vertices"][polygon_triangle["triangles"]]
-            triangle_records = regions_values[polygon_triangle['triangle_attributes'].flatten().astype(np.int64)]
+        # triangulate on polygon with hole
+        if type(vertices_array_with_hole) != list:
+            # print("triangulate on polygon with hole")
+            polygon_from_shp_with_hole = dict(vertices=vertices_array2_with_hole,
+                                    segments=segments_array2_with_hole,
+                                    holes=holes_array,
+                                    regions=regions_points_with_hole)
+            polygon_triangle_with_hole = tr.triangulate(polygon_from_shp_with_hole, "pA")  # 'pA' if we use regions key
+        #tr.compare(plt, polygon_from_shp, polygon_triangle)
 
-            # append
-            triangle_geom_list.extend(triangle_geom)
-            triangle_records_list.extend(triangle_records)
-
-        triangle_geom_list = np.array(triangle_geom_list)
-        triangle_records_list = np.array(triangle_records_list)
-
-        # TODO: Remove duplicates after merging all triangles?
+        # get geometry and attributes of triangles
+        if vertices_array.size != 0:
+            triangle_geom_list = polygon_triangle["vertices"][polygon_triangle["triangles"]]
+            triangle_records_list = regions_values[polygon_triangle['triangle_attributes'].flatten().astype(np.int64)]
+        else:
+            triangle_geom_list = np.array([])
+            triangle_records_list = np.array([])
+        if type(vertices_array_with_hole) != list:
+            triangle_geom_list = np.concatenate((triangle_geom_list, polygon_triangle_with_hole["vertices"][polygon_triangle_with_hole["triangles"]]), axis=0)
+            triangle_records_list = np.concatenate((triangle_records_list, regions_values[polygon_triangle_with_hole['triangle_attributes'].flatten().astype(np.int64)]), axis=0)
 
         # close file
         layer_polygon = None
