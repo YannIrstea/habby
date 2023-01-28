@@ -2316,18 +2316,25 @@ class CentralW(QWidget):
         elif text_log[:6] == 'script':
             self.write_restart_cli_file(text_log[6:], restart_cli_file)
 
-        # error
-        elif self.tr('Error') + ":" in text_log or 'Error:' in text_log:
+        # process done (green)
+        elif self.tr(" done (process time = ") in text_log:
             self.tracking_journal_QTextEdit.textCursor().insertHtml(
-                "<FONT COLOR='#FF0000'>" + text_log + ' </br><br>')  # error in red
+                "<FONT COLOR='#06B025'>" + text_log + ' </br><br>')  #
             self.scrolldown_log()
             self.write_log_file(text_log, log_file)
 
-        # warning
-        elif self.tr('Warning') + ":" in text_log or 'Warning:' in text_log:
+        # error (red)
+        elif self.tr('Error') + ":" in text_log or 'Error:' in text_log or self.tr(" crashed (process time = ") in text_log:
+            self.tracking_journal_QTextEdit.textCursor().insertHtml(
+                "<FONT COLOR='#FF0000'>" + text_log + ' </br><br>')
+            self.scrolldown_log()
+            self.write_log_file(text_log, log_file)
+
+        # warning (orange)
+        elif self.tr('Warning') + ":" in text_log or 'Warning:' in text_log or self.tr(" stopped (process time = ") in text_log:
             self.scrolldown_log()
             self.tracking_journal_QTextEdit.textCursor().insertHtml(
-                "<FONT COLOR='#FF8C00'>" + text_log + ' </br><br>')  # warning in orange
+                "<FONT COLOR='#FF8C00'>" + text_log + ' </br><br>')
             self.write_log_file(text_log, log_file)
 
         # other case not accounted for
