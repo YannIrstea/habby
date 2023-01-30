@@ -1162,9 +1162,18 @@ def data_substrate_validity(header_list, sub_array, sub_mapping_method, sub_clas
 
     # coarserdom
     if sub_classification_method == "coarser-dominant":
-        # coarser dom
-        sub_pg = sub_array[header_list.index("coarser")]
-        sub_dom = sub_array[header_list.index("dominant")]
+        # coarser
+        try:
+            sub_pg = sub_array[header_list.index("coarser")]
+        except ValueError:
+            print("Error: The coarser classification method name should be 'coarser', not : '" + ", ".join(header_list) + "'")
+            return False, sub_description_system
+        # dom
+        try:
+            sub_dom = sub_array[header_list.index("dominant")]
+        except ValueError:
+            print("Error: The dominant classification method name should be 'dominant', not : '" + ", ".join(header_list) + "'")
+            return False, sub_description_system
         # check min max if match code_type
         if sub_classification_code == 'Cemagref':  # All value 1 < x < 8
             if min(sub_dom) < 1 or min(sub_pg) < 1:
