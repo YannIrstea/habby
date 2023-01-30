@@ -625,6 +625,8 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
         ds_polygon = driver.Open(in_shp_abs_path, 0)  # 0 means read-only. 1 means writeable.
 
     layer_num = 0
+    without_hole = False
+    with_hole = False
     if sub_description_system['sub_mapping_method'] == 'point':
         # get all name to found triangulated name
         for layer_num in range(ds_polygon.GetLayerCount()):
@@ -852,44 +854,50 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
         if vertices_array:
             vertices_array = np.array(vertices_array)
             segments_array = np.array(segments_array)
+            without_hole = True
         if vertices_array_with_hole:
             vertices_array_with_hole = np.array(vertices_array_with_hole)
             segments_array_with_hole = np.array(segments_array_with_hole)
             holes_array = np.array(holes_array)
+            with_hole = True
 
-        # Remove duplicates
-        if vertices_array.size != 0:
+        # Remove duplicates and compute translation
+        if without_hole:
             vertices_array2, segments_array2 = remove_duplicates_points_to_triangulate(vertices_array,
                                                                                      segments_array)
-        if type(vertices_array_with_hole) != list:
+            translationxy = np.min(vertices_array2, axis=0)
+        if with_hole:  # polygon with hole
             vertices_array2_with_hole, segments_array2_with_hole = remove_duplicates_points_to_triangulate(vertices_array_with_hole,
                                                                                                     segments_array_with_hole)
+            translationxy = np.min(vertices_array2_with_hole, axis=0)
 
-        # translationxy
-        translationxy = np.min(vertices_array2, axis=0)
-        vertices_array3 = np.array(vertices_array2)
-        vertices_array3 -= translationxy
-        for region_point_ind, _ in enumerate(regions_points):
-            regions_points[region_point_ind][0] = regions_points[region_point_ind][0] - translationxy[0]
-            regions_points[region_point_ind][1] = regions_points[region_point_ind][1] - translationxy[1]
-        if type(vertices_array_with_hole) != list:
+        if without_hole and with_hole:  # polygon without and with hole
+            translationxy = np.min(np.vstack((vertices_array, vertices_array_with_hole)), axis=0)
+
+        # set translationxy
+        if without_hole:
+            vertices_array3 = np.array(vertices_array2)
+            vertices_array3 -= translationxy
+            for region_point_ind, _ in enumerate(regions_points):
+                regions_points[region_point_ind][0] = regions_points[region_point_ind][0] - translationxy[0]
+                regions_points[region_point_ind][1] = regions_points[region_point_ind][1] - translationxy[1]
+        if with_hole:
             vertices_array3_with_hole = np.array(vertices_array2_with_hole)
             vertices_array3_with_hole -= translationxy
             for region_point_ind, _ in enumerate(regions_points_with_hole):
                 regions_points_with_hole[region_point_ind][0] = regions_points_with_hole[region_point_ind][0] - translationxy[0]
                 regions_points_with_hole[region_point_ind][1] = regions_points_with_hole[region_point_ind][1] - translationxy[1]
+            holes_array = holes_array - translationxy
 
-        # triangulate on polygon without hole
-        if vertices_array.size != 0:
-            # print("triangulate on polygon without hole")
+        # triangulate
+        if without_hole:
+            print("--------triangulate on polygon without hole")
             polygon_from_shp = dict(vertices=vertices_array3,
                                     segments=segments_array2,
                                     regions=regions_points)
             polygon_triangle = tr.triangulate(polygon_from_shp, "pA")  # 'pA' if we use regions key
-
-        # triangulate on polygon with hole
-        if type(vertices_array_with_hole) != list:
-            # print("triangulate on polygon with hole")
+        if with_hole:
+            print("---------triangulate on polygon with hole")
             polygon_from_shp_with_hole = dict(vertices=vertices_array3_with_hole,
                                     segments=segments_array2_with_hole,
                                     holes=holes_array,
@@ -897,20 +905,26 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
             polygon_triangle_with_hole = tr.triangulate(polygon_from_shp_with_hole, "pA")  # 'pA' if we use regions key
         #tr.compare(plt, polygon_from_shp, polygon_triangle)
 
-        # get geometry and attributes of triangles
-        if vertices_array.size != 0:
+        # merge geometry and attributes of triangles
+        if without_hole and not with_hole:
             triangle_geom_list = polygon_triangle["vertices"][polygon_triangle["triangles"]]
             triangle_records_list = regions_values[polygon_triangle['triangle_attributes'].flatten().astype(np.int64)]
-        else:
-            triangle_geom_list = np.array([])
-            triangle_records_list = np.array([])
-        if type(vertices_array_with_hole) != list:
-            triangle_geom_list = np.concatenate((triangle_geom_list, polygon_triangle_with_hole["vertices"][polygon_triangle_with_hole["triangles"]]), axis=0)
-            triangle_records_list = np.concatenate((triangle_records_list, regions_values[polygon_triangle_with_hole['triangle_attributes'].flatten().astype(np.int64)]), axis=0)
+        if with_hole and not without_hole:
+            triangle_geom_list = polygon_triangle_with_hole["vertices"][polygon_triangle_with_hole["triangles"]]
+            triangle_records_list = regions_values[polygon_triangle_with_hole['triangle_attributes'].flatten().astype(np.int64)]
+        if with_hole and without_hole:
+            triangle_geom_list = np.concatenate((polygon_triangle["vertices"][polygon_triangle["triangles"]],
+                                                 polygon_triangle_with_hole["vertices"][polygon_triangle_with_hole["triangles"]]), axis=0)
+            triangle_records_list = np.concatenate((regions_values[polygon_triangle['triangle_attributes'].flatten().astype(np.int64)],
+                                                    regions_values[polygon_triangle_with_hole['triangle_attributes'].flatten().astype(np.int64)]), axis=0)
+            vertices_array2_with_hole, segments_array2_with_hole = remove_duplicates_points_to_triangulate(vertices_array_with_hole,
+                                                                                                    segments_array_with_hole)
+            # TODO: remove duplicates nodes when merge without_hole and with_hole together ?
 
         # close file
         layer_polygon = None
         ds_polygon = None
+
 
         # translationxy
         triangle_geom_list += translationxy
