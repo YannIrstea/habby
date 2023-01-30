@@ -14,6 +14,8 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
+import sys
+from io import StringIO
 import numpy as np
 import matplotlib.pyplot as plt
 import triangle as tr
@@ -30,7 +32,7 @@ def setup(t, l):
 
 
 def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh, sub_xy, sub_tin, sub_data, sub_default,
-          coeffgrid, delta_mesh=None):
+          coeffgrid, delta_mesh=None, print_cmd=True):
     """
     Merging an hydraulic TIN (Triangular Irregular Network) and a substrate TIN to obtain a merge TIN
     (based on the hydraulic one) by partitionning each hydraulic triangle/mesh if necessary into smaller
@@ -59,6 +61,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh,
     the grid algorithm this grid is used to select substrate meshes that are just in the surrounding of an hydraulic
     mesh in order to define all the segments from substrate mesh edges that are intersecting the hydraulic mesh
     considered. At first approach 10 is a optimal value  according to Leonardo DA COSTA LIMA XAVIER MENDONCA the more the  coeffgrid is high the more the grid is dense
+    :param print_cmd: If True will print the error and warning to the cmd. If False, send it to the GUI.
     :return:
             merge_xy1 : the x,y nodes coordinates of a hydraulic TIN
             merge_data_node : the hydraulic data of the merge nodes (eg : z, water depth, mean velocity...)
@@ -73,6 +76,8 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh,
     # # progress
     # prog += delta
     # progress_value.value = int(prog)
+    if not print_cmd:
+        sys.stdout = mystdout = StringIO()
     iwholeprofile = np.stack((iwholeprofile, i_split), axis=-1)
 
     translationxy = np.min(np.vstack((hyd_xy, sub_xy)), axis=0)
@@ -306,38 +311,45 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh,
                     nxynewpointlinkstohydr2 = nxynewpointlinkstohydr[indices3]
                     # Using Triangle library to build a mesh from our segments
                     A = {'vertices': nxynewpoint2, 'segments': nsegin2}
-                    t = tr.triangulate(A, 'p')
+                    try:
+                        t = tr.triangulate(A, 'p')
+                        trianglepass= True
+                    except:
+                        # print(i)
+                        print('one hydraulic mesh could not be treated for unknown reason')
+                        trianglepass = False
+
 
                     # tr.compare(plt, A, t)
                     # plt.show()
                     # print(nxynewpoint2)
                     # print(t['vertices'],t['triangles'])
+                    if trianglepass:
+                        # check if Triangle library has added new points at the end of our original list of 'vertices'
+                        nxynewpoint, iklenew = t['vertices'], t['triangles']
+                        newpointtrianglevalidate = len(t['vertices']) - len(nxynewpoint2)
+                        if newpointtrianglevalidate != 0:  # Triangle library has added new points at the end of our original list of 'vertices'
+                            nxynewpointlinkstohydr = np.vstack([nxynewpointlinkstohydr2, np.repeat(
+                                [[hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]]], newpointtrianglevalidate, axis=0)])
 
-                    # check if Triangle library has added new points at the end of our original list of 'vertices'
-                    nxynewpoint, iklenew = t['vertices'], t['triangles']
-                    newpointtrianglevalidate = len(t['vertices']) - len(nxynewpoint2)
-                    if newpointtrianglevalidate != 0:  # Triangle library has added new points at the end of our original list of 'vertices'
-                        nxynewpointlinkstohydr = np.vstack([nxynewpointlinkstohydr2, np.repeat(
-                            [[hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]]], newpointtrianglevalidate, axis=0)])
+                        else:
+                            nxynewpointlinkstohydr = nxynewpointlinkstohydr2
 
-                    else:
-                        nxynewpointlinkstohydr = nxynewpointlinkstohydr2
-
-                    # affecting substrate values to meshes merge
-                    ssubmeshin2 = set([item for sublist in lsubmeshin for item in
-                                       sublist])  # set of substrate mesh that can be in the hydraulic triangle
-                    # testing meshes merge centers regarding substrate mesh  to affect substrate values to meshes merge
-                    datasubnew = [sub_default.tolist()] * (iklenew.size // 3)  # even if one single triangle for iklenew
-                    marksubdefaultnew=[1] * (iklenew.size // 3)  # even if one single triangle for iklenew
-                    for ii, ikle in enumerate(iklenew):
-                        xyc = (nxynewpoint[ikle[0]] + nxynewpoint[ikle[1]] + nxynewpoint[ikle[2]]) / 3
-                        for jj in ssubmeshin2:
-                            if point_inside_polygon(xyc[0], xyc[1],
-                                                    [sub_xy[sub_tin[jj][0]].tolist(), sub_xy[sub_tin[jj][1]].tolist(),
-                                                     sub_xy[sub_tin[jj][2]].tolist()]):
-                                datasubnew[ii] = sub_data[jj].tolist()
-                                marksubdefaultnew[ii]=0
-                                break
+                        # affecting substrate values to meshes merge
+                        ssubmeshin2 = set([item for sublist in lsubmeshin for item in
+                                           sublist])  # set of substrate mesh that can be in the hydraulic triangle
+                        # testing meshes merge centers regarding substrate mesh  to affect substrate values to meshes merge
+                        datasubnew = [sub_default.tolist()] * (iklenew.size // 3)  # even if one single triangle for iklenew
+                        marksubdefaultnew=[1] * (iklenew.size // 3)  # even if one single triangle for iklenew
+                        for ii, ikle in enumerate(iklenew):
+                            xyc = (nxynewpoint[ikle[0]] + nxynewpoint[ikle[1]] + nxynewpoint[ikle[2]]) / 3
+                            for jj in ssubmeshin2:
+                                if point_inside_polygon(xyc[0], xyc[1],
+                                                        [sub_xy[sub_tin[jj][0]].tolist(), sub_xy[sub_tin[jj][1]].tolist(),
+                                                         sub_xy[sub_tin[jj][2]].tolist()]):
+                                    datasubnew[ii] = sub_data[jj].tolist()
+                                    marksubdefaultnew[ii]=0
+                                    break
 
                 else:  # no substrate edges in the hydraulic triangle
                     nxynewpoint = np.array([xyo, xya, xyb])
@@ -417,6 +429,9 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh,
     merge_xy1 += translationxy
     hyd_xy += translationxy
     sub_xy += translationxy
+    # warnings
+    if not print_cmd:
+        sys.stdout = sys.__stdout__
     return merge_xy1, merge_data_node, merge_tin1, iwholeprofilemerge, np.array(merge_data_mesh), merge_data_sub_mesh
 
 
