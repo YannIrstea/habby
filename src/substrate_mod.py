@@ -891,13 +891,13 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
 
         # triangulate
         if without_hole:
-            print("--------triangulate on polygon without hole")
+            # print("--------triangulate on polygon without hole")
             polygon_from_shp = dict(vertices=vertices_array3,
                                     segments=segments_array2,
                                     regions=regions_points)
             polygon_triangle = tr.triangulate(polygon_from_shp, "pA")  # 'pA' if we use regions key
         if with_hole:
-            print("---------triangulate on polygon with hole")
+            # print("---------triangulate on polygon with hole")
             polygon_from_shp_with_hole = dict(vertices=vertices_array3_with_hole,
                                     segments=segments_array2_with_hole,
                                     holes=holes_array,
@@ -917,14 +917,11 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
                                                  polygon_triangle_with_hole["vertices"][polygon_triangle_with_hole["triangles"]]), axis=0)
             triangle_records_list = np.concatenate((regions_values[polygon_triangle['triangle_attributes'].flatten().astype(np.int64)],
                                                     regions_values[polygon_triangle_with_hole['triangle_attributes'].flatten().astype(np.int64)]), axis=0)
-            vertices_array2_with_hole, segments_array2_with_hole = remove_duplicates_points_to_triangulate(vertices_array_with_hole,
-                                                                                                    segments_array_with_hole)
             # TODO: remove duplicates nodes when merge without_hole and with_hole together ?
 
         # close file
         layer_polygon = None
         ds_polygon = None
-
 
         # translationxy
         triangle_geom_list += translationxy
