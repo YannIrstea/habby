@@ -1087,7 +1087,7 @@ class MyProcess(QObject):
         except MemoryError:
             print("MemoryError", self.p.name)
         # if self.send_log is not None:
-        #     process_info = "- " + self.tr(self.p.name.replace("_", " ") + " started with " + str(psutil.Process(self.p.pid).memory_info()[0] / 1000000) + " Mo.")
+        #     process_info = self.tr(self.p.name.replace("_", " ") + " started with " + str(psutil.Process(self.p.pid).memory_info()[0] / 1000000) + " Mo.")
         #     self.send_log.emit(process_info)
 
     def get_total_time(self):
@@ -1106,28 +1106,28 @@ class MyProcess(QObject):
             if self.state == self.tr("stopped"):
                 if not error:
                     if self.progress_value.value == 100:
-                        # print("- " + self.p.name.replace("_", " ") + self.tr(" closed by user after ") + str(
+                        # print(self.p.name.replace("_", " ") + self.tr(" closed by user after ") + str(
                         #     round(self.total_time)) + " s")
                         pass
                     else:
-                        self.send_log.emit("- " + self.p.name.replace("_", " ") + self.tr(" stopped (process time = ") + str(
+                        self.send_log.emit(self.p.name.replace("_", " ") + self.tr(" stopped (process time = ") + str(
                             round(self.total_time)) + " s).")
             elif self.state == self.tr("not started"):
-                self.send_log.emit("- " + self.tr(self.p.name.replace("_", " ") + " " + self.tr("not started.")))
+                self.send_log.emit(self.tr(self.p.name.replace("_", " ") + " " + self.tr("not started.")))
             else:
                 if not error:
                     if self.progress_value.value == 100:
-                        self.send_log.emit("- " + self.p.name.replace("_", " ") + self.tr(" done (process time = ") + str(
+                        self.send_log.emit(self.p.name.replace("_", " ") + self.tr(" done (process time = ") + str(
                             round(self.total_time)) + " s).")
                     else:
-                        self.send_log.emit("- " + self.p.name.replace("_", " ") + self.tr(" crashed (process time = ") + str(
+                        self.send_log.emit(self.p.name.replace("_", " ") + self.tr(" crashed (process time = ") + str(
                             round(self.total_time)) + " s).")
                 else:
                     self.send_log.emit(
-                        "- " + self.p.name.replace("_", " ") + self.tr(" crashed (process time = ") + str(
+                        self.p.name.replace("_", " ") + self.tr(" crashed (process time = ") + str(
                             round(self.total_time)) + " s).")
         else:
-            # print("- " + self.p.name.replace("_", " ") + " " + self.state + self.tr(" (process time = ") + str(
+            # print(self.p.name.replace("_", " ") + " " + self.state + self.tr(" (process time = ") + str(
             #                 round(self.total_time)) + " s).")
             pass
 
