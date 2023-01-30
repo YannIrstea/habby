@@ -788,9 +788,16 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
             regions_values[feature_ind] = [feature.GetField(j) for j in header_list]
             shape_geom = feature.geometry()
             shape_geom.SetCoordinateDimension(2)  # never z values
+
+            # polygon self intersected?
+            point_on_surface = shape_geom.PointOnSurface()
+            if point_on_surface is None:
+                print('Error: The feature number ' + str(feature_ind) + ' seems to be self intersected.')
+                return False
+
             # polygon a trous
             if shape_geom.GetGeometryCount() > 1:
-                regions_points_with_hole.append([*shape_geom.PointOnSurface().GetPoint()[:2], feature_ind, 0])
+                regions_points_with_hole.append([*point_on_surface.GetPoint()[:2], feature_ind, 0])
                 # index_hole = list(shapes[i].parts) + [len(shapes[i].points)]
                 index_hole = [0]
                 all_coord = []
@@ -823,7 +830,7 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
             # polygon sans trous
             else:
                 hole_presence = False
-                regions_points.append([*shape_geom.PointOnSurface().GetPoint()[:2], feature_ind, 0])
+                regions_points.append([*point_on_surface.GetPoint()[:2], feature_ind, 0])
                 new_points = shape_geom.GetGeometryRef(0).GetPoints()
                 lnbptspolys = [len(new_points)]
 
@@ -858,6 +865,10 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
             vertices_array2_with_hole, segments_array2_with_hole = remove_duplicates_points_to_triangulate(vertices_array_with_hole,
                                                                                                     segments_array_with_hole)
 
+        # # translationxy
+        # translationxy = np.min(vertices_array2)
+        # vertices_array2 -= translationxy
+
         # triangulate on polygon without hole
         if vertices_array.size != 0:
             # print("triangulate on polygon without hole")
@@ -890,6 +901,9 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
         # close file
         layer_polygon = None
         ds_polygon = None
+
+        # # translationxy
+        # triangle_geom_list += translationxy
 
         # geometry issue as : polygons are not joined (little hole) ==> create invalid geom
         if triangle_records_list.min() < 0:
@@ -1164,13 +1178,13 @@ def data_substrate_validity(header_list, sub_array, sub_mapping_method, sub_clas
     if sub_classification_method == "coarser-dominant":
         # coarser
         try:
-            sub_pg = sub_array[header_list.index("coarser")]
+            sub_pg = sub_array[:, header_list.index("coarser")]
         except ValueError:
             print("Error: The coarser classification method name should be 'coarser', not : '" + ", ".join(header_list) + "'")
             return False, sub_description_system
         # dom
         try:
-            sub_dom = sub_array[header_list.index("dominant")]
+            sub_dom = sub_array[:, header_list.index("dominant")]
         except ValueError:
             print("Error: The dominant classification method name should be 'dominant', not : '" + ", ".join(header_list) + "'")
             return False, sub_description_system
