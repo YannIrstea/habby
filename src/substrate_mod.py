@@ -783,6 +783,10 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
         layer_polygon.ResetReading()
         shape_geom = None
         hole_presence = False
+        stop_process = False
+        self_intersect_error = []
+        self_duplicate_point_error = []
+        self_duplicate_point_with_hole_error = []
         delta_poly = 40 / len(layer_polygon)
 
         for feature_ind, feature in enumerate(layer_polygon):
@@ -794,8 +798,8 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
             # polygon self intersected?
             point_on_surface = shape_geom.PointOnSurface()
             if point_on_surface is None:
-                print('Error: The feature number ' + str(feature_ind) + ' seems to be self intersected.')
-                return False
+                self_intersect_error.append(str(feature_ind))
+                stop_process = True
 
             # polygon a trous
             if shape_geom.GetGeometryCount() > 1:
@@ -803,14 +807,31 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
                 # index_hole = list(shapes[i].parts) + [len(shapes[i].points)]
                 index_hole = [0]
                 all_coord = []
+                contour_points = shape_geom.GetGeometryRef(0).GetPoints()
                 for part_num, part in enumerate(range(shape_geom.GetGeometryCount())):
                     geom_part = shape_geom.GetGeometryRef(part_num)
                     coord_part = geom_part.GetPoints()
+                    if part_num > 0:
+                        # check if points duplicates presence with contour points
+                        u, c = np.unique(np.concatenate((np.array(coord_part), np.array(contour_points))), return_counts=True, axis=0)  # TODO: improve code
+                        dup = u[c > 1]
+                        if len(dup) > 2:
+                            # do not block process, only warning (must be removed by mesh null area process)
+                            self_duplicate_point_with_hole_error.append(str(feature_ind))
+                            stop_process = True
                     all_coord.extend(coord_part)
                     if part_num == shape_geom.GetGeometryCount() - 1:  # last
                         index_hole.append(index_hole[-1] + len(coord_part))
                     else:
                         index_hole.append(len(all_coord))
+                    # check if points duplicates presence
+                    u, c = np.unique(coord_part, return_counts=True, axis=0)
+                    dup = u[c > 1]
+                    if len(dup) > 1:
+                        # do not block process, only warning (must be removed by mesh null area process)
+                        self_duplicate_point_with_hole_error.append(str(feature_ind))
+                        stop_process = True
+
                 new_points = []
                 lnbptspolys = []
                 for j in range(len(index_hole) - 1):
@@ -835,6 +856,13 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
                 regions_points.append([*point_on_surface.GetPoint()[:2], feature_ind, 0])
                 new_points = shape_geom.GetGeometryRef(0).GetPoints()
                 lnbptspolys = [len(new_points)]
+                # check if points duplicates presence
+                u, c = np.unique(new_points, return_counts=True, axis=0)
+                dup = u[c > 1]
+                if len(dup) > 1:
+                    # do not block process, only warning (must be removed by mesh null area process)
+                    self_duplicate_point_error.append(str(feature_ind))
+                    stop_process = True
 
             # add
             if not hole_presence:
@@ -849,6 +877,15 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
                     for k in range(lnbptspolys[j]):
                         segments_array_with_hole.append([k % lnbptspolys[j] + inextpoint_with_hole, (k + 1) % lnbptspolys[j] + inextpoint_with_hole])
                     inextpoint_with_hole += lnbptspolys[j]
+
+        if stop_process:
+            if self_intersect_error:
+                print('Error: The substrate polygon(s) with hole FID n°' + ", ".join(self_intersect_error) + ' seems to be self intersected.')
+            if self_duplicate_point_with_hole_error:
+                print("Error: The substrate polygon(s) FID n°" + ", ".join(self_duplicate_point_with_hole_error) + " has hole duplicate node(s) with it's outline.")
+            if self_duplicate_point_error:
+                print("Error: The substrate polygon(s) FID n°" + ", ".join(self_duplicate_point_error) + " has duplicate node(s).")
+            return False
 
         # change type
         if vertices_array:
