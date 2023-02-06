@@ -499,7 +499,9 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
             sub_data_list = []
             sub_default_list = []
             coeffgrid_list = []
+            unit_name_list = []
             delta_mesh_list = []
+            print_cmd_list = []
             # progress
             delta_reach = 80 / hdf5_hydro.data_2d.reach_number
             # for each reach
@@ -523,10 +525,12 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                     sub_data_list.append(hdf5_sub.data_2d[0][0]["mesh"]["data"].to_numpy())
                     sub_default_list.append(np.array(hdf5_sub.data_2d.sub_default_values))
                     coeffgrid_list.append(10)
+                    unit_name_list.append(hdf5_hydro.data_2d[reach_number][unit_number].unit_name)
                     delta_mesh_list.append(delta_mesh)
+                    print_cmd_list.append(print_cmd)
 
             # Compute Pool
-            input_data = zip(hyd_xy_list,
+            input_arg = zip(hyd_xy_list,
                              hyd_data_node_list,
                              hyd_tin_list,
                              iwholeprofile_list,
@@ -537,12 +541,14 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                              sub_data_list,
                              sub_default_list,
                              coeffgrid_list,
-                             delta_mesh_list)
+                            unit_name_list,
+                             delta_mesh_list,
+                            print_cmd_list)
 
             # start jobs
             lock = Lock()  # to share progress_value
             pool = Pool(processes=2, initializer=setup, initargs=[progress_value, lock])
-            results = pool.starmap(merge, input_data)
+            results = pool.starmap(merge, input_arg)
 
             # for each reach
             index_loop = -1

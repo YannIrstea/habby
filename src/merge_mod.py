@@ -32,7 +32,7 @@ def setup(t, l):
 
 
 def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh, sub_xy, sub_tin, sub_data, sub_default,
-          coeffgrid, delta_mesh=None, print_cmd=True):
+          coeffgrid, unit_name, delta_mesh=None, print_cmd=True):
     """
     Merging an hydraulic TIN (Triangular Irregular Network) and a substrate TIN to obtain a merge TIN
     (based on the hydraulic one) by partitionning each hydraulic triangle/mesh if necessary into smaller
@@ -100,7 +100,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh,
         axy, bxy = xya - xyo, xyb - xyo
         deta = bxy[1] * axy[0] - bxy[0] * axy[1]
         if deta == 0:
-            print('Warning: Before merging, a hydraulic triangle has a null surface. This is removed.')
+            print('Warning: Before merging, a hydraulic triangle has a null surface. This is removed at', unit_name)
         else:
 
             xymesh = np.vstack((xyo, xya, xyb))
@@ -216,7 +216,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh,
                             bok4, xycontact4, distsqr4 = intersection2segmentsdistsquare(xya, xyb, xyp, xyq)
                             bok2, xycontact2, distsqr2 = intersection2segmentsdistsquare(xyb, xyo, xyp, xyq)
                         if bok1 + bok2 + bok4 != 1:  # numerical problem the intersection point  is just close to a node but out of the hydraulic triangle
-                            print("Numerical problems doing for the best")
+                            print("Warning: Numerical problems doing for the best at", unit_name)
                             bsolve = True
                             if sidecontact[kout] == 1 or sidecontact[kout] == 2 or sidecontact[kout] == 4:
                                 bsolve, relativeindexhyd = intersectionspecial(sidecontact[kout], xyaffp, xyaffq)
@@ -863,7 +863,10 @@ if __name__ == '__main__':
                                                                                                              sub_tin,
                                                                                                              sub_data,
                                                                                                              defautsub,
-                                                                                                             coeffgrid)
+                                                                                                             coeffgrid,
+                                                                                                             "unit_name",
+                                                                                                             delta_mesh=None,
+                                                                                                             print_cmd=True)
 
     # areahyd,densityhyd=tinareadensity(hyd_xy,hyd_tin)
     # areamerge, densitymerge = tinareadensity(merge_xy1,merge_tin1)

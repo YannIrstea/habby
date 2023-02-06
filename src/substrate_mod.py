@@ -68,7 +68,7 @@ def load_sub(sub_description, progress_value, q=[], print_cmd=False, project_pro
         except PermissionError:
             print("Error: Can't remove " + os.path.splitext(filename_source)[0] +
                   " folder in 'input' project folder, as it file(s) opened in another program.")
-            # warnings
+            # error
             if not print_cmd:
                 sys.stdout = sys.__stdout__
                 if q:
