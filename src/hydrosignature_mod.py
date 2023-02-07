@@ -94,6 +94,8 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
     new_tin = []
     hydro_classes = []
     null_area_list = []
+    poly2_list = []
+    poly3_list = []
     original_triangle = []  # the index of the triangle each new node originally belonged to
     # original_node = [] #the index of each node in the original hyd_xy_node list. Is -1 if node is a new node
     enclosing_triangle = []  # the original index of the triangle which encloses each smaller triangle in the new mesh
@@ -163,7 +165,7 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
                             ib = 0
                     if nbeltpoly2 > 5:
                         print(
-                            "Warning: hydrosignature polygonation contrary to the YLC theory while in phase poly2 MAJOR BUG !!!")
+                            "Error: hydrosignature polygonation contrary to the YLC theory while in phase poly2 MAJOR BUG !!!")
                         return
                     elif nbeltpoly2 >= 3:
 
@@ -242,7 +244,7 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
                                             id = 0
                                     if nbeltpoly3 > 5:
                                         print(
-                                            "Warning: hydrosignature polygonation contrary to the YLC theory while in phase poly3 MAJOR BUG !!!")
+                                            "Error: hydrosignature polygonation contrary to the YLC theory while in phase poly3 MAJOR BUG !!!")
                                         return
                                     elif nbeltpoly3 >= 3:
                                         node_indices = []  # the index each node in the present polygon has in the new list of nodes (hyd_xyhv)
@@ -281,25 +283,28 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
 
                         if area2 != 0:
                             if np.abs(area23 - area2) / area2 > uncertainty and area2 > uncertainty:
-                                print(
-                                    'Warning: Uncertainty allowed on the area calculation, exceeded while in phase poly3 BUG ???')
+                                poly3_list.append(str(i))
                         if volume2 != 0:
                             if np.abs(volume23 - volume2) / volume2 > uncertainty and volume2 > uncertainty:
-                                print(
-                                    'Warning: Uncertainty allowed on the volume calculation, exceeded while in phase poly3 BUG ???')
+                                poly3_list.append(str(i))
+
         # checking the partitioning poly2 checking area volume nothing lost by the algorithm
         if area1 != 0:
             if np.abs(area12 - area1) / area1 > uncertainty and area1 > uncertainty:
-                print('Warning: Uncertainty allowed on the area calculation, exceeded while in phase poly2 BUG ???')
+                poly2_list.append(str(i))
         if volume1 != 0:
             if np.abs(volume12 - volume1) / volume1 > uncertainty and volume1 > uncertainty:
-                print('Warning: Uncertainty allowed on the volume calculation, exceeded while in phase poly2 BUG ???')
+                poly2_list.append(str(i))
 
         # progress
         progress_value.value = progress_value.value + delta_mesh
 
     if null_area_list:
-        print('Warning: Before hs hydraulic triangle have an null area : ' + ", ".join(null_area_list) + ".")
+        print('Warning: Before hs hydraulic triangle have an null area : ' + ", ".join(null_area_list[:10]) + "...")
+    if poly2_list:
+        print('Warning: Uncertainty allowed on the area calculation, exceeded while in phase poly2 BUG ??? : ' + ", ".join(poly2_list[:10]) + "...")
+    if poly3_list:
+        print('Warning: Uncertainty allowed on the area calculation, exceeded while in phase poly3 BUG ??? : ' + ", ".join(poly3_list[:10]) + "...")
 
     # calculating percentages
     hsarea = 100 * areameso / np.sum(areameso)
