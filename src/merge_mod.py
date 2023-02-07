@@ -301,6 +301,8 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh,
 
                     # eliminating duplicate points for using Triangle library
                     nxynewpoint = np.array(xynewpoint)  # [xypq[kin], xycontact,......])
+                    # trying to avoid infinite loop in triangle when you have quite duplicate at 10**-13 in position
+                    nxynewpoint[3:, :] = np.around(nxynewpoint[3:, :], decimals=10)
                     nsegin = np.array(segin)  # [inewpoint + 1, inewpoint + 2]
                     nxynewpointlinkstohydr = np.array(
                         xynewpointlinkstohydr)  # [hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]],[hyd_tin[i][0], hyd_tin[i][1], -1],.
