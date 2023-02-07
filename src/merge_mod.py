@@ -308,11 +308,13 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh,
                         xynewpointlinkstohydr)  # [hyd_tin[i][0], hyd_tin[i][1], hyd_tin[i][2]],[hyd_tin[i][0], hyd_tin[i][1], -1],.
                     nxynewpoint2, indices2 = np.unique(nxynewpoint, axis=0, return_inverse=True)
                     nsegin2 = indices2[nsegin]
+                    # in case of duplicate segments
+                    nsegin3, indices2b = np.unique(nsegin2, axis=0, return_inverse=True)
                     nxynewpoint2, indices3 = np.unique(nxynewpoint, axis=0,
                                                        return_index=True)  # nxynewpoint2 doesnt change
                     nxynewpointlinkstohydr2 = nxynewpointlinkstohydr[indices3]
                     # Using Triangle library to build a mesh from our segments
-                    A = {'vertices': nxynewpoint2, 'segments': nsegin2}
+                    A = {'vertices': nxynewpoint2, 'segments': nsegin3}
                     try:
                         t = tr.triangulate(A, 'p')
                         trianglepass= True
