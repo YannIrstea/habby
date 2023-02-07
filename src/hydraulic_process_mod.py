@@ -801,12 +801,6 @@ def load_data_and_compute_hs(hydrosignature_description, progress_value, q=[], p
             hdf5_new.close_file()
     else:
         print("Error: " + hdf5.filename + " " + error)
-        # warnings
-        if not print_cmd:
-            sys.stdout = sys.__stdout__
-            if q:
-                q.put(mystdout)
-                sleep(0.1)  # to wait q.put() ..
 
     # warnings
     if not print_cmd:
