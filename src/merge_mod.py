@@ -21,14 +21,16 @@ import matplotlib.pyplot as plt
 import triangle as tr
 import math
 from datetime import datetime
+from time import sleep
 
 from src.plot_mod import plot_to_check_mesh_merging
 
 
-def setup(t, l):
-    global progress_value, lock
-    progress_value = t
-    lock = l
+def setup(a, b, c):
+    global progress_value, q, lock
+    progress_value = a
+    q = b
+    lock = c
 
 
 def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh, sub_xy, sub_tin, sub_data, sub_default,
@@ -78,6 +80,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh,
     # progress_value.value = int(prog)
     if not print_cmd:
         sys.stdout = mystdout = StringIO()
+
     iwholeprofile = np.stack((iwholeprofile, i_split), axis=-1)
 
     translationxy = np.min(np.vstack((hyd_xy, sub_xy)), axis=0)
@@ -100,7 +103,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh,
         axy, bxy = xya - xyo, xyb - xyo
         deta = bxy[1] * axy[0] - bxy[0] * axy[1]
         if deta == 0:
-            print('Warning: Before merging, a hydraulic triangle has a null surface. This is removed at', unit_name)
+            print("Warning: Before merging, a hydraulic triangle has a null surface. This is removed at mesh n°" + str(i) + ", unit " + unit_name + ".")
         else:
 
             xymesh = np.vstack((xyo, xya, xyb))
@@ -216,7 +219,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh,
                             bok4, xycontact4, distsqr4 = intersection2segmentsdistsquare(xya, xyb, xyp, xyq)
                             bok2, xycontact2, distsqr2 = intersection2segmentsdistsquare(xyb, xyo, xyp, xyq)
                         if bok1 + bok2 + bok4 != 1:  # numerical problem the intersection point  is just close to a node but out of the hydraulic triangle
-                            print("Warning: Numerical problems doing for the best at", unit_name)
+                            print("Warning: Numerical problems doing for the best at mesh n°" + str(i) + ", unit " + unit_name + ".")
                             bsolve = True
                             if sidecontact[kout] == 1 or sidecontact[kout] == 2 or sidecontact[kout] == 4:
                                 bsolve, relativeindexhyd = intersectionspecial(sidecontact[kout], xyaffp, xyaffq)
@@ -318,7 +321,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh,
                         trianglepass= True
                     except:
                         # print(i)
-                        print('one hydraulic mesh could not be treated for unknown reason')
+                        print("one hydraulic mesh could not be treated for unknown reason at mesh n°" + str(i) + ", unit " + unit_name + ".")
                         trianglepass = False
 
 
@@ -393,7 +396,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh,
             decalnewpointmerge += len(nxynewpoint)
 
         # progress
-        try: # in ordre that the main can fucntion
+        try:  # in ordre that the main can fucntion
             with lock:
                 progress_value.value = progress_value.value + delta_mesh
         except:
@@ -431,9 +434,14 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh,
     merge_xy1 += translationxy
     hyd_xy += translationxy
     sub_xy += translationxy
+
     # warnings
     if not print_cmd:
         sys.stdout = sys.__stdout__
+        if q:
+            q.put(mystdout)
+            sleep(0.1)  # to wait q.put() ..
+
     return merge_xy1, merge_data_node, merge_tin1, iwholeprofilemerge, np.array(merge_data_mesh), merge_data_sub_mesh
 
 
