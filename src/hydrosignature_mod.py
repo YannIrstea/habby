@@ -93,6 +93,7 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
     new_hv = []
     new_tin = []
     hydro_classes = []
+    null_area_list = []
     original_triangle = []  # the index of the triangle each new node originally belonged to
     # original_node = [] #the index of each node in the original hyd_xy_node list. Is -1 if node is a new node
     enclosing_triangle = []  # the original index of the triangle which encloses each smaller triangle in the new mesh
@@ -103,7 +104,7 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
         # deta = bxy[1] * axy[0] - bxy[0] * axy[1]
 
         if narea[i] == 0:
-            print('Warning: before hs an hydraulic triangle have an area=0 ')
+            null_area_list.append(str(i))
         else:
             nb_mesh += 1
             poly1 = {'x': [hyd_xy_node[hyd_tin[i][0]][0], hyd_xy_node[hyd_tin[i][1]][0], hyd_xy_node[hyd_tin[i][2]][0]],
@@ -296,6 +297,9 @@ def hydrosignature_calculation_alt(delta_mesh, progress_value, classhv, hyd_tin,
 
         # progress
         progress_value.value = progress_value.value + delta_mesh
+
+    if null_area_list:
+        print('Warning: Before hs hydraulic triangle have an null area : ' + ", ".join(null_area_list) + ".")
 
     # calculating percentages
     hsarea = 100 * areameso / np.sum(areameso)
