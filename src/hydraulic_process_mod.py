@@ -547,7 +547,7 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
 
             # start jobs
             lock = Lock()  # to share progress_value
-            pool = Pool(processes=2, initializer=setup, initargs=[progress_value, lock])
+            pool = Pool(processes=2, initializer=setup, initargs=[progress_value, q, lock])
             results = pool.starmap(merge, input_arg)
 
             # for each reach
@@ -801,12 +801,6 @@ def load_data_and_compute_hs(hydrosignature_description, progress_value, q=[], p
             hdf5_new.close_file()
     else:
         print("Error: " + hdf5.filename + " " + error)
-        # warnings
-        if not print_cmd:
-            sys.stdout = sys.__stdout__
-            if q:
-                q.put(mystdout)
-                sleep(0.1)  # to wait q.put() ..
 
     # warnings
     if not print_cmd:

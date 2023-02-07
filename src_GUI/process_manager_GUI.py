@@ -124,6 +124,9 @@ class ProcessProgShow(QObject):
             self.progress_bar.setMinimum(0)
             self.progress_bar.setMaximum(0)
             self.progress_bar.setValue(0)
+            # new
+            self.progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_manager.process_list.nb_finished,
+                                                                 self.process_manager.process_list.nb_total))
         else:
             self.progress_bar.setRange(0.0, 100.0)
             # progress_bar

@@ -2332,8 +2332,8 @@ class CentralW(QWidget):
         elif self.tr("(process time = ") in text_log:
             # process done (green)
             if self.tr(" done (process time = ") in text_log:
-                self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#06B025'><p>&#9745;</p> ")
-                self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#06B025'>" +text_log + ' </br><br>')
+                self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#139F1C'><p>&#9745;</p> ")
+                self.tracking_journal_QTextEdit.textCursor().insertHtml("<FONT COLOR='#139F1C'>" +text_log + ' </br><br>')
                 self.scrolldown_log()
                 self.write_log_file(text_log, log_file)
             # crash or stopped (red)
