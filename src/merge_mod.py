@@ -323,7 +323,7 @@ def merge(hyd_xy, hyd_data_node, hyd_tin, iwholeprofile, i_split, hyd_data_mesh,
                         trianglepass= True
                     except:
                         # print(i)
-                        print("one hydraulic mesh could not be treated for unknown reason at mesh n°" + str(i) + ", unit " + unit_name + ".")
+                        print("Warning: one hydraulic mesh could not be treated for unknown reason at mesh n°" + str(i) + ", unit " + unit_name + ".")
                         trianglepass = False
 
 
