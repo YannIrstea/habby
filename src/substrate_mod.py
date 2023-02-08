@@ -649,16 +649,15 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
     crs = layer_polygon.GetSpatialRef()
 
     # check if all polygon are triangle yet
-    try:
-        point_nb_list = []
-        for feature_ind, feature in enumerate(layer_polygon):
-            shape_geom = feature.geometry()
-            new_points = shape_geom.GetGeometryRef(0).GetPoints()
-            point_nb_list.append(len(new_points))
-    except:
-        print("Error: Input selected shapefile polygon geometry does not seems to be valid. "
-              "Use a geometry validity checker in your GIS software.")
-        return False
+    point_nb_list = []
+    for feature_ind, feature in enumerate(layer_polygon):
+        shape_geom = feature.geometry()
+        new_points = shape_geom.GetGeometryRef(0).GetPoints()
+        if new_points is None:
+            print('Error: The substrate polygon FID n°' + str(feature_ind) +
+                  " seems to be self intersected or corrupted. Use a geometry validity checker in your GIS software.")
+            return False
+        point_nb_list.append(len(new_points))
 
     # all_polygon_triangle_tf
     if list(set(point_nb_list)) == [4]:
@@ -695,14 +694,16 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
             shape_geom = feature.geometry()
             shape_geom.SetCoordinateDimension(2)  # never z values
 
-            # polygon self intersected ?
+            # point_on_surface
             point_on_surface = shape_geom.PointOnSurface()
             if point_on_surface is None:
-                print('Error: The substrate polygon(s) with hole FID n°' + str(feature_ind) + ' seems to be self intersected or corrupted.')
+                print('Error: The substrate polygon FID n°' + str(feature_ind) +
+                      " seems to be self intersected or corrupted. Use a geometry validity checker in your GIS software2.")
                 return False
 
             # duplicate geometries ?
             point_on_surface_value = point_on_surface.GetPoint()[:2]
+
             if (point_on_surface_value[0], point_on_surface_value[1]) in regions_points_array_dup_check:
                 print("Error: The substrate polygon(s) FID n°" + str(feature_ind) + " is duplicate with another polygon.")
                 return False
