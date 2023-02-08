@@ -678,6 +678,7 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
         # Extract list of points and segments from shp
         triangle_geom_list = []
         triangle_records_list = []
+        regions_points_array_dup_check = []
         regions_values = np.empty(shape=(len(layer_polygon), len(header_list)), dtype=np.int)
         layer_polygon.ResetReading()
         shape_geom = None
@@ -694,16 +695,36 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
             shape_geom = feature.geometry()
             shape_geom.SetCoordinateDimension(2)  # never z values
 
-            # polygon self intersected?
+            # polygon self intersected ?
             point_on_surface = shape_geom.PointOnSurface()
             if point_on_surface is None:
-                print('Error: The substrate polygon(s) with hole FID n°' + str(feature_ind) + ' seems to be self intersected.')
+                print('Error: The substrate polygon(s) with hole FID n°' + str(feature_ind) + ' seems to be self intersected or corrupted.')
                 return False
 
+            # duplicate geometries ?
+            point_on_surface_value = point_on_surface.GetPoint()[:2]
+            if (point_on_surface_value[0], point_on_surface_value[1]) in regions_points_array_dup_check:
+                print("Error: The substrate polygon(s) FID n°" + str(feature_ind) + " is duplicate with another polygon.")
+                return False
+            regions_points_array_dup_check.append((point_on_surface_value[0], point_on_surface_value[1]))
+
+            # polygon sans trous
+            if shape_geom.GetGeometryCount() == 1:
+                hole_presence = False
+
+                regions_points.append([*point_on_surface_value, feature_ind, 0])
+                new_points = shape_geom.GetGeometryRef(0).GetPoints()
+                lnbptspolys = [len(new_points)]
+                # check if points duplicates presence
+                u, c = np.unique(new_points, return_counts=True, axis=0)
+                dup = u[c > 1]
+                if len(dup) > 1:
+                    print("Error: The substrate polygon(s) FID n°" + str(feature_ind) + " has duplicate node(s).")
+                    return False
             # polygon a trous
-            if shape_geom.GetGeometryCount() > 1:
+            else:
                 hole_presence = True
-                regions_points.append([*point_on_surface.GetPoint()[:2], feature_ind, 0])
+                regions_points.append([*point_on_surface_value, feature_ind, 0])
                 # index_hole = list(shapes[i].parts) + [len(shapes[i].points)]
                 index_hole = [0]
                 all_coord = []
@@ -748,18 +769,6 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
                         p2 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][1]].tolist()
                         p3 = polygon_hole_triangle["vertices"][polygon_hole_triangle["triangles"][0][2]].tolist()
                         holes_array.append([(p1[0] + p2[0] + p3[0]) / 3, (p1[1] + p2[1] + p3[1]) / 3])
-            # polygon sans trous
-            else:
-                hole_presence = False
-                regions_points.append([*point_on_surface.GetPoint()[:2], feature_ind, 0])
-                new_points = shape_geom.GetGeometryRef(0).GetPoints()
-                lnbptspolys = [len(new_points)]
-                # check if points duplicates presence
-                u, c = np.unique(new_points, return_counts=True, axis=0)
-                dup = u[c > 1]
-                if len(dup) > 1:
-                    print("Error: The substrate polygon(s) FID n°" + str(feature_ind) + " has duplicate node(s).")
-                    return False
 
             # add the segments to list
             for j in range(len(lnbptspolys)):
@@ -773,7 +782,7 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
             if hole_presence:
                 holes_array = np.array(holes_array)
 
-            # Remove duplicates and compute translation
+            # Remove duplicates
             vertices_array2, segments_array2 = remove_duplicates_points_to_triangulate(vertices_array,
                                                                                      segments_array)
 
