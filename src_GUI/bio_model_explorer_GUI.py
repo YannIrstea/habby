@@ -117,8 +117,8 @@ class BioModelExplorerWindow(QDialog):
         # fill_first_time
         self.bio_model_filter_tab.fill_first_time()
 
-        # if fstress
-        if self.source_str == "fstress":
+        # if FStress
+        if self.source_str == "FStress":
             # block
             self.bio_model_filter_tab.country_listwidget.selectAll()
             self.bio_model_filter_tab.country_listwidget.setEnabled(False)
@@ -262,6 +262,18 @@ class BioModelFilterTab(QScrollArea):
         self.made_by_listwidget.setObjectName(self.biological_models_dict_gui["orderedKeys"][6])
         self.made_by_listwidget.itemSelectionChanged.connect(self.result_from_selected)
 
+        # hydraulic_type
+        hydraulic_type_label = QLabel(self.tr("Hyd. variable"))
+        self.hydraulic_type_listwidget = QListWidget()
+        self.hydraulic_type_listwidget.setObjectName(self.biological_models_dict_gui["orderedKeys"][7])
+        self.hydraulic_type_listwidget.itemSelectionChanged.connect(self.result_from_selected)
+
+        # substrate_type
+        substrate_type_label = QLabel(self.tr("Sub. variable"))
+        self.substrate_type_listwidget = QListWidget()
+        self.substrate_type_listwidget.setObjectName(self.biological_models_dict_gui["orderedKeys"][8])
+        self.substrate_type_listwidget.itemSelectionChanged.connect(self.result_from_selected)
+
         # fish_code_alternative
         fish_code_alternative_label = QLabel(self.tr("Fish"))
         self.fish_code_alternative_listwidget = QListWidget()
@@ -278,7 +290,8 @@ class BioModelFilterTab(QScrollArea):
         self.filters_list_widget = [self.country_listwidget, self.aquatic_animal_type_listwidget,
                                     self.model_type_listwidget,
                                     self.stage_and_size_listwidget, self.guild_listwidget, self.xml_origine_listwidget,
-                                    self.made_by_listwidget, self.fish_code_alternative_listwidget,
+                                    self.made_by_listwidget, self.hydraulic_type_listwidget, self.substrate_type_listwidget,
+                                    self.fish_code_alternative_listwidget,
                                     self.inv_code_alternative_listwidget]
         [filter_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection) for filter_listwidget in
          self.filters_list_widget]
@@ -305,7 +318,11 @@ class BioModelFilterTab(QScrollArea):
         self.filter_layout.addWidget(self.xml_origine_listwidget, 1, 5)
         self.filter_layout.addWidget(made_by_label, 0, 6)
         self.filter_layout.addWidget(self.made_by_listwidget, 1, 6)
-
+        self.filter_layout.addWidget(hydraulic_type_label, 0, 7)
+        self.filter_layout.addWidget(self.hydraulic_type_listwidget, 1, 7)
+        self.filter_layout.addWidget(substrate_type_label, 0, 8)
+        self.filter_layout.addWidget(self.substrate_type_listwidget, 1, 8)
+        
         # last filters
         self.last_filter_group = QGroupBox(self.tr("Code alternative filter"))
         self.last_filter_layout = QGridLayout(self.last_filter_group)

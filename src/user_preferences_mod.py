@@ -244,7 +244,7 @@ class UserPreferences(AppDataFolders):
     def format_biology_models_dict_togui(self):
         # orderedKeys that MUST ! correspond to listwidgets filtersnames
         self.biological_models_dict["orderedKeys"] = ["country", "aquatic_animal_type", "model_type", "stage_and_size",
-                                                      "guild", "xml_origine", "made_by"]
+                                                      "guild", "xml_origine", "made_by", "hydraulic_type", "substrate_type"]
 
         # new key orderedKeysmultilist for gui
         self.biological_models_dict["orderedKeysmultilist"] = []
