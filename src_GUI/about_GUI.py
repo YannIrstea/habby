@@ -15,6 +15,7 @@ https://github.com/YannIrstea/habby
 
 """
 import os
+import sys
 from platform import platform as OS_VERSION_STR
 from osgeo.gdal import __version__ as GDAL_VERSION_STR
 from triangle import __version__ as TRIANGLE_VERSION_STR
@@ -148,6 +149,7 @@ class SoftInformationDialog(QDialog):
         github_page_label = QLabel("<a href='https://github.com/YannIrstea/habby'>https://github.com/YannIrstea/habby</a>")
         github_page_label.setOpenExternalLinks(True)
         about_layout.addRow(QLabel(self.tr("HABBY version")), QLabel(HABBY_VERSION_STR))
+        about_layout.addRow(QLabel(self.tr("Python version")), QLabel(sys.version[:5]))
         about_layout.addRow(QLabel(self.tr("Qt version")), QLabel(PYQT_VERSION_STR))
         about_layout.addRow(QLabel(self.tr("GDAL/OGR version")), QLabel(GDAL_VERSION_STR))
         about_layout.addRow(QLabel(self.tr("triangle version")), QLabel(TRIANGLE_VERSION_STR))
