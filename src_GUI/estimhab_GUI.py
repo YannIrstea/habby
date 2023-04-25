@@ -22,8 +22,8 @@ from lxml import etree as ET
 from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication
 from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QHBoxLayout, QVBoxLayout,  \
     QLineEdit, QFileDialog, QListWidget, QListWidgetItem, QSpacerItem, QGroupBox, QSizePolicy, \
-    QAbstractItemView, QMessageBox, QScrollArea, QFrame, QApplication
-from PyQt5.QtGui import QFont, QIcon
+    QAbstractItemView, QMessageBox, QScrollArea, QFrame, QRadioButton
+from PyQt5.QtGui import QFont, QPixmap
 from multiprocessing import Process, Value
 import sys
 from io import StringIO
@@ -50,6 +50,7 @@ class StatModUseful(QScrollArea):
 
     def __init__(self):
         super().__init__()
+        self.lineedit_width = 50
         self.path_bio = 'biology'
         self.eq1 = QLineEdit()
         self.ew1 = QLineEdit()
@@ -59,16 +60,7 @@ class StatModUseful(QScrollArea):
         self.eh2 = QLineEdit()
         self.eqmin = QLineEdit()
         self.eqmax = QLineEdit()
-        self.target_lineedit_list = []
-        self.add_qtarget_button = QPushButton()
-        self.add_qtarget_button.setIcon(QIcon(os.path.join(os.getcwd(), "file_dep", "icon", "plus.png")))
-        self.add_qtarget_button.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
-        self.add_qtarget_button.setToolTip(self.tr("Click to add one target discharge."))
-        # self.add_qtarget_button.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
-        self.remove_qtarget_button = QPushButton()
-        self.remove_qtarget_button.setIcon(QIcon(os.path.join(os.getcwd(), "file_dep", "icon", "moins.png")))
-        self.remove_qtarget_button.setStyleSheet("background-color: rgba(255, 255, 255, 0);")
-        self.remove_qtarget_button.setToolTip(self.tr("Click to remove one target discharge."))
+        self.eby = QLineEdit()
         self.list_f = QListWidget()
         self.selected_aquatic_animal_qtablewidget = QListWidget()
 
@@ -402,11 +394,13 @@ class EstimhabW(StatModUseful):
          the save function there, but anyway). So the save button just send a signal to MainWindows
          here, which save the data.
         """
-
         available_model_label = QLabel(self.tr('Available'))
+        self.arrow = QLabel()
+        self.arrow.setPixmap(
+            QPixmap(os.path.join(os.getcwd(), "file_dep", "icon", "triangle_black_closed_50_50.png")).copy(20, 0, 16,
+                                                                                                           50))
         selected_model_label = QLabel(self.tr('Selected'))
 
-        self.lineedit_width = 50
         self.spacer_width = 50
 
         # input
@@ -457,24 +451,26 @@ class EstimhabW(StatModUseful):
         self.esub.setFixedWidth(self.lineedit_width)
 
         # output
-        q1out_layout = QHBoxLayout()
-        q1out_layout.addWidget(QLabel(self.tr("Qmin [m<sup>3</sup>/s]")))
-        q1out_layout.addWidget(self.eqmin)
-        q1out_layout.addItem(QSpacerItem(self.spacer_width, 1))
         self.eqmin.setFixedWidth(self.lineedit_width)
-
-        q2out_layout = QHBoxLayout()
-        q2out_layout.addWidget(QLabel(self.tr("Qmax [m<sup>3</sup>/s]")))
-        q2out_layout.addWidget(self.eqmax)
-        q2out_layout.addItem(QSpacerItem(self.spacer_width, 1))
         self.eqmax.setFixedWidth(self.lineedit_width)
-
-        self.q2target_layout = QHBoxLayout()
-        self.q2target_layout.addWidget(QLabel(self.tr("Qtarget [m<sup>3</sup>/s]")))
-        self.q2target_layout.addWidget(self.add_qtarget_button)
-        self.q2target_layout.addWidget(self.remove_qtarget_button)
-        self.add_qtarget_button.clicked.connect(self.add_new_qtarget)
-        self.remove_qtarget_button.clicked.connect(self.remove_one_qtarget)
+        self.eby.setFixedWidth(self.lineedit_width)
+        self.fromseq_group = QGroupBox()
+        fromseq_layout = QHBoxLayout(self.fromseq_group)
+        fromseq_layout.addWidget(QLabel(self.tr("Qmin")))
+        fromseq_layout.addWidget(self.eqmin)
+        fromseq_layout.addItem(QSpacerItem(self.spacer_width, 1))
+        fromseq_layout.addWidget(QLabel(self.tr("Qmax")))
+        fromseq_layout.addWidget(self.eqmax)
+        fromseq_layout.addItem(QSpacerItem(self.spacer_width, 1))
+        fromseq_layout.addWidget(QLabel(self.tr("Qby")))
+        fromseq_layout.addWidget(self.eby)
+        fromseq_layout.addWidget(QLabel(self.tr("[m<sup>3</sup>/s]")))
+        
+        self.fromtxt_group = QGroupBox()
+        fromtxt_layout = QHBoxLayout(self.fromtxt_group)
+        fromtxt_layout.addWidget(QLabel(self.tr("Choose file")))
+        fromtxt_layout.addWidget(QLineEdit("-"))
+        fromtxt_layout.addWidget(QPushButton("..."))
 
         # create lists with the possible fishes
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -496,10 +492,14 @@ class EstimhabW(StatModUseful):
         self.setPalette(p)
 
         # send model
-        self.run_stop_button = QPushButton(self.tr('Run Estimhab'), self)
-        self.run_stop_button.clicked.connect(self.run_estmihab)
-        change_button_color(self.run_stop_button, "#47B5E6")
-        self.run_stop_button.setEnabled(False)
+        self.show_button = QPushButton(self.tr('Show Estimhab output'), self)
+        self.show_button.clicked.connect(self.show_estmihab)
+        change_button_color(self.show_button, "#47B5E6")
+        self.show_button.setEnabled(False)
+        self.export_button = QPushButton(self.tr('Export Estimhab output'), self)
+        self.export_button.clicked.connect(self.export_estmihab)
+        change_button_color(self.export_button, "#47B5E6")
+        self.export_button.setEnabled(False)
 
         # empty frame scrolable
         content_widget = QFrame()
@@ -521,58 +521,69 @@ class EstimhabW(StatModUseful):
         hydraulic_data_group.installEventFilter(self.doubleclick_input_group)
         self.doubleclick_input_group.double_clic_signal.connect(self.reset_hydraulic_data_input_group)
 
-        # hydraulic_data_output_group
-        hydraulic_data_output_group = QGroupBox(self.tr('Desired hydraulic output data'))
-        hydraulic_data_output_group.setToolTip(self.tr("Double click to reset the outpout data group."))
-        hydraulic_data_layout = QGridLayout(hydraulic_data_output_group)
-        hydraulic_data_layout.addLayout(q1out_layout, 0, 0)
-        hydraulic_data_layout.addLayout(q2out_layout, 0, 1)
-        hydraulic_data_layout.addLayout(self.q2target_layout, 0, 2)
-        hydraulic_data_output_group.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
-        self.doubleclick_output_group = DoubleClicOutputGroup()
-        hydraulic_data_output_group.installEventFilter(self.doubleclick_output_group)
-        self.doubleclick_output_group.double_clic_signal.connect(self.reset_hydraulic_data_output_group)
-
         # models_group
         models_group = QGroupBox(self.tr('Biological models'))
         models_layout = QGridLayout(models_group)
-        models_layout.addWidget(available_model_label, 0, 0)
-        models_layout.addWidget(selected_model_label, 0, 1)
+        models_layout.addWidget(available_model_label, 0, 0, Qt.AlignRight)
+        models_layout.addWidget(selected_model_label, 0, 2)
         models_layout.addWidget(self.list_f, 1, 0)
-        models_layout.addWidget(self.selected_aquatic_animal_qtablewidget, 1, 1)
-        models_layout.addWidget(self.run_stop_button, 2, 1)
+        models_layout.addWidget(self.arrow, 1, 1)
+        models_layout.addWidget(self.selected_aquatic_animal_qtablewidget, 1, 2)
         self.doubleclick_models_group = DoubleClicOutputGroup()
         models_group.installEventFilter(self.doubleclick_models_group)
         self.doubleclick_models_group.double_clic_signal.connect(self.reset_models_group)
 
+        # hydraulic_data_output_group
+        hydraulic_data_output_group = QGroupBox(self.tr('Desired output data'))
+        hydraulic_data_output_group.setToolTip(self.tr("Double click to reset the outpout data group."))
+        hydraulic_data_layout = QGridLayout(hydraulic_data_output_group)
+
+        self.fromseq_radiobutton = QRadioButton(self.tr("from a sequence"))
+        self.fromseq_radiobutton.setChecked(True)
+        self.fromseq_radiobutton.clicked.connect(self.out_type_change)
+        self.from_txt_radiobutton = QRadioButton(self.tr("from .txt file"))
+        self.from_txt_radiobutton.clicked.connect(self.out_type_change)
+        hydraulic_data_layout.addWidget(self.fromseq_radiobutton, 0, 0)
+        hydraulic_data_layout.addWidget(self.from_txt_radiobutton, 0, 1)
+        hydraulic_data_layout.addWidget(self.fromseq_group, 1, 0)
+        hydraulic_data_layout.addWidget(self.fromtxt_group, 1, 1)
+        comput_button_layout = QHBoxLayout()
+        comput_button_layout.addWidget(self.show_button)
+        comput_button_layout.addItem(QSpacerItem(self.spacer_width, 1))
+        comput_button_layout.addWidget(self.export_button)
+        comput_button_layout.addStretch()
+        hydraulic_data_layout.addLayout(comput_button_layout, 2, 0)
+        hydraulic_data_output_group.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
+        self.doubleclick_output_group = DoubleClicOutputGroup()
+        hydraulic_data_output_group.installEventFilter(self.doubleclick_output_group)
+        self.doubleclick_output_group.double_clic_signal.connect(self.reset_hydraulic_data_output_group)
+        self.out_type_change()
+
         # gereral_layout
         self.layout3 = QVBoxLayout(content_widget)
         self.layout3.addWidget(hydraulic_data_group, Qt.AlignLeft)
-        self.layout3.addWidget(hydraulic_data_output_group)
         self.layout3.addWidget(models_group)
-
+        self.layout3.addWidget(hydraulic_data_output_group)
         # self.setLayout(self.layout3)
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
 
-    def add_new_qtarget(self):
-        # count existing number of lineedit
-        total_widget_number = self.q2target_layout.count()
-        self.total_lineedit_number = total_widget_number - 2  # - first : qlabel and plus and moins button + New lineedit
-        lineedit_name = 'new_qtarget' + str(self.total_lineedit_number)
-        setattr(self, lineedit_name, QLineEdit())
-        getattr(self, lineedit_name).setFixedWidth(self.lineedit_width)
-        self.target_lineedit_list.append(getattr(self, lineedit_name))
-        self.q2target_layout.insertWidget(total_widget_number - 2, getattr(self, lineedit_name))
+    def out_type_change(self):
+        if self.fromseq_radiobutton.isChecked():
+            self.fromseq_group.setEnabled(True)
+            self.fromtxt_group.setEnabled(False)
+        if self.from_txt_radiobutton.isChecked():
+            self.fromseq_group.setEnabled(False)
+            self.fromtxt_group.setEnabled(True)
 
     def remove_one_qtarget(self):
         # count existing number of lineedit
-        total_widget_number = self.q2target_layout.count()
+        total_widget_number = self.qby_layout.count()
         self.total_lineedit_number = total_widget_number - 3  # - first : qlabel and plus and moins button - New lineedit
         if self.total_lineedit_number > 0:
             self.target_lineedit_list.pop(-1)
-            self.q2target_layout.itemAt(total_widget_number - 3).widget().setParent(None)
+            self.qby_layout.itemAt(total_widget_number - 3).widget().setParent(None)
             self.total_lineedit_number = self.total_lineedit_number - 1
 
     def reset_hydraulic_data_input_group(self):
@@ -591,8 +602,8 @@ class EstimhabW(StatModUseful):
         self.eqmin.setText("")
         self.eqmax.setText("")
         # remove lineedits qtarget
-        for i in reversed(range(1, self.q2target_layout.count() - 1)):
-            self.q2target_layout.itemAt(i).widget().setParent(None)
+        for i in reversed(range(1, self.qby_layout.count() - 1)):
+            self.qby_layout.itemAt(i).widget().setParent(None)
             self.total_lineedit_number = self.total_lineedit_number - 1
         self.target_lineedit_list = []
 
@@ -693,9 +704,11 @@ class EstimhabW(StatModUseful):
                                 self.esub.text())
         # minimum one fish and string in input lineedits to enable run_stop_button
         if self.selected_aquatic_animal_qtablewidget.count() > 0 and "" not in all_string_selection:
-            self.run_stop_button.setEnabled(True)
+            self.export_button.setEnabled(True)
+            self.show_button.setEnabled(True)
         else:
-            self.run_stop_button.setEnabled(False)
+            self.export_button.setEnabled(False)
+            self.show_button.setEnabled(False)
 
     def change_folder(self):
         """
@@ -715,7 +728,10 @@ class EstimhabW(StatModUseful):
             # add them to the menu
             self.list_f.addItem(item)
 
-    def run_estmihab(self):
+    def show_estmihab(self):
+        print("show_estmihab")
+
+    def export_estmihab(self):
         """
         A function to execute Estimhab by calling the estimhab function.
 

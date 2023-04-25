@@ -337,7 +337,7 @@ class Hdf5Management:
         self.hdf5_attributes_info_text = hdf5_attributes_info_text
 
         # .hyd, .sub and .hab
-        if self.hdf5_type != "estimhab":
+        if self.hdf5_type != "ESTIMHAB":
             """ get_hdf5_reach_name """
             reach_list = self.file_object.attrs["reach_list"].tolist()
             reach_number = self.file_object.attrs["reach_number"]
