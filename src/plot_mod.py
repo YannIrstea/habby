@@ -890,11 +890,6 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
     plt.get_current_fig_manager().set_window_title(stat_mod + ' hydraulic data ' + reach_name + ' - HABBY')  # set windows title
     ax_h.set_title(stat_mod + ' hydraulic data ' + reach_name + ' - HABBY')
     # H
-    if stat_data_dict["targ_q_all"]:
-        for q_tar in stat_data_dict["targ_q_all"]:
-            ax_h.axvline(x=q_tar,
-                         linestyle=":",
-                         color="black")
     ax_h.plot(stat_data_dict["q_all"],
               stat_data_dict["h_all"],
               color="black")
@@ -902,11 +897,6 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
     ax_h.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # W
-    if stat_data_dict["targ_q_all"]:
-        for q_tar in stat_data_dict["targ_q_all"]:
-            ax_w.axvline(x=q_tar,
-                         linestyle=":",
-                         color="black")
     ax_w.plot(stat_data_dict["q_all"],
               stat_data_dict["w_all"],
               color="black")
@@ -914,27 +904,12 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
     ax_w.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # V
-    if stat_data_dict["targ_q_all"]:
-        for q_tar in stat_data_dict["targ_q_all"]:
-            ax_v.axvline(x=q_tar,
-                         linestyle=":",
-                         color="black")
     ax_v.plot(stat_data_dict["q_all"],
               stat_data_dict["vel_all"],
               color="black")
     ax_v.set_ylabel("velocity\n[m/s]")
     ax_v.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
     ax_v.set_xlabel("Discharge [m$^{3}$/sec]")
-
-    # targ_q_all
-    if stat_data_dict["targ_q_all"]:
-        labels = ["Qtarg [m$^{3}$/sec]"]
-        fig2.legend(handler_map={plt.Line2D: HandlerLine2D(update_func=update_prop)},
-                    labels=labels,
-                    loc="lower left",
-                    borderaxespad=0.5,
-                    fancybox=False,
-                    bbox_to_anchor=(0.73, 0.1))
 
     plt.subplots_adjust(right=0.73)
 
@@ -955,11 +930,6 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
 
     # OSI
     ax_osi.set_title(stat_mod + " output " + reach_name + ' - HABBY')
-    if stat_data_dict["targ_q_all"]:
-        for q_tar in stat_data_dict["targ_q_all"]:
-            ax_osi.axvline(x=q_tar,
-                          linestyle=":",
-                          color="black")
     for fish_index in range(len(stat_data_dict["fish_list"])):
         ax_osi.plot(stat_data_dict["q_all"],
                    stat_data_dict["OSI"][fish_index],
@@ -971,11 +941,6 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
     ax_osi.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # WUA
-    if stat_data_dict["targ_q_all"]:
-        for q_tar in stat_data_dict["targ_q_all"]:
-            ax_wua.axvline(x=q_tar,
-                           linestyle=":",
-                           color="black")
     for fish_index in range(len(stat_data_dict["fish_list"])):
         ax_wua.plot(stat_data_dict["q_all"],
                     stat_data_dict["WUA"][fish_index],
@@ -985,16 +950,6 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
     ax_wua.set_ylabel("WUA by 100 m\n[m²]")
     ax_wua.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
     ax_wua.set_xlabel("Discharge [m$^{3}$/sec]")
-
-    # targ_q_all
-    if stat_data_dict["targ_q_all"]:
-        labels = ["Qtarg [m$^{3}$/sec]"]
-        fig.legend(handler_map={plt.Line2D: HandlerLine2D(update_func=update_prop)},
-                   labels=labels,
-                   loc="lower left",
-                   borderaxespad=0.5,
-                   fancybox=False,
-                   bbox_to_anchor=(0.73, 0.1))
 
     # LEGEND
     handles, labels = ax_osi.get_legend_handles_labels()

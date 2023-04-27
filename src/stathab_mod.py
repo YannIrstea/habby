@@ -618,8 +618,7 @@ class Stathab:
                                        w_all=wmod,
                                        vel_all=vmod,
                                        OSI=hv_hv[r],
-                                       WUA=wua_hv[r],
-                                       targ_q_all=[]))
+                                       WUA=wua_hv[r]))
 
         # the biological habitat value and wua for all reach, all species
         self.j_all = {'hv_hv': hv_hv, 'wua_hv': wua_hv, 'hv_h': hv_h, 'wua_h': wua_h, 'hv_v': hv_v, 'wua_v': wua_v}
@@ -772,8 +771,7 @@ class Stathab:
                                        w_all=wmod,
                                        vel_all=vmod,
                                        OSI=hv_hv[r],
-                                       WUA=wua_hv[r],
-                                       targ_q_all=[]))
+                                       WUA=wua_hv[r]))
 
             # # ************************************************************************************************************
             # # Verif Stathab

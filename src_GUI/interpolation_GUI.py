@@ -269,18 +269,19 @@ class InterpolationTab(QScrollArea):
             hdf5 = Hdf5Management(self.path_prj, hdf5name, new=False, edit=False)
             if hdf5.file_object:
                 hdf5.get_hdf5_attributes(close_file=True)
-                if len(hdf5.data_2d.reach_list) == 1:
-                    reach_names = hdf5.data_2d.reach_list
-                else:
-                    reach_names = [""] + hdf5.data_2d.reach_list
+                if hdf5.hdf5_type != "ESTIMHAB":
+                    if len(hdf5.data_2d.reach_list) == 1:
+                        reach_names = hdf5.data_2d.reach_list
+                    else:
+                        reach_names = [""] + hdf5.data_2d.reach_list
 
-                unit_type = hdf5.data_2d.unit_type
-                if "Date" not in unit_type:
-                    self.hab_reach_qcombobox.addItems(reach_names)
-                else:
-                    if self.sender().hasFocus():
-                        self.send_log.emit(self.tr("Warning: This file contain date unit. "
-                                                   "To be interpolated, file must contain discharge or timestep unit."))
+                    unit_type = hdf5.data_2d.unit_type
+                    if "Date" not in unit_type:
+                        self.hab_reach_qcombobox.addItems(reach_names)
+                    else:
+                        if self.sender().hasFocus():
+                            self.send_log.emit(self.tr("Warning: This file contain date unit. "
+                                                       "To be interpolated, file must contain discharge or timestep unit."))
 
     def reach_hab_change(self):
         hdf5name = self.hab_filenames_qcombobox.currentText()

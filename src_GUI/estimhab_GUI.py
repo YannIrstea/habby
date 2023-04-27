@@ -31,6 +31,8 @@ from io import StringIO
 from src_GUI.dev_tools_GUI import DoubleClicOutputGroup, change_button_color
 from src.process_manager_mod import MyProcessManager
 from src.project_properties_mod import load_project_properties, change_specific_properties, load_specific_properties
+from src.dev_tools_mod import isstranumber
+from src.tools_mod import check_matching_units, read_chronicle_from_text_file, export_empty_text_from_hdf5, compute_interpolation
 
 
 class StatModUseful(QScrollArea):
@@ -60,10 +62,10 @@ class StatModUseful(QScrollArea):
         self.eh2 = QLineEdit()
         self.eqmin = QLineEdit()
         self.eqmax = QLineEdit()
-        self.eby = QLineEdit()
+        self.eqby = QLineEdit()
         self.list_f = QListWidget()
         self.selected_aquatic_animal_qtablewidget = QListWidget()
-
+        self.chro_file_path = ""
         self.msge = QMessageBox()
         self.fish_selected = []
         self.qall = []  # q1 q2 qmin qmax q50. Value cannot be added directly because of stathab.
@@ -343,6 +345,7 @@ class EstimhabW(StatModUseful):
         self.path_prj = path_prj
         self.name_prj = name_prj
         self.path_bio_estimhab = os.path.join(self.path_bio, 'estimhab')
+        self.path_last_file_loaded = self.path_prj
         self.total_lineedit_number = 1
         self.init_iu()
         self.process_manager = MyProcessManager("estimhab_plot")  # SC (Suitability Curve)
@@ -359,6 +362,7 @@ class EstimhabW(StatModUseful):
         self.eq50.textChanged.connect(self.check_if_ready_to_compute)
         self.eqmin.textChanged.connect(self.check_if_ready_to_compute)
         self.eqmax.textChanged.connect(self.check_if_ready_to_compute)
+        self.eqby.textChanged.connect(self.check_if_ready_to_compute)
         self.esub.textChanged.connect(self.check_if_ready_to_compute)
         self.selected_aquatic_animal_qtablewidget.model().rowsInserted.connect(self.check_if_ready_to_compute)
         self.selected_aquatic_animal_qtablewidget.model().rowsRemoved.connect(self.check_if_ready_to_compute)
@@ -401,7 +405,7 @@ class EstimhabW(StatModUseful):
                                                                                                            50))
         selected_model_label = QLabel(self.tr('Selected'))
 
-        self.spacer_width = 50
+        self.spacer_width = 20
 
         # input
         q1_layout = QHBoxLayout()
@@ -453,7 +457,7 @@ class EstimhabW(StatModUseful):
         # output
         self.eqmin.setFixedWidth(self.lineedit_width)
         self.eqmax.setFixedWidth(self.lineedit_width)
-        self.eby.setFixedWidth(self.lineedit_width)
+        self.eqby.setFixedWidth(self.lineedit_width)
         self.fromseq_group = QGroupBox()
         fromseq_layout = QHBoxLayout(self.fromseq_group)
         fromseq_layout.addWidget(QLabel(self.tr("Qmin")))
@@ -463,14 +467,20 @@ class EstimhabW(StatModUseful):
         fromseq_layout.addWidget(self.eqmax)
         fromseq_layout.addItem(QSpacerItem(self.spacer_width, 1))
         fromseq_layout.addWidget(QLabel(self.tr("Qby")))
-        fromseq_layout.addWidget(self.eby)
+        fromseq_layout.addWidget(self.eqby)
         fromseq_layout.addWidget(QLabel(self.tr("[m<sup>3</sup>/s]")))
         
         self.fromtxt_group = QGroupBox()
         fromtxt_layout = QHBoxLayout(self.fromtxt_group)
         fromtxt_layout.addWidget(QLabel(self.tr("Choose file")))
-        fromtxt_layout.addWidget(QLineEdit("-"))
-        fromtxt_layout.addWidget(QPushButton("..."))
+        self.fromtxt_lineedit = QLineEdit("")
+        self.fromtxt_lineedit.setEnabled(False)
+        self.fromtxt_lineedit.textChanged.connect(self.check_if_ready_to_compute)
+        fromtxt_layout.addWidget(self.fromtxt_lineedit)
+        self.chro_file_pushbutton = QPushButton("...")
+        self.chro_file_pushbutton.clicked.connect(self.choose_chro_file)
+        self.chro_file_pushbutton.setFixedWidth(self.spacer_width)
+        fromtxt_layout.addWidget(self.chro_file_pushbutton)
 
         # create lists with the possible fishes
         self.list_f.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -493,11 +503,11 @@ class EstimhabW(StatModUseful):
 
         # send model
         self.show_button = QPushButton(self.tr('Show Estimhab output'), self)
-        self.show_button.clicked.connect(self.show_estmihab)
+        self.show_button.clicked.connect(lambda: self.export_estmihab(True))
         change_button_color(self.show_button, "#47B5E6")
         self.show_button.setEnabled(False)
         self.export_button = QPushButton(self.tr('Export Estimhab output'), self)
-        self.export_button.clicked.connect(self.export_estmihab)
+        self.export_button.clicked.connect(lambda: self.export_estmihab(False))
         change_button_color(self.export_button, "#47B5E6")
         self.export_button.setEnabled(False)
 
@@ -535,14 +545,15 @@ class EstimhabW(StatModUseful):
 
         # hydraulic_data_output_group
         hydraulic_data_output_group = QGroupBox(self.tr('Desired output data'))
-        hydraulic_data_output_group.setToolTip(self.tr("Double click to reset the outpout data group."))
         hydraulic_data_layout = QGridLayout(hydraulic_data_output_group)
 
         self.fromseq_radiobutton = QRadioButton(self.tr("from a sequence"))
         self.fromseq_radiobutton.setChecked(True)
         self.fromseq_radiobutton.clicked.connect(self.out_type_change)
+        self.fromseq_radiobutton.clicked.connect(self.check_if_ready_to_compute)
         self.from_txt_radiobutton = QRadioButton(self.tr("from .txt file"))
         self.from_txt_radiobutton.clicked.connect(self.out_type_change)
+        self.from_txt_radiobutton.clicked.connect(self.check_if_ready_to_compute)
         hydraulic_data_layout.addWidget(self.fromseq_radiobutton, 0, 0)
         hydraulic_data_layout.addWidget(self.from_txt_radiobutton, 0, 1)
         hydraulic_data_layout.addWidget(self.fromseq_group, 1, 0)
@@ -553,9 +564,10 @@ class EstimhabW(StatModUseful):
         comput_button_layout.addWidget(self.export_button)
         comput_button_layout.addStretch()
         hydraulic_data_layout.addLayout(comput_button_layout, 2, 0)
-        hydraulic_data_output_group.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
+        self.fromseq_group.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         self.doubleclick_output_group = DoubleClicOutputGroup()
-        hydraulic_data_output_group.installEventFilter(self.doubleclick_output_group)
+        self.fromseq_group.setToolTip(self.tr("Double click to reset the outpout data group."))
+        self.fromseq_group.installEventFilter(self.doubleclick_output_group)
         self.doubleclick_output_group.double_clic_signal.connect(self.reset_hydraulic_data_output_group)
         self.out_type_change()
 
@@ -577,15 +589,6 @@ class EstimhabW(StatModUseful):
             self.fromseq_group.setEnabled(False)
             self.fromtxt_group.setEnabled(True)
 
-    def remove_one_qtarget(self):
-        # count existing number of lineedit
-        total_widget_number = self.qby_layout.count()
-        self.total_lineedit_number = total_widget_number - 3  # - first : qlabel and plus and moins button - New lineedit
-        if self.total_lineedit_number > 0:
-            self.target_lineedit_list.pop(-1)
-            self.qby_layout.itemAt(total_widget_number - 3).widget().setParent(None)
-            self.total_lineedit_number = self.total_lineedit_number - 1
-
     def reset_hydraulic_data_input_group(self):
         # remove txt in lineedit
         self.eq1.setText("")
@@ -601,11 +604,7 @@ class EstimhabW(StatModUseful):
         # remove txt in lineedit
         self.eqmin.setText("")
         self.eqmax.setText("")
-        # remove lineedits qtarget
-        for i in reversed(range(1, self.qby_layout.count() - 1)):
-            self.qby_layout.itemAt(i).widget().setParent(None)
-            self.total_lineedit_number = self.total_lineedit_number - 1
-        self.target_lineedit_list = []
+        self.eqby.setText("")
 
     def reset_models_group(self):
         if self.selected_aquatic_animal_qtablewidget.count() > 0:
@@ -681,17 +680,18 @@ class EstimhabW(StatModUseful):
             self.ew1.setText(str(self.estimhab_dict["w"][0]))
             self.ew2.setText(str(self.estimhab_dict["w"][1]))
             self.eq50.setText(str(self.estimhab_dict["q50"]))
-            self.eqmin.setText(str(self.estimhab_dict["qrange"][0]))
-            self.eqmax.setText(str(self.estimhab_dict["qrange"][1]))
+            if type(self.estimhab_dict["qrange"]) == str:
+                self.fromtxt_lineedit.setText(self.estimhab_dict["qrange"])
+                self.chro_file_path = self.estimhab_dict["qrange"]
+            else:
+                self.eqmin.setText(str(self.estimhab_dict["qrange"][0]))
+                self.eqmax.setText(str(self.estimhab_dict["qrange"][1]))
+                self.eqby.setText(str(self.estimhab_dict["qrange"][2]))
             self.esub.setText(str(self.estimhab_dict["substrate"]))
-            # qtarg
-            if len(self.estimhab_dict["qtarg"]) > 0:
-                while self.total_lineedit_number != len(self.estimhab_dict["qtarg"]):
-                    self.add_new_qtarget()
-                for qtarg_num, qtarg_value in enumerate(self.estimhab_dict["qtarg"][1:]):
-                    getattr(self, 'new_qtarget' + str(qtarg_num + 2)).setText(str(qtarg_value))
 
     def check_if_ready_to_compute(self):
+        self.export_button.setEnabled(False)
+        self.show_button.setEnabled(False)
         all_string_selection = (self.eq1.text(),
                                 self.eq2.text(),
                                 self.ew1.text(),
@@ -699,16 +699,18 @@ class EstimhabW(StatModUseful):
                                 self.eh1.text(),
                                 self.eh2.text(),
                                 self.eq50.text(),
-                                self.eqmin.text(),
-                                self.eqmax.text(),
                                 self.esub.text())
         # minimum one fish and string in input lineedits to enable run_stop_button
         if self.selected_aquatic_animal_qtablewidget.count() > 0 and "" not in all_string_selection:
-            self.export_button.setEnabled(True)
-            self.show_button.setEnabled(True)
-        else:
-            self.export_button.setEnabled(False)
-            self.show_button.setEnabled(False)
+            # output
+            if self.fromseq_radiobutton.isChecked():
+                if self.eqmin.text() and self.eqmax.text() and self.eqby.text():
+                    self.export_button.setEnabled(True)
+                    self.show_button.setEnabled(True)
+            elif self.from_txt_radiobutton.isChecked():
+                if self.fromtxt_lineedit.text():
+                    self.export_button.setEnabled(True)
+                    self.show_button.setEnabled(True)
 
     def change_folder(self):
         """
@@ -728,10 +730,36 @@ class EstimhabW(StatModUseful):
             # add them to the menu
             self.list_f.addItem(item)
 
-    def show_estmihab(self):
-        print("show_estmihab")
+    def choose_chro_file(self):
+        self.chro_file_path = ""
+        project_properties = load_project_properties(self.path_prj)
+        if "Estimhab" in project_properties.keys():
+            if "qrange" in project_properties["Estimhab"].keys():
+                qrange = project_properties["Estimhab"]["qrange"]
+                if type(qrange) == str:  # chronicle
+                    if os.path.exists(qrange):
+                        self.chro_file_path = qrange
 
-    def export_estmihab(self):
+        # find the filename based on user choice
+        filename_path = QFileDialog.getOpenFileName(self,
+                                                    self.tr("Select file"),
+                                                    self.chro_file_path,
+                                                    "File (*.txt)")[0]
+
+        # exeption: you should be able to clik on "cancel"
+        if filename_path:
+            self.path_last_file_loaded = os.path.dirname(filename_path)
+            chronicle_from_file, types_from_file = read_chronicle_from_text_file(filename_path)
+
+            if not chronicle_from_file:
+                self.send_log.emit(types_from_file)
+            else:
+                self.chro_file_path = filename_path
+                self.fromtxt_lineedit.setText(filename_path)
+        else:
+            self.send_log.emit(self.tr("Warning: Please specify a file."))
+
+    def export_estmihab(self, show):
         """
         A function to execute Estimhab by calling the estimhab function.
 
@@ -757,12 +785,13 @@ class EstimhabW(StatModUseful):
             w = [float(self.ew1.text().replace(",", ".")), float(self.ew2.text().replace(",", "."))]
             h = [float(self.eh1.text().replace(",", ".")), float(self.eh2.text().replace(",", "."))]
             q50 = float(self.eq50.text().replace(",", "."))
-            qrange = [float(self.eqmin.text().replace(",", ".")), float(self.eqmax.text().replace(",", "."))]
-            qtarget_values_list = []
-            for qtarg_lineedit in self.target_lineedit_list:
-                if qtarg_lineedit.text():
-                    qtarget_values_list.append(float(qtarg_lineedit.text().replace(",", ".")))
             substrate = float(self.esub.text().replace(",", "."))
+            if self.from_txt_radiobutton.isChecked():
+                qrange = self.chro_file_path
+            else:
+                qrange = [float(self.eqmin.text().replace(",", ".")),
+                          float(self.eqmax.text().replace(",", ".")),
+                          float(self.eqby.text().replace(",", "."))]
         except ValueError:
             self.send_log.emit('Error: ' + self.tr('Some data are empty or not float. Cannot run Estimhab'))
             return
@@ -775,19 +804,7 @@ class EstimhabW(StatModUseful):
             fish_item_str = fish_item.text()
             fish_list.append(os.path.basename(fish_item.data(1)))
             fish_name2.append(fish_item_str)
-        # check internal logic
-        if not fish_list:
-            self.send_log.emit('Error: ' + self.tr('No fish selected. Cannot run Estimhab.'))
-            return
-        if qrange[0] >= qrange[1]:
-            self.send_log.emit('Error: ' + self.tr('Minimum discharge bigger or equal to max discharge. Cannot run Estimhab.'))
-            return
-        if qtarget_values_list:
-            for qtarg in qtarget_values_list:
-                if qtarg < qrange[0] or qtarg > qrange[1]:
-                    self.send_log.emit(
-                        'Error: ' + self.tr('Target discharge is not between Qmin and Qmax. Cannot run Estimhab.'))
-                    return
+        # input
         if q[0] == q[1]:
             self.send_log.emit('Error: ' + self.tr('Estimhab needs two differents measured discharges.'))
             return
@@ -801,19 +818,42 @@ class EstimhabW(StatModUseful):
                 or (q[1] > q[0] and w[1] < w[0]):
             self.send_log.emit('Error: ' + self.tr('Discharge, width, and height data are not coherent.'))
             return
-        if q[0] <= 0 or q[1] <= 0 or w[0] <= 0 or w[1] <= 0 or h[0] <= 0 or h[1] <= 0 or qrange[0] <= 0 or qrange[1] <= 0 \
-                or substrate <= 0 or q50 <= 0:
+        if q[0] <= 0 or q[1] <= 0 or w[0] <= 0 or w[1] <= 0 or h[0] <= 0 or h[1] <= 0 or substrate <= 0 or q50 <= 0:
             self.send_log.emit('Error: ' + self.tr('Negative or zero data found. Could not run Estimhab.'))
             return
         if substrate > 3:
             self.send_log.emit('Error: ' + self.tr('Substrate is too large. Could not run Estimhab.'))
             return
+        # output
+        if not fish_list:
+            self.send_log.emit('Error: ' + self.tr('No fish selected. Cannot run Estimhab.'))
+            return
+        if type(qrange) != str:  # seq
+            if qrange[0] == "" or qrange[1] == "" or qrange[2] == "":
+                self.send_log.emit('Error: ' + self.tr('The sequence values must be specified (from, to and by).'))
+                return
+            if not isstranumber(qrange[0]) or not isstranumber(qrange[1]) or not isstranumber(qrange[2]):
+                self.send_log.emit('Error: ' + self.tr('The sequence values must be of numerical type.'))
+                return
+            if qrange[0] >= qrange[1]:
+                self.send_log.emit('Error: ' + self.tr('Minimum discharge bigger or equal to max discharge. Cannot run Estimhab.'))
+                return
+            if not float(qrange[0]) > 0:
+                self.send_log.emit('Error: ' + self.tr('From sequence value must be strictly greater than 0.'))
+                return
+            if not float(qrange[1]) > 0:
+                self.send_log.emit('Error: ' + self.tr('To sequence value must be strictly greater than 0.'))
+                return
+            if not float(qrange[2]) > 0:
+                self.send_log.emit('Error: ' + self.tr('By sequence value must be strictly greater than 0.'))
+                return
+            # check if the discharge range is realistic with the result
+            self.qall = [q[0], q[1], qrange[0], qrange[1], q50]
+            self.check_all_q()
+        else:  # chro
+            pass
 
         self.send_log.emit(self.tr('# Computing: Estimhab...'))
-
-        # check if the discharge range is realistic with the result
-        self.qall = [q[0], q[1], qrange[0], qrange[1], q50]
-        self.check_all_q()
 
         # run and save
         project_properties = load_project_properties(self.path_prj)
@@ -824,7 +864,6 @@ class EstimhabW(StatModUseful):
                              h=h,
                              q50=q50,
                              qrange=qrange,
-                             qtarg=qtarget_values_list,
                              substrate=substrate,
                              path_bio=self.path_bio_estimhab,
                              xml_list=fish_list,
@@ -844,15 +883,16 @@ class EstimhabW(StatModUseful):
         self.p.start()
         self.p.join()
 
-        # plot
-        plot_attr = lambda: None
-        plot_attr.name_hdf5 = self.name_prj + '_ESTIMHAB' + '.hab'
-        plot_attr.nb_plot = 1
+        if show:
+            # plot
+            plot_attr = lambda: None
+            plot_attr.name_hdf5 = self.name_prj + '_ESTIMHAB' + '.hab'
+            plot_attr.nb_plot = 1
 
-        self.process_manager.set_estimhab_plot_mode(self.path_prj,
-                                                    plot_attr,
-                                                    load_project_properties(self.path_prj))
-        self.process_manager.start()
+            self.process_manager.set_estimhab_plot_mode(self.path_prj,
+                                                        plot_attr,
+                                                        load_project_properties(self.path_prj))
+            self.process_manager.start()
 
         # log info
         str_found = mystdout.getvalue()
@@ -860,12 +900,15 @@ class EstimhabW(StatModUseful):
         for i in range(0, len(str_found)):
             if len(str_found[i]) > 1:
                 self.send_log.emit(str_found[i])
-
-        self.send_log.emit(
-            self.tr("Estimhab computation done. Figure and text files created in output project folder."))
+        if show:
+            self.send_log.emit(
+                self.tr("Estimhab computation done. Figure and text files created in output project folder."))
+        else:
+            self.send_log.emit(
+                self.tr("Estimhab computation done. Text files created in output project folder."))
         self.send_log.emit("py    data = [" + str(q) + ',' + str(w) + ',' + str(h) + ',' + str(q50) +
                            ',' + str(substrate) + ']')
-        self.send_log.emit("py    qrange =[" + str(qrange[0]) + ',' + str(qrange[1]) + ']')
+        # self.send_log.emit("py    qrange =[" + str(qrange[0]) + ',' + str(qrange[1]) + ']')
         self.send_log.emit("py    path1= os.path.join(os.path.dirname(path_bio),'" + self.path_bio_estimhab + "')")
         fish_list_str = "py    fish_list = ["
         for i in range(0, len(fish_list)):
