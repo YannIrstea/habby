@@ -32,7 +32,7 @@ from src_GUI.dev_tools_GUI import DoubleClicOutputGroup, change_button_color
 from src.process_manager_mod import MyProcessManager
 from src.project_properties_mod import load_project_properties, change_specific_properties, load_specific_properties
 from src.dev_tools_mod import isstranumber
-from src.tools_mod import check_matching_units, read_chronicle_from_text_file, export_empty_text_from_hdf5, compute_interpolation
+from src.tools_mod import read_chronicle_from_text_file
 
 
 class StatModUseful(QScrollArea):
