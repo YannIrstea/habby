@@ -1330,7 +1330,7 @@ class Hdf5Management:
         txtin += 'Median discharge [m3/sec]:\t' + str(q50) + '\n'
         txtin += 'Mean substrate size [m]:\t' + str(substrat) + '\n'
         if type(qrange) == str:
-            txtin += 'Chronicle discharge min and max [m3/sec]:\t' + str(min(qrange)) + '\t' + str(max(qrange)) + '\n'
+            txtin += 'Chronicle discharge [m3/sec]:\t' + qrange + '\n'
         else:
             txtin += 'Minimum and maximum discharge [m3/sec]:\t' + str(qrange[0]) + '\t' + str(qrange[1]) + '\n'
         txtin += 'Fish chosen:\t'
