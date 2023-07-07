@@ -66,7 +66,7 @@ def read_chronicle_from_text_file(chronicle_filepath):
             unit_type = headers[units_index]
 
     if units_index is None:
-        return False, "Error: Interpolation not done. 'unit[' header not found in " + chronicle_filepath + "."
+        return False, "Error: Interpolation not done. 'Q[' header not found in " + chronicle_filepath + "."
 
     # create dict
     if type(date_index) == int and type(units_index) == int:

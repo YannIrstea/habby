@@ -190,6 +190,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
         # DAT
         mesh_tin, node_xyz, nb_cell = load_dat_2d(self.filename_dat, self.folder_path)  # node
+        if mesh_tin== [-99]:
+            return None,None
 
         # TPS
         timestep, mesh_h, mesh_v = load_tps_2d(self.filename_tps, self.folder_path, nb_cell)  # cell
@@ -1017,21 +1019,21 @@ def load_dat_2d(geofile, path):
     # check if the file exist
     if not os.path.isfile(filename_path):
         print('Error: The .dat file does not exist.')
-        return [-99], [-99], [-99], [-99], [-99]
+        return [-99], [-99], [-99]
     # open file
     try:
         with open(filename_path, 'rt') as f:
             data_geo2d = f.read()
     except IOError:
         print('Error: The .dat file can not be open.\n')
-        return [-99], [-99], [-99], [-99], [-99]
+        return [-99], [-99], [-99]
     data_geo2d = data_geo2d.splitlines()
     # extract nb cells
     try:
         nb_cell = np.int(data_geo2d[0])
     except ValueError:
         print('Error: Could not extract the number of cells from the .dat file.\n')
-        return [-99], [-99], [-99], [-99], [-99]
+        return [-99], [-99], [-99]
         nb_cell = 0
     # extract connectivity table, not always triangle
     # in the .dat file we want only one line out for three
@@ -1042,8 +1044,8 @@ def load_dat_2d(geofile, path):
     ikle_list = []
     while m < nb_cell * 3:
         if m >= len(data_geo2d):
-            print('Error: Could not extract the connectivity table from the .dat file.\n')
-            return [-99], [-99], [-99], [-99], [-99]
+            print('Error: Could not extract the connectivity table from the .dat file(1).\n')
+            return [-99], [-99], [-99]
         # data_l = data_geo2d[m].split()
         # data_l = data_geo2d[m].split()
         data_l = wrap(data_geo2d[m], 6)
@@ -1053,8 +1055,8 @@ def load_dat_2d(geofile, path):
                 try:
                     ind_l[i] = int(data_l[i + 1]) - 1
                 except ValueError:
-                    print('Error: Could not extract the connectivity table from the .dat file.\n')
-                    return [-99], [-99], [-99], [-99], [-99]
+                    print('Error: Could not extract the connectivity table from the .dat file(2).\n')
+                    return [-99], [-99], [-99]
             ikle_list.append(ind_l)
             ikle[int((m2 - 2) / 3)] = ind_l
             m2 += 3
@@ -1090,7 +1092,7 @@ def load_dat_2d(geofile, path):
             except ValueError:
                 print('Error: Could not extract the coordinates from the .dat file.\n')
                 print(data_geo2d[mi])
-                return [-99], [-99], [-99], [-99], [-99]
+                return [-99], [-99], [-99]
         m += 1
     # merge x and y
     x = data_f[0:nb_coord]  # choose every 2 float

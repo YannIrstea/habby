@@ -23,7 +23,7 @@ from matplotlib import rc
 import matplotlib.pyplot as plt
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
-from matplotlib.legend_handler import HandlerLine2D
+from src.tools_mod import read_chronicle_from_text_file
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import matplotlib.ticker as ticker
 from matplotlib import colors
@@ -874,7 +874,8 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
     erase1 = project_properties['erase_id']
     path_im = os.path.join(path_prj, "output", "figures")
     mpl.rcParams['pdf.fonttype'] = 42
-
+    chronicle_presence = False
+    date_presence = False
     # prepare color
     color_list, style_list = get_colors_styles_line_from_nb_input(len(stat_data_dict["fish_list"]))
 
@@ -883,60 +884,90 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
     except KeyError:
         reach_name = ""
 
+    if type(stat_data_dict["qrange"]) == str:
+        # chronicle_presence
+        chronicle_presence = True
+        chronicle_from_file, types_from_file = read_chronicle_from_text_file(stat_data_dict["qrange"])
+        if "date" in chronicle_from_file.keys():
+            date_presence = True
+            date_type = types_from_file["date"]
+            date_name = np.array([dt.strptime(date, date_type).date() for date in chronicle_from_file["date"]],
+                                 dtype='datetime64')
+            date_format_mpl = mpl.dates.DateFormatter(date_type)
+
     """ plot hyd data """
-    fig2, (ax_h, ax_w, ax_v) = plt.subplots(ncols=1, nrows=3,
-                                            sharex="all",
-                                            gridspec_kw={'height_ratios': [1, 1, 1]})
+    if not chronicle_presence:
+        fig2, (ax_h, ax_w, ax_v) = plt.subplots(ncols=1, nrows=3,
+                                                sharex="all",
+                                                gridspec_kw={'height_ratios': [1, 1, 1]})
+    else:
+        fig2, (ax_h, ax_w, ax_v, ax_date) = plt.subplots(ncols=1, nrows=4,
+                                                sharex="all")
+
     plt.get_current_fig_manager().set_window_title(stat_mod + ' hydraulic data ' + reach_name + ' - HABBY')  # set windows title
     ax_h.set_title(stat_mod + ' hydraulic data ' + reach_name + ' - HABBY')
+
+    if not chronicle_presence:
+        x_data = stat_data_dict["q_all"]
+    else:
+        if date_presence:
+            x_data = chronicle_from_file["date"]
+        else:
+            x_data = range(0, len(stat_data_dict["q_all"]))
+
     # H
-    if stat_data_dict["targ_q_all"]:
-        for q_tar in stat_data_dict["targ_q_all"]:
-            ax_h.axvline(x=q_tar,
-                         linestyle=":",
-                         color="black")
-    ax_h.plot(stat_data_dict["q_all"],
-              stat_data_dict["h_all"],
-              color="black")
+    ax_h.plot(x_data,
+                  stat_data_dict["h_all"],
+                  color="black")
     ax_h.set_ylabel("height\n[m]")
     ax_h.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # W
-    if stat_data_dict["targ_q_all"]:
-        for q_tar in stat_data_dict["targ_q_all"]:
-            ax_w.axvline(x=q_tar,
-                         linestyle=":",
-                         color="black")
-    ax_w.plot(stat_data_dict["q_all"],
-              stat_data_dict["w_all"],
-              color="black")
+    ax_w.plot(x_data,
+                  stat_data_dict["w_all"],
+                  color="black")
     ax_w.set_ylabel("width\n[m]")
     ax_w.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # V
-    if stat_data_dict["targ_q_all"]:
-        for q_tar in stat_data_dict["targ_q_all"]:
-            ax_v.axvline(x=q_tar,
-                         linestyle=":",
-                         color="black")
-    ax_v.plot(stat_data_dict["q_all"],
-              stat_data_dict["vel_all"],
-              color="black")
+    ax_v.plot(x_data,
+                  stat_data_dict["vel_all"],
+                  color="black")
     ax_v.set_ylabel("velocity\n[m/s]")
     ax_v.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
-    ax_v.set_xlabel("Discharge [m$^{3}$/sec]")
-
-    # targ_q_all
-    if stat_data_dict["targ_q_all"]:
-        labels = ["Qtarg [m$^{3}$/sec]"]
-        fig2.legend(handler_map={plt.Line2D: HandlerLine2D(update_func=update_prop)},
-                    labels=labels,
-                    loc="lower left",
-                    borderaxespad=0.5,
-                    fancybox=False,
-                    bbox_to_anchor=(0.73, 0.1))
 
     plt.subplots_adjust(right=0.73)
+
+    # Q
+    if date_presence:
+        ax_date.plot(x_data,
+                     stat_data_dict["q_all"],
+                     color="black")
+        ax_date.set_ylabel("Discharge \n[m$^{3}$/sec]")
+        ax_date.set_xlabel("Date [" + date_type + "]")
+        ax_date.tick_params(axis='x', rotation=45)
+    if chronicle_presence and not date_presence:
+        ax_date.plot(x_data,
+                     stat_data_dict["q_all"],
+                     color="black")
+        ax_date.set_ylabel("Discharge \n[m$^{3}$/sec]")
+        ax_date.set_xlabel("Unit []")
+        ax_date.xaxis.set_ticklabels([])
+        ax_date.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
+        # if len(date_name) < 25:
+        #     ax_date.set_xticks(chronicle_from_file["units"])  # , rotation=45
+        #     ax_date.set_xticklabels(date_name)
+        # elif len(date_name) < 100:
+        #     ax_date.set_xticks(chronicle_from_file["units"][::3])
+        #     ax_date.set_xticklabels(date_name[::3])
+        # elif len(date_name) < 200:
+        #     ax_date.set_xticks(chronicle_from_file["units"][::10])
+        #     ax_date.set_xticklabels(date_name[::10])
+        # else:
+        #     ax_date.set_xticks(chronicle_from_file["units"][::20])
+        #     ax_date.set_xticklabels(date_name[::20])
+        # if date_presence:
+        #     ax_date.xaxis.set_major_formatter(date_format_mpl)
 
     # save image
     name_pict = stat_mod + "_hydraulic_" + reach_name + project_properties['format']
@@ -948,20 +979,20 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
                 transparent=True)
 
     """ plot """
-    fig, (ax_osi, ax_wua) = plt.subplots(ncols=1, nrows=2,
-                                        sharex="all",
-                                        gridspec_kw={'height_ratios': [3, 3]})
+    if not chronicle_presence:
+        fig, (ax_osi, ax_wua) = plt.subplots(ncols=1, nrows=2,
+                                            sharex="all",
+                                            gridspec_kw={'height_ratios': [3, 3]})
+    else:
+        fig, (ax_osi, ax_wua, ax_date) = plt.subplots(ncols=1, nrows=3,
+                                            sharex="all")
     plt.get_current_fig_manager().set_window_title(stat_mod + " output " + reach_name + ' - HABBY')
 
     # OSI
     ax_osi.set_title(stat_mod + " output " + reach_name + ' - HABBY')
-    if stat_data_dict["targ_q_all"]:
-        for q_tar in stat_data_dict["targ_q_all"]:
-            ax_osi.axvline(x=q_tar,
-                          linestyle=":",
-                          color="black")
+
     for fish_index in range(len(stat_data_dict["fish_list"])):
-        ax_osi.plot(stat_data_dict["q_all"],
+        ax_osi.plot(x_data,
                    stat_data_dict["OSI"][fish_index],
                    label=stat_data_dict["fish_list"][fish_index],
                    color=color_list[fish_index],
@@ -971,30 +1002,31 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
     ax_osi.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # WUA
-    if stat_data_dict["targ_q_all"]:
-        for q_tar in stat_data_dict["targ_q_all"]:
-            ax_wua.axvline(x=q_tar,
-                           linestyle=":",
-                           color="black")
     for fish_index in range(len(stat_data_dict["fish_list"])):
-        ax_wua.plot(stat_data_dict["q_all"],
+        ax_wua.plot(x_data,
                     stat_data_dict["WUA"][fish_index],
                     label=stat_data_dict["fish_list"][fish_index],
                     color=color_list[fish_index],
                     linestyle=style_list[fish_index])
     ax_wua.set_ylabel("WUA by 100 m\n[m²]")
     ax_wua.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
-    ax_wua.set_xlabel("Discharge [m$^{3}$/sec]")
 
-    # targ_q_all
-    if stat_data_dict["targ_q_all"]:
-        labels = ["Qtarg [m$^{3}$/sec]"]
-        fig.legend(handler_map={plt.Line2D: HandlerLine2D(update_func=update_prop)},
-                   labels=labels,
-                   loc="lower left",
-                   borderaxespad=0.5,
-                   fancybox=False,
-                   bbox_to_anchor=(0.73, 0.1))
+    # Q
+    if date_presence:
+        ax_date.plot(x_data,
+                     stat_data_dict["q_all"],
+                     color="black")
+        ax_date.set_ylabel("Discharge \n[m$^{3}$/sec]")
+        ax_date.set_xlabel("Date [" + date_type + "]")
+        ax_date.tick_params(axis='x', rotation=45)
+    if chronicle_presence and not date_presence:
+        ax_date.plot(x_data,
+                     stat_data_dict["q_all"],
+                     color="black")
+        ax_date.set_ylabel("Discharge \n[m$^{3}$/sec]")
+        ax_date.set_xlabel("Unit []")
+        ax_date.xaxis.set_ticklabels([])
+        ax_date.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # LEGEND
     handles, labels = ax_osi.get_legend_handles_labels()

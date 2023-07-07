@@ -17,15 +17,18 @@ https://github.com/YannIrstea/habby
 import numpy as np
 import xml.etree.ElementTree as ET
 import os
+
 from src import hdf5_mod
 from src.translator_mod import get_translator
+from src.dev_tools_mod import frange
+from src.tools_mod import read_chronicle_from_text_file
 
 
 def estimhab_process(estimhab_dict, project_properties, path_prj, progress_value):
     qt_tr = get_translator(project_properties['path_prj'])
 
     # compute
-    q_all, h_all, w_all, vel_all, OSI, WUA, qtarg_dict = estimhab(estimhab_dict, qt_tr)
+    q_all, h_all, w_all, vel_all, OSI, WUA = estimhab(estimhab_dict, qt_tr)
 
     # save in dict
     estimhab_dict["q_all"] = q_all
@@ -34,7 +37,6 @@ def estimhab_process(estimhab_dict, project_properties, path_prj, progress_value
     estimhab_dict["vel_all"] = vel_all
     estimhab_dict["OSI"] = OSI
     estimhab_dict["WUA"] = WUA
-    estimhab_dict["qtarg_dict"] = qtarg_dict
 
     # name hdf5
     name_prj = os.path.basename(path_prj)
@@ -94,34 +96,34 @@ def estimhab(estimhab_dict, qt_tr):
     Then, we calculate the habitat values (OSI and WUA). Finally, we plot the results in a figure and we save it as
     a text file.
     """
-    estimhab_dict["qtarg"].sort()
     qmes = estimhab_dict["q"]
     width = estimhab_dict["w"]
     height = estimhab_dict["h"]
     q50 = estimhab_dict["q50"]
     qrange = estimhab_dict["qrange"]
-    qtarg = estimhab_dict["qtarg"]
     substrat = estimhab_dict["substrate"]
     path_bio = estimhab_dict["path_bio"]
     fish_xml = estimhab_dict["xml_list"]
     fish_name = estimhab_dict["fish_list"]
 
     # Q
-    nb_q = 100  # number of calculated q
-    if qrange[1] > qrange[0]:
-        if qrange[0] == 0:
-            qrange[0] = 10 ** -10  # if exactly zero, you cannot divide anymore
-        q_all = np.geomspace(start=qrange[0],
-                            stop=qrange[1],
-                            num=nb_q,
-                             endpoint=True)
-        if qtarg:
-            q_all = np.insert(arr=q_all,
-                      obj=np.searchsorted(a=q_all, v=qtarg),
-                      values=qtarg)
-    else:
-        print('Error: ' + qt_tr.translate("estimhab_mod", 'The mininum discharge is higher or equal than the maximum.'))
-        return [-99], [-99], [-99], [-99], [-99], [-99]
+    # nb_q = 100  # number of calculated q
+    # if qrange[1] > qrange[0]:
+    #     if qrange[0] == 0:
+    #         qrange[0] = 10 ** -10  # if exactly zero, you cannot divide anymore
+    #     q_all = np.geomspace(start=qrange[0],
+    #                         stop=qrange[1],
+    #                         num=nb_q,
+    #                          endpoint=True)
+    # else:
+    #     print('Error: ' + qt_tr.translate("estimhab_mod", 'The mininum discharge is higher or equal than the maximum.'))
+    #     return [-99], [-99], [-99], [-99], [-99], [-99]
+
+    if type(qrange) == str:  # chronicle
+        chronicle_from_file, types_from_file = read_chronicle_from_text_file(qrange)
+        q_all = chronicle_from_file["units"]
+    else:  # seq
+        q_all = np.array(list(frange(qrange[0], qrange[1], qrange[2])))  # from to by
 
     # height
     slope = (np.log(height[1]) - np.log(height[0])) / (np.log(qmes[1]) - np.log(qmes[0]))
@@ -197,24 +199,7 @@ def estimhab(estimhab_dict, qt_tr):
     OSI = np.array(OSI)
     WUA = np.array(WUA)
 
-    # remove qtarget values to separate them
-    qtarg_dict = dict(q_all=[],
-                      h_all=[],
-                      w_all=[],
-                      vel_all=[],
-                      OSI=np.empty((WUA.shape[0], len(qtarg))),
-                      WUA=np.empty((WUA.shape[0], len(qtarg))))
-    if qtarg:
-        for qtarg_indice, qtarg_value in enumerate(qtarg):
-            indice = np.where(q_all == qtarg_value)[0][0]
-            qtarg_dict["q_all"].append(q_all[indice])
-            qtarg_dict["h_all"].append(h_all[indice])
-            qtarg_dict["w_all"].append(w_all[indice])
-            qtarg_dict["vel_all"].append(vel[indice])
-            qtarg_dict["OSI"][:, qtarg_indice] = OSI[:, indice]
-            qtarg_dict["WUA"][:, qtarg_indice] = WUA[:, indice]
-
-    return q_all, h_all, w_all, vel, OSI, WUA, qtarg_dict
+    return q_all, h_all, w_all, vel, OSI, WUA
 
 
 def pass_to_float_estimhab(var_name, root):
