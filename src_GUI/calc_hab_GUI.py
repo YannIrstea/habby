@@ -169,7 +169,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.general_option_hyd_combobox.activated.connect(self.set_once_all_hyd_combobox)
         width_size = self.general_option_hyd_combobox.minimumSizeHint().width()
         width_size = width_size + (width_size * 0.2)
-        self.general_option_hyd_combobox.setMinimumWidth(width_size)
+        self.general_option_hyd_combobox.setMinimumWidth(int(width_size))
         # 3 column
         self.sub_mode_qtablewidget = QTableWidget()
         self.sub_mode_qtablewidget.setColumnCount(1)
@@ -909,7 +909,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         else:
             # disable the button
             self.progress_layout.run_stop_button.setEnabled(True)
-            self.progress_layout.progress_bar.setValue(0.0)
+            self.progress_layout.progress_bar.setValue(0)
             self.progress_layout.progress_label.setText(
                 "{0:.0f}/{1:.0f}".format(0.0, 1.0))
             self.send_log.emit(self.tr('Warning: Nothing to compute !'))

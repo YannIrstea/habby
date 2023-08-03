@@ -247,13 +247,13 @@ class ComputingGroup(QGroupBoxCollapsible):
         else:
             self.progress_layout.run_stop_button.setEnabled(False)
 
-        self.progress_layout.progress_bar.setValue(0.0)
+        self.progress_layout.progress_bar.setValue(0)
         self.progress_layout.progress_label.setText(
             "{0:.0f}/{1:.0f}".format(0.0, len(self.file_selection_listwidget.selectedItems())))
 
     def names_hdf5_change(self):
         selection = self.file_selection_listwidget.selectedItems()
-        self.progress_layout.progress_bar.setValue(0.0)
+        self.progress_layout.progress_bar.setValue(0)
         self.progress_layout.progress_label.setText(
             "{0:.0f}/{1:.0f}".format(0.0, len(selection)))
         if selection:

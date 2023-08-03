@@ -20,7 +20,6 @@ import unicodedata
 from glob import glob
 from shutil import rmtree, copy as sh_copy
 import numpy as np
-from PyQt5.QtCore import QCoreApplication as qt_tr
 
 
 def copy_shapefiles(input_shapefile_abspath, hdf5_name, dest_folder_path, remove=True):
@@ -100,11 +99,11 @@ def copy_files(names, paths, path_input):
     """
 
     if not os.path.isdir(path_input):
-        print('Error: ' + qt_tr.translate("hdf5_mod", 'Folder not found to copy inputs \n'))
+        print('Error: Folder not found to copy inputs \n')
         return
 
     if len(names) != len(paths):
-        print('Error: ' + qt_tr.translate("hdf5_mod", 'The number of file to be copied is not equal to the number of paths'))
+        print('Error: The number of file to be copied is not equal to the number of paths')
         return
 
     for i in range(0, len(names)):

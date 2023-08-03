@@ -155,7 +155,7 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.explore_bio_model_pushbutton.clicked.connect(self.open_bio_model_explorer)
 
         # avoid list which look too big or too small
-        size_max = self.frameGeometry().height() / 2.5
+        size_max = int(self.frameGeometry().height() / 2.5)
         self.list_needed.setMaximumHeight(size_max)
         self.list_re.setMaximumHeight(size_max)
         self.list_file.setMaximumHeight(size_max)

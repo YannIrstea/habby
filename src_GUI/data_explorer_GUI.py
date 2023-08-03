@@ -654,13 +654,13 @@ class FigureProducerGroup(QGroupBoxCollapsible):
             # set prog
             if self.nb_plot != 0:
                 self.progress_layout.run_stop_button.setEnabled(True)
-            self.progress_layout.progress_bar.setValue(0.0)
+            self.progress_layout.progress_bar.setValue(0)
             self.progress_layout.progress_label.setText("{0:.0f}/{1:.0f}".format(0.0, self.nb_plot))
         else:
             self.nb_plot = 0
             self.progress_layout.run_stop_button.setEnabled(False)
             # set prog
-            self.progress_layout.progress_bar.setValue(0.0)
+            self.progress_layout.progress_bar.setValue(0)
             self.progress_layout.progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
 
     def collect_data_from_gui(self):
@@ -1139,13 +1139,13 @@ class DataExporterGroup(QGroupBoxCollapsible):
             # set prog
             if self.nb_export != 0:
                 self.progress_layout.run_stop_button.setEnabled(True)
-            self.progress_layout.progress_bar.setValue(0.0)
+            self.progress_layout.progress_bar.setValue(0)
             self.progress_layout.progress_label.setText("{0:.0f}/{1:.0f}".format(0, self.nb_export))
         else:
             self.nb_export = 0
             self.progress_layout.run_stop_button.setEnabled(False)
             # set prog
-            self.progress_layout.progress_bar.setValue(0.0)
+            self.progress_layout.progress_bar.setValue(0)
             self.progress_layout.progress_label.setText("{0:.0f}/{1:.0f}".format(0, 0))
 
     def start_export(self):

@@ -30,8 +30,8 @@ class ProcessProgLayout(QHBoxLayout):
         # progress_bar
         self.progress_bar = QProgressBar()
         self.progress_bar.setMaximumHeight(widget_height)
-        self.progress_bar.setValue(0.0)
-        self.progress_bar.setRange(0.0, 100.0)
+        self.progress_bar.setValue(0)
+        self.progress_bar.setRange(0, 100)
         self.progress_bar.setTextVisible(False)
 
         # progress_label
@@ -128,7 +128,7 @@ class ProcessProgShow(QObject):
             self.progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_manager.process_list.nb_finished,
                                                                  self.process_manager.process_list.nb_total))
         else:
-            self.progress_bar.setRange(0.0, 100.0)
+            self.progress_bar.setRange(0, 100)
             # progress_bar
             self.progress_bar.setValue(int(self.process_manager.process_list.progress_value))
             if self.current_finished != self.process_manager.process_list.nb_finished:
@@ -142,7 +142,7 @@ class ProcessProgShow(QObject):
         # stop show_prog
         self.timer.stop()
 
-        self.progress_bar.setRange(0.0, 100.0)
+        self.progress_bar.setRange(0, 100)
         self.progress_bar.setValue(int(self.process_manager.process_list.progress_value))
         self.progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_manager.process_list.nb_finished,
                                                              self.process_manager.process_list.nb_total))

@@ -677,7 +677,7 @@ class SubstrateAndMerge(QWidget):
                     self.polygon_hname.setText(self.name_hdf5_polygon)
                     self.polygon_hname.setFocus()
                     self.progress_layout_polygon.run_stop_button.setEnabled(True)
-                    self.progress_layout_polygon.progress_bar.setValue(0.0)
+                    self.progress_layout_polygon.progress_bar.setValue(0)
                     self.progress_layout_polygon.progress_label.setText(
                         "{0:.0f}/{1:.0f}".format(0.0, 1.0))
                 # POINT
@@ -697,7 +697,7 @@ class SubstrateAndMerge(QWidget):
                     self.point_hname.setText(self.name_hdf5_point)
                     self.point_hname.setFocus()
                     self.progress_layout_point.run_stop_button.setEnabled(True)
-                    self.progress_layout_point.progress_bar.setValue(0.0)
+                    self.progress_layout_point.progress_bar.setValue(0)
                     self.progress_layout_point.progress_label.setText(
                         "{0:.0f}/{1:.0f}".format(0.0, 1.0))
 
@@ -717,7 +717,7 @@ class SubstrateAndMerge(QWidget):
                     self.constant_hname.setText(self.name_hdf5_constant)
                     self.constant_hname.setFocus()
                     self.progress_layout_constant.run_stop_button.setEnabled(True)
-                    self.progress_layout_constant.progress_bar.setValue(0.0)
+                    self.progress_layout_constant.progress_bar.setValue(0)
                     self.progress_layout_constant.progress_label.setText(
                         "{0:.0f}/{1:.0f}".format(0.0, 1.0))
 
