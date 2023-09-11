@@ -274,15 +274,16 @@ class UserPreferences(AppDataFolders):
             diff_key_inverse_list = ""
             for key in biological_models_dict_from_json.keys():
                 set_old = set(list(map(str, biological_models_dict_from_json[key])))
-                set_new = set(list(map(str, self.biological_models_dict[key])))
-                # new
-                set_diff = set_new - set_old
-                if set_diff:
-                    diff_key_list += str(set_diff) + ", "
-                # old
-                set_diff_inverse = set_old - set_new
-                if set_diff_inverse:
-                    diff_key_inverse_list += str(set_diff_inverse) + ", "
+                if key in self.biological_models_dict.keys():
+                    set_new = set(list(map(str, self.biological_models_dict[key])))
+                    # new
+                    set_diff = set_new - set_old
+                    if set_diff:
+                        diff_key_list += str(set_diff) + ", "
+                    # old
+                    set_diff_inverse = set_old - set_new
+                    if set_diff_inverse:
+                        diff_key_inverse_list += str(set_diff_inverse) + ", "
 
             if diff_key_list or diff_key_inverse_list:
                 # new xml curve (from AppData user)
