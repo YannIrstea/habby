@@ -123,7 +123,7 @@ def plot_suitability_curve(state, information_model_dict, selected_fish_stage, p
                                stage_nb,
                                sharey='row',
                                sharex='row')
-        if ax.ndim == 1:
+        if stage_nb == 1:
             ax = np.reshape(ax, (model_var_len_max, stage_nb))
 
         plt.get_current_fig_manager().set_window_title(title_plot + name_fish + " - " + code_fish)
