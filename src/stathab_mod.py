@@ -1308,19 +1308,19 @@ def check_stahab_files(filename,check_neg,lchkcolhead,lchklines,check_sumone):
                     else:
                         if nbcol != 0:
                             if len(col) != nbcol:
-                                print('Error: the line ' + lchklines[
-                                    inblines] + ' the number of informations is not correct ' + filename + '.\n')
+                                print('Error: the line ' + str(
+                                    iline + 1) + ' the number of informations is not correct ' + filename + '.\n')
                                 return [-99]
                         for i, icol in enumerate(col):
                             if is_number(col[i]):
                                 col[i] = float(col[i])
                             else:
-                                print('Error: the line ' + lchklines[
-                                    inblines] + ' at least one information is not numeric ' + filename + '.\n')
+                                print('Error: the line ' + str(
+                                    iline + 1) + ' at least one information is not numeric ' + filename + '.\n')
                                 return [-99]
                             if check_neg and col[i] < 0:  # if there is negative value
-                                print('Error: the line ' + lchklines[
-                                    inblines] + ' negative values found in ' + filename + '.\n')
+                                print('Error: the line ' + str(
+                                    iline + 1) + ' negative values found in ' + filename + '.\n')
                                 return [-99]
                         myfloatdata.append(col)
         myfloatdata2 = np.array(myfloatdata)
