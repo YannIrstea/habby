@@ -884,10 +884,10 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
     except KeyError:
         reach_name = ""
 
-    if type(stat_data_dict["qrange"]) == str:
+    if type(stat_data_dict["q_all"]) == str:
         # chronicle_presence
         chronicle_presence = True
-        chronicle_from_file, types_from_file = read_chronicle_from_text_file(stat_data_dict["qrange"])
+        chronicle_from_file, types_from_file = read_chronicle_from_text_file(stat_data_dict["q_all"])
         if "date" in chronicle_from_file.keys():
             date_presence = True
             date_type = types_from_file["date"]
