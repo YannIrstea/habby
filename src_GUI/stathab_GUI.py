@@ -252,8 +252,6 @@ class StathabW(estimhab_GUI.StatModUseful):
             self.send_log.emit("Warning: No selected directory for stathab\n")
             return
 
-        self.save_xml()
-
         # clear all list
         self.mystathab = stathab_mod.Stathab(self.name_prj, self.path_prj)
         self.list_re.clear()
@@ -269,6 +267,8 @@ class StathabW(estimhab_GUI.StatModUseful):
         else:
             # fill the lists with the existing files
             self.load_from_txt_gui()
+
+        self.save_xml()
 
     def open_bio_model_explorer(self):
         self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer(self.model_type)
