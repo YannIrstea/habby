@@ -954,20 +954,20 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
         ax_date.set_xlabel("Unit []")
         ax_date.xaxis.set_ticklabels([])
         ax_date.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
-        # if len(date_name) < 25:
-        #     ax_date.set_xticks(chronicle_from_file["units"])  # , rotation=45
-        #     ax_date.set_xticklabels(date_name)
-        # elif len(date_name) < 100:
-        #     ax_date.set_xticks(chronicle_from_file["units"][::3])
-        #     ax_date.set_xticklabels(date_name[::3])
-        # elif len(date_name) < 200:
-        #     ax_date.set_xticks(chronicle_from_file["units"][::10])
-        #     ax_date.set_xticklabels(date_name[::10])
-        # else:
-        #     ax_date.set_xticks(chronicle_from_file["units"][::20])
-        #     ax_date.set_xticklabels(date_name[::20])
-        # if date_presence:
-        #     ax_date.xaxis.set_major_formatter(date_format_mpl)
+        if len(date_name) < 25:
+            ax_date.set_xticks(chronicle_from_file["units"])  # , rotation=45
+            ax_date.set_xticklabels(date_name)
+        elif len(date_name) < 100:
+            ax_date.set_xticks(chronicle_from_file["units"][::3])
+            ax_date.set_xticklabels(date_name[::3])
+        elif len(date_name) < 200:
+            ax_date.set_xticks(chronicle_from_file["units"][::10])
+            ax_date.set_xticklabels(date_name[::10])
+        else:
+            ax_date.set_xticks(chronicle_from_file["units"][::20])
+            ax_date.set_xticklabels(date_name[::20])
+        if date_presence:
+            ax_date.xaxis.set_major_formatter(date_format_mpl)
 
     # save image
     name_pict = stat_mod + "_hydraulic_" + reach_name + project_properties['format']

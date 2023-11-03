@@ -21,7 +21,6 @@ import pandas as pd
 
 from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
 from src.dev_tools_mod import frange
-from src.variable_unit_mod import HydraulicVariableUnitManagement
 from src import manage_grid_mod
 
 
@@ -109,7 +108,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
             self.warning_list.append("Error: File not valid.")
 
     def get_simulation_info(self):
-        """Get simulation informations from file."""
+        """Get simulation name from file."""
         self.simulation_name = eval(self.results_data_file[".config"]["model"][:].tolist()[0])["SETUP"]["simulation_name"]
 
     def get_hydraulic_variable_list(self):
@@ -174,6 +173,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         # tin
         mesh_tin = CellAll_group["Topology"][:].astype(np.int64)
         # z
+        mesh_z = None
         if self.unit_z_equal:
             try:
                 mesh_z = CellAll_group["BottomEl"][:].flatten()
