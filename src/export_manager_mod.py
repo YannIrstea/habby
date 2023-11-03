@@ -271,7 +271,7 @@ def export_mesh_layer_to_gpkg(filename_path, layer_name, epsg_code, unit_data, w
         layer.CreateField(ogr.FieldDefn("i_whole_profile", ogr.OFTInteger))
         # create fields (no width no precision to be specified with GPKG)
         for mesh_variable in unit_data.hvum.all_final_variable_list.meshs():
-            layer.CreateField(ogr.FieldDefn(mesh_variable.name_gui, OGRTypes_dict[mesh_variable.dtype]))
+            layer.CreateField(ogr.FieldDefn(mesh_variable.name, OGRTypes_dict[mesh_variable.dtype]))
 
     defn = layer.GetLayerDefn()
     layer.StartTransaction()  # faster
@@ -311,7 +311,7 @@ def export_mesh_layer_to_gpkg(filename_path, layer_name, epsg_code, unit_data, w
             for mesh_variable in mesh_variable_list:
                 # convert NumPy values to a native Python type
                 data_field = unit_data[mesh_variable.position]["data"][mesh_variable.name][mesh_num].item()
-                feat.SetField(mesh_variable.name_gui, data_field)
+                feat.SetField(mesh_variable.name, data_field)
         # set geometry
         feat.SetGeometry(poly)
         # create
@@ -355,7 +355,7 @@ def export_node_layer_to_gpkg(filename_path, layer_name, epsg_code, unit_data, w
     if not whole_profile:
         # create fields (no width no precision to be specified with GPKG)
         for node_variable in unit_data.hvum.all_final_variable_list.nodes():
-            layer.CreateField(ogr.FieldDefn(node_variable.name_gui, OGRTypes_dict[node_variable.dtype]))
+            layer.CreateField(ogr.FieldDefn(node_variable.name, OGRTypes_dict[node_variable.dtype]))
     else:
         layer.CreateField(ogr.FieldDefn('elevation', ogr.OFTReal))  # Add one attribute
 
@@ -384,7 +384,7 @@ def export_node_layer_to_gpkg(filename_path, layer_name, epsg_code, unit_data, w
             for node_variable in node_variable_list:
                 # convert NumPy values to a native Python type
                 data_field = unit_data[node_variable.position]["data"][node_variable.name][node_num].item()
-                feat.SetField(node_variable.name_gui, data_field)
+                feat.SetField(node_variable.name, data_field)
         else:
             feat.SetField('elevation', z)
         # set geometry
