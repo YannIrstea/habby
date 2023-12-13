@@ -28,7 +28,7 @@ import src.hydraulic_results_manager_mod
 
 matplotlib.use("qt5agg")
 import matplotlib.pyplot as plt
-from multiprocessing import Process, Value, Queue, Event
+from multiprocessing import Process, Value, Queue
 
 from src import hdf5_mod
 from src import estimhab_mod
@@ -46,7 +46,6 @@ import src.calcul_hab_mod
 import src.hydraulic_process_mod
 import src.merge_mod
 import src.substrate_mod
-from src.project_properties_mod import delete_project
 
 
 def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False, erase_id=True):
@@ -130,9 +129,8 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
               'Input: pathname of merge file, name of xml prefence file with no path, stage_chosen,'
               ' run_choice.')
         print('\n')
-        print(
-            'RUN_ESTIMHAB: Run the estimhab model. Input: qmes1 qmes2 wmes1 wmes2 h1mes h2mes q50 qmin qmax sub qra1 qra2'
-            '- all data in float')
+        print('RUN_ESTIMHAB: Run the estimhab model. Input: qmes1 qmes2 wmes1 wmes2 h1mes h2mes q50 sub qout'
+            '- all data in float except qout can be a list of float or an existing chronicle file path.')
         print('\n')
         print('RUN_FSTRESS: Run the fstress model. Input: the path to the files list_riv, deb, and qwh.txt and'
               ' (path where to save output)')
@@ -242,58 +240,10 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'RUN_ESTIMHAB':
+        # remove the first arg MERGE_GRID_SUB
         all_arg = all_arg[1:]
-        if len(all_arg) < 10:
-            print('RUN_ESTIMHAB needs 9 inputs. See LIST_COMMAND for more info.')
-            return
-        # input
-        try:
-            q = [float(all_arg[0]), float(all_arg[1])]
-            w = [float(all_arg[2]), float(all_arg[3])]
-            h = [float(all_arg[4]), float(all_arg[5])]
-            q50 = float(all_arg[6])
-            sub = float(all_arg[7])
-            qrange = [float(all_arg[8]), float(all_arg[9])]
-        except ValueError:
-            print('Error; Estimhab needs float as input')
-            return
 
-        # fish
-        path_bio = os.path.join('biology', 'estimhab')
-        all_file = glob.glob(os.path.join(path_bio, r'*.xml'))
-        for i in range(0, len(all_file)):
-            all_file[i] = os.path.basename(all_file[i])
-        fish_list = all_file
-
-        # short check
-        if q[0] == q[1]:
-            print('Error: two different discharge are needed for estimhab')
-            return
-        if qrange[0] >= qrange[1]:
-            print('Error: A range of discharge is necessary')
-            print(qrange)
-            return
-        if not fish_list:
-            print('Error: no fish found for estimhab')
-            return
-
-        estimhab_dict = dict(q=q,
-                             w=w,
-                             h=h,
-                             q50=q50,
-                             qrange=qrange,
-                             qtarg=[],
-                             substrate=sub,
-                             path_bio=path_bio,
-                             xml_list=fish_list,
-                             fish_list=[])  # TODO: list name available with arg. really need?
-
-        progress_value = Value("d", 0)
-        p = Process(target=estimhab_mod.estimhab_process,
-                    args=(estimhab_dict, project_properties, path_prj,
-                          progress_value),
-                    name="ESTIMHAB")
-        cli_start_process_and_print_progress(p, progress_value)
+        cli_estimhab(all_arg, project_properties)
 
     # ----------------------------------------------------------------------------------
     elif all_arg[0] == 'RUN_STATHAB':
@@ -1428,6 +1378,55 @@ def cli_compute_hs(arguments, project_properties):
                           project_properties),
                     name="hydrosignature computing")
         cli_start_process_and_print_progress(p, progress_value)
+
+
+""" ESTIMHAB """
+
+
+def cli_estimhab(all_arg, project_properties):
+    if len(all_arg) != 9:
+        print('RUN_ESTIMHAB needs 9 inputs. Actually: ' + str(len(all_arg)) + ' args. See LIST_COMMAND for more info.')
+        return
+    # input
+    try:
+        q = [float(all_arg[0]), float(all_arg[1])]
+        w = [float(all_arg[2]), float(all_arg[3])]
+        h = [float(all_arg[4]), float(all_arg[5])]
+        q50 = float(all_arg[6])
+        sub = float(all_arg[7])
+        # qrange
+        if os.path.exists(all_arg[8]):  # from file
+            qrange = all_arg[8]
+        else:
+            qrange = all_arg[8].split(",")  # from seq
+            qrange = [float(qrange[0]), float(qrange[1]), float(qrange[2])]
+    except ValueError:
+        print('Error: Estimhab needs float as input')
+        return
+
+    # all fish
+    path_bio = os.path.join('biology', 'estimhab')
+    xml_list = glob.glob(os.path.join(path_bio, r'*.xml'))
+    estimhab_dict = dict(q=q,
+                         w=w,
+                         h=h,
+                         q50=q50,
+                         qrange=qrange,
+                         substrate=sub,
+                         path_bio=path_bio,
+                         xml_list=xml_list)
+
+    # change_specific_properties
+    change_specific_properties(project_properties["path_prj"],
+                               ["Estimhab"],
+                               [estimhab_dict])
+    project_properties = load_project_properties(project_properties["path_prj"])
+
+    progress_value = Value("d", 0)
+    p = Process(target=estimhab_mod.estimhab_process,
+                args=(project_properties, True, progress_value),
+                name="ESTIMHAB")
+    cli_start_process_and_print_progress(p, progress_value)
 
 
 """ PROCESS """

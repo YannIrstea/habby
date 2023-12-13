@@ -34,12 +34,13 @@ from src.tools_mod import compute_interpolation, export_text_interpolatevalues
 from src.plot_mod import create_map_plot_string_dict
 from src.hrr import hrr
 from src.mesh_manager_mod import mesh_manager
+from src.estimhab_mod import estimhab_process
 
 
 class MyProcessManager(QThread):
     """
     """
-    def __init__(self, type):
+    def __init__(self, process_type):
         QThread.__init__(self)
         self.plot_production_stopped = False
         self.thread_started = False
@@ -47,7 +48,7 @@ class MyProcessManager(QThread):
         self.nb_finished = 0
         self.export_finished = False
         self.nb_hs_total = 0
-        self.process_type = type  # hs or plot or export
+        self.process_type = process_type  # hs or plot or export
         if self.process_type == "hyd":
             self.process_type_gui = self.tr("Hydraulic")
         elif self.process_type == "sub":
@@ -740,14 +741,12 @@ class MyProcessManager(QThread):
         progress_value = Value("d", 0.0)
         q = Queue()
 
-        # load
-        hdf5 = Hdf5Management(self.path_prj, self.plot_attr.name_hdf5, new=False)
-        hdf5.load_hdf5_estimhab()
+        estimhab_dict = estimhab_process(self.project_properties, export=False)
 
         # plot
         my_process = MyProcess(Process(target=plot_mod.plot_stat_data,
                                        args=(progress_value,
-                                               hdf5.estimhab_dict,
+                                               estimhab_dict,
                                              "Estimhab",
                                                self.project_properties),
                                        name="plot_suitability_curve"),

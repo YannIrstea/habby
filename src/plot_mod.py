@@ -1063,11 +1063,6 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
     # show
     plt.show()
 
-    # remove file
-    file_hdf5_path = os.path.join(path_prj, "hdf5", os.path.basename(path_prj) + '_' + stat_mod + '.hab')
-    if os.path.exists(file_hdf5_path):
-        os.remove(file_hdf5_path)
-
 
 # all cases
 def plot_map_node(state, data_xy, data_tin, data_plot, plot_string_dict, light_data_2d, project_properties):

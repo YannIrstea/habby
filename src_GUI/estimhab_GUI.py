@@ -15,16 +15,14 @@ https://github.com/YannIrstea/habby
 
 """
 import os
-from src import estimhab_mod
 import glob
-
 from lxml import etree as ET
 from PyQt5.QtCore import pyqtSignal, Qt, QCoreApplication
 from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QHBoxLayout, QVBoxLayout,  \
     QLineEdit, QFileDialog, QListWidget, QListWidgetItem, QSpacerItem, QGroupBox, QSizePolicy, \
     QAbstractItemView, QMessageBox, QScrollArea, QFrame, QRadioButton
 from PyQt5.QtGui import QFont, QPixmap
-from multiprocessing import Process, Value
+from multiprocessing import Process
 import sys
 from io import StringIO
 
@@ -33,6 +31,7 @@ from src.process_manager_mod import MyProcessManager
 from src.project_properties_mod import load_project_properties, change_specific_properties, load_specific_properties
 from src.dev_tools_mod import isstranumber
 from src.tools_mod import read_chronicle_from_text_file
+from src.estimhab_mod import estimhab_process, read_fishname
 
 
 class StatModUseful(QScrollArea):
@@ -348,7 +347,7 @@ class EstimhabW(StatModUseful):
         self.path_last_file_loaded = self.path_prj
         self.total_lineedit_number = 1
         self.init_iu()
-        self.process_manager = MyProcessManager("estimhab_plot")  # SC (Suitability Curve)
+        self.process_manager = MyProcessManager("estimhab_plot")
         self.read_estimhab_dict()
         self.fill_input_data()
         self.fill_fish_name()
@@ -627,47 +626,21 @@ class EstimhabW(StatModUseful):
         all_xmlfile = glob.glob(os.path.join(self.path_bio_estimhab, r'*.xml'))
 
         if self.estimhab_dict:
-            selected_fish = self.estimhab_dict["fish_list"]
+            selected_fish = self.estimhab_dict["xml_list"]
         else:
             selected_fish = []
-
-        for f in all_xmlfile:
-            # open xml
-            try:
-                try:
-                    docxml = ET.parse(f)
-                    root = docxml.getroot()
-                except IOError:
-                    self.send_log.emit(self.tr("Warning: ") + self.tr("The .habby project file ") + f + self.tr(" could not be open.\n"))
-                    return
-            except ET.ParseError:
-                self.send_log.emit(self.tr("Warning: ") + self.tr("The .habby project file ") + f + self.tr(" is not well-formed.\n"))
-                return
-
-            # find fish name
-            fish_name = root.find(".//LatinName")
-            # None is null for python 3
-            if fish_name is not None:
-                fish_name = fish_name.text.strip()
-
-            # find fish stage
-            stage = root.find(".//estimhab/stage")
-            # None is null for python 3
-            if stage is not None:
-                stage = stage.text.strip()
-            if stage != 'all_stage':
-                fish_name += ' ' + stage
-
+        fish_names = read_fishname(all_xmlfile)
+        for fish_ind, fish_xml in enumerate(all_xmlfile):
             # check if not selected
-            if fish_name not in selected_fish:
+            if fish_xml not in selected_fish:
                 # add to the list
-                item = QListWidgetItem(fish_name)
-                item.setData(1, f)
+                item = QListWidgetItem(fish_names[fish_ind])
+                item.setData(1, all_xmlfile[fish_ind])
                 self.list_f.addItem(item)
             else:
                 # add to the list
-                item2 = QListWidgetItem(fish_name)
-                item2.setData(1, f)
+                item2 = QListWidgetItem(fish_names[fish_ind])
+                item2.setData(1, all_xmlfile[fish_ind])
                 self.selected_aquatic_animal_qtablewidget.addItem(item2)
 
     def fill_input_data(self):
@@ -800,13 +773,11 @@ class EstimhabW(StatModUseful):
             return
 
         # get the list of xml file
-        fish_list = []
-        fish_name2 = []
+        xml_list = []
         for i in range(0, self.selected_aquatic_animal_qtablewidget.count()):
             fish_item = self.selected_aquatic_animal_qtablewidget.item(i)
             fish_item_str = fish_item.text()
-            fish_list.append(os.path.basename(fish_item.data(1)))
-            fish_name2.append(fish_item_str)
+            xml_list.append(fish_item.data(1))
         # input
         if q[0] == q[1]:
             self.send_log.emit('Error: ' + self.tr('Estimhab needs two differents measured discharges.'))
@@ -828,7 +799,7 @@ class EstimhabW(StatModUseful):
             self.send_log.emit('Error: ' + self.tr('Substrate is too large. Could not run Estimhab.'))
             return
         # output
-        if not fish_list:
+        if not xml_list:
             self.send_log.emit('Error: ' + self.tr('No fish selected. Cannot run Estimhab.'))
             return
         if type(qrange) != str:  # seq
@@ -859,7 +830,6 @@ class EstimhabW(StatModUseful):
         self.send_log.emit(self.tr('# Computing: Estimhab...'))
 
         # run and save
-        project_properties = load_project_properties(self.path_prj)
         sys.stdout = mystdout = StringIO()
 
         self.estimhab_dict = dict(q=q,
@@ -869,32 +839,29 @@ class EstimhabW(StatModUseful):
                              qrange=qrange,
                              substrate=substrate,
                              path_bio=self.path_bio_estimhab,
-                             xml_list=fish_list,
-                             fish_list=fish_name2)
+                             xml_list=xml_list)
 
         # change_specific_properties
         change_specific_properties(self.path_prj,
                                    ["Estimhab"],
                                    [self.estimhab_dict])
 
-        # process
-        state = Value("d", 0)
-        self.p = Process(target=estimhab_mod.estimhab_process,
-                         args=(self.estimhab_dict, project_properties, self.path_prj,
-                               state),
-                         name="Estimhab")
-        self.p.start()
-        self.p.join()
+        project_properties = load_project_properties(self.path_prj)
 
+        # compute
+        p = Process(target=estimhab_process,
+                         args=(project_properties, True, None), name="Estimhab")
+        p.start()
+        p.join()
+
+        # show
         if show:
             # plot
             plot_attr = lambda: None
-            plot_attr.name_hdf5 = self.name_prj + '_ESTIMHAB' + '.hab'
             plot_attr.nb_plot = 1
-
             self.process_manager.set_estimhab_plot_mode(self.path_prj,
                                                         plot_attr,
-                                                        load_project_properties(self.path_prj))
+                                                        project_properties)
             self.process_manager.start()
 
         # log info
@@ -914,8 +881,8 @@ class EstimhabW(StatModUseful):
         # self.send_log.emit("py    qrange =[" + str(qrange[0]) + ',' + str(qrange[1]) + ']')
         self.send_log.emit("py    path1= os.path.join(os.path.dirname(path_bio),'" + self.path_bio_estimhab + "')")
         fish_list_str = "py    fish_list = ["
-        for i in range(0, len(fish_list)):
-            fish_list_str += "'" + fish_list[i] + "',"
+        for i in range(0, len(xml_list)):
+            fish_list_str += "'" + xml_list[i] + "',"
         fish_list_str = fish_list_str[:-1] + ']'
         self.send_log.emit(fish_list_str)
         self.send_log.emit("py    [OSI, WUA] = estimhab.estimhab(data[0], data[1], data[2], data[3] ,"

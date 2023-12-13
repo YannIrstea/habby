@@ -24,18 +24,16 @@ from PyQt5.QtCore import QLocale
 from stl import mesh
 from multiprocessing import Value, Pool, Lock, cpu_count
 from pandas import DataFrame
-from shutil import copy as sh_copy
 
 from src.hl_mod import unstructuredGridToVTK
 from src.paraview_mod import writePVD
 from src.export_manager_mod import export_mesh_layer_to_gpkg, merge_gpkg_to_one, export_node_layer_to_gpkg, export_mesh_txt,\
     setup, export_point_txt, export_report
 from src.project_properties_mod import load_project_properties, save_project_properties
-from src.dev_tools_mod import copy_shapefiles, copy_hydrau_input_files, txt_file_convert_dot_to_comma, strip_accents
+from src.dev_tools_mod import copy_shapefiles, copy_hydrau_input_files, strip_accents
 from src.data_2d_mod import Data2d
 from src.translator_mod import get_translator
 from src.hydrosignature_mod import hsexporttxt
-from src.tools_mod import read_chronicle_from_text_file
 
 
 from habby import HABBY_VERSION_STR
@@ -1204,178 +1202,6 @@ class Hdf5Management:
                                 self.data_2d[reach_number][unit_number].hydrosignature["max_velocity"],
                                 self.data_2d[reach_number][unit_number].hydrosignature["hsarea"],
                                 self.data_2d[reach_number][unit_number].hydrosignature["hsvolume"])
-
-    # ESTIMHAB
-    def create_hdf5_estimhab(self, estimhab_dict, project_properties):
-        # hdf5_type
-        self.hdf5_type = "ESTIMHAB"
-
-        # save dict to attribute
-        self.project_properties = project_properties
-
-        # intput data
-        self.file_object.attrs["path_bio_estimhab"] = estimhab_dict["path_bio"]
-        self.file_object.create_dataset('qmes', [2, 1], data=estimhab_dict["q"])
-        self.file_object.create_dataset("wmes", [2, 1], data=estimhab_dict["w"])
-        self.file_object.create_dataset("hmes", [2, 1], data=estimhab_dict["h"])
-        self.file_object.create_dataset("q50", [1, 1], data=estimhab_dict["q50"])
-        if type(estimhab_dict["qrange"]) == str:
-            self.file_object.create_dataset("qrange", [1, 1], data=estimhab_dict["qrange"])
-        else:
-            self.file_object.create_dataset("qrange", [3, 1], data=estimhab_dict["qrange"])
-        self.file_object.create_dataset("substrate", [1, 1], data=estimhab_dict["substrate"])
-        xml_list = [n.encode("ascii", "ignore") for n in estimhab_dict["xml_list"]]  # unicode is not ok with hdf5
-        fish_list = [n.encode("ascii", "ignore") for n in estimhab_dict["fish_list"]]  # unicode is not ok with hdf5
-        self.file_object.create_dataset("xml_list", (len(xml_list), 1), data=xml_list)
-        self.file_object.create_dataset("fish_list", (len(fish_list), 1), data=fish_list)
-
-        # output data
-        self.file_object.create_dataset("q_all", estimhab_dict["q_all"].shape, data=estimhab_dict["q_all"])
-        self.file_object.create_dataset("h_all", estimhab_dict["h_all"].shape, data=estimhab_dict["h_all"])
-        self.file_object.create_dataset("w_all", estimhab_dict["w_all"].shape, data=estimhab_dict["w_all"])
-        self.file_object.create_dataset("vel_all", estimhab_dict["vel_all"].shape, data=estimhab_dict["vel_all"])
-        self.file_object.create_dataset("OSI", estimhab_dict["OSI"].shape, data=estimhab_dict["OSI"])
-        self.file_object.create_dataset("WUA", estimhab_dict["WUA"].shape, data=estimhab_dict["WUA"])
-
-        # close
-        self.close_file()
-
-    def load_hdf5_estimhab(self):
-        # load dataset
-        if type(self.file_object["qrange"][:].flatten().tolist()[0]) == bytes:
-            qrange = self.file_object["qrange"][:].flatten().tolist()[0].decode("utf-8")
-        else:
-            qrange = self.file_object["qrange"][:].flatten().tolist()
-        estimhab_dict = dict(q=self.file_object["qmes"][:].flatten().tolist(),
-                             w=self.file_object["wmes"][:].flatten().tolist(),
-                             h=self.file_object["hmes"][:].flatten().tolist(),
-                             q50=self.file_object["q50"][:].flatten().tolist()[0],
-                             substrate=self.file_object["substrate"][:].flatten().tolist()[0],
-                             path_bio=self.file_object.attrs["path_bio_estimhab"],
-                             xml_list=self.file_object["xml_list"][:].flatten().astype(np.str).tolist(),
-                             fish_list=self.file_object["fish_list"][:].flatten().astype(np.str).tolist(),
-                             qrange=qrange,
-                             q_all=self.file_object["q_all"][:],
-                             h_all=self.file_object["h_all"][:],
-                             w_all=self.file_object["w_all"][:],
-                             vel_all=self.file_object["vel_all"][:],
-                             OSI=self.file_object["OSI"][:],
-                             WUA=self.file_object["WUA"][:])
-
-        # close file
-        self.close_file()
-
-        # save attrivbute
-        self.estimhab_dict = estimhab_dict
-
-    def export_estimhab_txt(self):
-        q_all = self.estimhab_dict["q_all"]
-        h_all = self.estimhab_dict["h_all"]
-        w_all = self.estimhab_dict["w_all"]
-        vel_all = self.estimhab_dict["vel_all"]
-        fish_name = self.estimhab_dict["fish_list"]
-        qmes = self.estimhab_dict["q"]
-        width = self.estimhab_dict["w"]
-        height = self.estimhab_dict["h"]
-        q50 = self.estimhab_dict["q50"]
-        substrat = self.estimhab_dict["substrate"]
-        qrange = self.estimhab_dict["qrange"]
-        OSI = self.estimhab_dict["OSI"]
-        WUA = self.estimhab_dict["WUA"]
-        output_filename = "Estimhab"
-        intput_filename = "Estimhab_input"
-
-        # header
-        date_all = None
-        txt_header = 'Discharge\tHeight\tWidth\tVelocity'
-        if type(qrange) == str:  # chronicle
-            chronicle_from_file, types_from_file = read_chronicle_from_text_file(qrange)
-            if "date" in types_from_file.keys():
-                txt_header = 'Date\tDischarge\tHeight\tWidth\tVelocity'
-                date_all = chronicle_from_file["date"]
-
-        # check if exist and erase
-        if os.path.exists(os.path.join(self.path_txt, output_filename + '.txt')):
-            if not self.project_properties["erase_id"]:
-                output_filename = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-                intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-
-        # prep data
-        if date_all is None:
-            all_data = np.vstack((q_all, h_all, w_all, vel_all))
-        else:
-            all_data = np.vstack((date_all, q_all, h_all, w_all, vel_all))
-
-        for f in range(0, len(fish_name)):
-            txt_header += '\tOSI_' + fish_name[f] + '\tWUA_' + fish_name[f]
-            all_data = np.vstack((all_data, OSI[f]))
-            all_data = np.vstack((all_data, WUA[f]))
-
-        # headers
-        if date_all is None:
-            txt_header += '\n[m3/s]\t[m]\t[m]\t[m/s]'
-        else:
-            txt_header += '\n[]\t[m3/s]\t[m]\t[m]\t[m/s]'
-        for f in range(0, len(fish_name)):
-            txt_header += '\t[-]\t[m2/100m]'
-
-        # export estimhab output
-        try:
-            np.savetxt(os.path.join(self.path_txt, output_filename + '.txt'),
-                       all_data.T,
-                       header=txt_header,
-                       fmt="%s",
-                       delimiter='\t')  # , newline=os.linesep
-        except PermissionError:
-            output_filename = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-            intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-            np.savetxt(os.path.join(self.path_txt, output_filename + '.txt'),
-                       all_data.T,
-                       header=txt_header,
-                       fmt='%s',
-                       delimiter='\t')  # , newline=os.linesep
-
-        # change decimal point
-        locale = QLocale()
-        if locale.decimalPoint() == ",":
-            txt_file_convert_dot_to_comma(os.path.join(self.path_txt, output_filename + '.txt'))
-
-        # export estimhab input
-        txtin = 'Discharge [m3/sec]:\t' + str(qmes[0]) + '\t' + str(qmes[1]) + '\n'
-        txtin += 'Width [m]:\t' + str(width[0]) + '\t' + str(width[1]) + '\n'
-        txtin += 'Height [m]:\t' + str(height[0]) + '\t' + str(height[1]) + '\n'
-        txtin += 'Median discharge [m3/sec]:\t' + str(q50) + '\n'
-        txtin += 'Mean substrate size [m]:\t' + str(substrat) + '\n'
-        if type(qrange) == str:
-            txtin += 'Chronicle discharge file path:\t' + qrange + '\n'
-        else:
-            txtin += 'Sequence from to by [m3/sec]:\t' + str(qrange[0]) + '\t' + str(qrange[1]) + '\t' + str(qrange[2]) + '\n'
-        txtin += 'Fish chosen:\t'
-        for n in fish_name:
-            txtin += n + '\t'
-        txtin = txtin[:-1]
-        txtin += '\n'
-        txtin += 'Output file:\t' + output_filename + '.txt\n'
-
-        # create input_estimhab dir if not exist
-        if not os.path.exists(os.path.join(self.path_input, "input_estimhab")):
-            os.makedirs(os.path.join(self.path_input, "input_estimhab"))
-
-        # write file
-        try:
-            with open(os.path.join(self.path_input, "input_estimhab", intput_filename + '.txt'), 'wt') as f:
-                f.write(txtin)
-        except PermissionError:
-            intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-            with open(os.path.join(self.path_input, "input_estimhab", intput_filename + '.txt'), 'wt') as f:
-                f.write(txtin)
-        locale = QLocale()
-        if locale.decimalPoint() == ",":
-            txt_file_convert_dot_to_comma(os.path.join(self.path_input, "input_estimhab", intput_filename + '.txt'))
-
-        # copy chronible file
-        if type(qrange) == str:
-            sh_copy(qrange, os.path.join(self.path_input, "input_estimhab", os.path.basename(qrange)))
 
     """ EXPORT 2D """
     def load_data_to_export(self, user_target_list, whole_profil=False):

@@ -17,46 +17,44 @@ https://github.com/YannIrstea/habby
 import numpy as np
 import xml.etree.ElementTree as ET
 import os
+import time
+from shutil import copy as sh_copy
+from PyQt5.QtCore import QLocale
 
-from src import hdf5_mod
-from src.translator_mod import get_translator
-from src.dev_tools_mod import frange
+from src.dev_tools_mod import frange, txt_file_convert_dot_to_comma
 from src.tools_mod import read_chronicle_from_text_file
+from src.project_properties_mod import load_specific_properties
 
 
-def estimhab_process(estimhab_dict, project_properties, path_prj, progress_value):
-    qt_tr = get_translator(project_properties['path_prj'])
+def estimhab_process(project_properties, export=True, progress_value=None):
+    # TODO: reactivate translation
+    # load
+    estimhab_dict = load_specific_properties(project_properties['path_prj'],
+                                                      ["Estimhab"])[0]
 
     # compute
-    q_all, h_all, w_all, vel_all, OSI, WUA = estimhab(estimhab_dict, qt_tr)
+    q_all, h_all, w_all, vel_all, OSI, WUA = estimhab(estimhab_dict)
 
-    # save in dict
+    # add in dict
     estimhab_dict["q_all"] = q_all
     estimhab_dict["h_all"] = h_all
     estimhab_dict["w_all"] = w_all
     estimhab_dict["vel_all"] = vel_all
     estimhab_dict["OSI"] = OSI
     estimhab_dict["WUA"] = WUA
-
-    # name hdf5
-    name_prj = os.path.basename(path_prj)
-    filename = name_prj + '_ESTIMHAB' + '.hab'
-
-    # create hdf5
-    hdf5 = hdf5_mod.Hdf5Management(path_prj, filename, new=True)
-    hdf5.create_hdf5_estimhab(estimhab_dict, project_properties)
-
-    # load
-    hdf5 = hdf5_mod.Hdf5Management(path_prj, filename, new=False)
-    hdf5.load_hdf5_estimhab()
+    estimhab_dict["fish_list"] = read_fishname(estimhab_dict["xml_list"])
 
     # export
-    hdf5.export_estimhab_txt()
+    if export:
+        export_estimhab_txt(estimhab_dict, project_properties)
 
-    progress_value.value = 100.0
+    if progress_value is not None:
+        progress_value.value = 100
+
+    return estimhab_dict
 
 
-def estimhab(estimhab_dict, qt_tr):
+def estimhab(estimhab_dict):
     """
     This the function which forms the Estimhab model in HABBY. It is a reproduction in python of the excel file which
     forms the original Estimhab model.. Unit in meter amd m^3/sec
@@ -104,7 +102,7 @@ def estimhab(estimhab_dict, qt_tr):
     substrat = estimhab_dict["substrate"]
     path_bio = estimhab_dict["path_bio"]
     fish_xml = estimhab_dict["xml_list"]
-    fish_name = estimhab_dict["fish_list"]
+    fish_name = read_fishname(estimhab_dict["xml_list"])
 
     # Q
     # nb_q = 100  # number of calculated q
@@ -116,7 +114,7 @@ def estimhab(estimhab_dict, qt_tr):
     #                         num=nb_q,
     #                          endpoint=True)
     # else:
-    #     print('Error: ' + qt_tr.translate("estimhab_mod", 'The mininum discharge is higher or equal than the maximum.'))
+    #     print('Error: ' + 'The mininum discharge is higher or equal than the maximum.')
     #     return [-99], [-99], [-99], [-99], [-99], [-99]
 
     if type(qrange) == str:  # chronicle
@@ -155,14 +153,13 @@ def estimhab(estimhab_dict, qt_tr):
     WUA = []
     for f in range(0, len(fish_xml)):
         # load xml file
-        filename = os.path.join(path_bio, fish_xml[f])
+        filename = fish_xml[f]
         if os.path.isfile(filename):
             parser = ET.XMLParser()
             doc = ET.parse(filename, parser)
             root = doc.getroot()
         else:
-            print('Error: ' + qt_tr.translate("estimhab_mod", 'The xml file for the file ') + filename +
-                  qt_tr.translate("estimhab_mod", " does not exist."))
+            print('Error: The xml file for the file ' + filename + " does not exist.")
             return [-99], [-99], [-99], [-99], [-99], [-99]
 
         # get data
@@ -172,8 +169,7 @@ def estimhab(estimhab_dict, qt_tr):
             coeff_const = pass_to_float_estimhab(".//coeff_const", root)
             var_const = pass_to_float_estimhab(".//var_const", root)
         except ValueError:
-            print('Error: ' + qt_tr.translate("estimhab_mod",
-                                              'Some data can not be read or are not number. Check the xml file of ') +
+            print('Error: ' + 'Some data can not be read or are not number. Check the xml file of ' +
                   fish_name[f] + fish_xml[f])
             return [-99], [-99], [-99], [-99], [-99], [-99], [-99]
 
@@ -183,8 +179,7 @@ def estimhab(estimhab_dict, qt_tr):
         elif func_q[0] == 1.:
             part_q = 1 + coeff_q[0] * np.exp(coeff_q[1] * re)
         else:
-            print('Error: ' + qt_tr.translate("estimhab_mod",
-                                              'No function defined for Q'))
+            print('Error: ' + 'No function defined for Q')
         const = coeff_const[0]
         for i in range(0, len(var_const)):
             const += coeff_const[i + 1] * np.log(q50_data[int(var_const[i])])
@@ -201,6 +196,38 @@ def estimhab(estimhab_dict, qt_tr):
 
     return q_all, h_all, w_all, vel, OSI, WUA
 
+
+def read_fishname(all_xmlfile):
+    fish_names = []
+    for f in all_xmlfile:
+        # open xml
+        try:
+            try:
+                docxml = ET.parse(f)
+                root = docxml.getroot()
+            except IOError:
+                print("Warning: " + "The file " + f + " could not be open.\n")
+                return
+        except ET.ParseError:
+            print("Warning: " + "The file " + f + " is not well-formed.\n")
+            return
+
+        # find fish name
+        fish_name = root.find(".//LatinName")
+        # None is null for python 3
+        if fish_name is not None:
+            fish_name = fish_name.text.strip()
+
+        # find fish stage
+        stage = root.find(".//estimhab/stage")
+        # None is null for python 3
+        if stage is not None:
+            stage = stage.text.strip()
+        if stage != 'all_stage':
+            fish_name += ' ' + stage
+        fish_names.append(fish_name)
+
+    return fish_names
 
 def pass_to_float_estimhab(var_name, root):
     """
@@ -219,6 +246,118 @@ def pass_to_float_estimhab(var_name, root):
         coeff = list(map(float, coeff))
 
     return coeff
+
+
+def export_estimhab_txt(estimhab_dict, project_properties):
+    q_all = estimhab_dict["q_all"]
+    h_all = estimhab_dict["h_all"]
+    w_all = estimhab_dict["w_all"]
+    vel_all = estimhab_dict["vel_all"]
+    qmes = estimhab_dict["q"]
+    width = estimhab_dict["w"]
+    height = estimhab_dict["h"]
+    q50 = estimhab_dict["q50"]
+    substrat = estimhab_dict["substrate"]
+    qrange = estimhab_dict["qrange"]
+    OSI = estimhab_dict["OSI"]
+    WUA = estimhab_dict["WUA"]
+    fish_list = estimhab_dict["fish_list"]
+    path_txt = project_properties["path_text"]
+    path_input = project_properties["path_input"]
+    output_filename = "Estimhab"
+    intput_filename = "Estimhab_input"
+
+    # header
+    date_all = None
+    txt_header = 'Discharge\tHeight\tWidth\tVelocity'
+    if type(qrange) == str:  # chronicle
+        chronicle_from_file, types_from_file = read_chronicle_from_text_file(qrange)
+        if "date" in types_from_file.keys():
+            txt_header = 'Date\tDischarge\tHeight\tWidth\tVelocity'
+            date_all = chronicle_from_file["date"]
+
+    # check if exist and erase
+    if os.path.exists(os.path.join(path_txt, output_filename + '.txt')):
+        if not project_properties["erase_id"]:
+            output_filename = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+            intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+
+    # prep data
+    if date_all is None:
+        all_data = np.vstack((q_all, h_all, w_all, vel_all))
+    else:
+        all_data = np.vstack((date_all, q_all, h_all, w_all, vel_all))
+
+    for f in range(0, len(fish_list)):
+        txt_header += '\tOSI_' + fish_list[f] + '\tWUA_' + fish_list[f]
+        all_data = np.vstack((all_data, OSI[f]))
+        all_data = np.vstack((all_data, WUA[f]))
+
+    # headers
+    if date_all is None:
+        txt_header += '\n[m3/s]\t[m]\t[m]\t[m/s]'
+    else:
+        txt_header += '\n[]\t[m3/s]\t[m]\t[m]\t[m/s]'
+    for f in range(0, len(fish_list)):
+        txt_header += '\t[-]\t[m2/100m]'
+
+    # export estimhab output
+    try:
+        np.savetxt(os.path.join(path_txt, output_filename + '.txt'),
+                   all_data.T,
+                   header=txt_header,
+                   fmt="%s",
+                   delimiter='\t')  # , newline=os.linesep
+    except PermissionError:
+        output_filename = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+        intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+        np.savetxt(os.path.join(path_txt, output_filename + '.txt'),
+                   all_data.T,
+                   header=txt_header,
+                   fmt='%s',
+                   delimiter='\t')  # , newline=os.linesep
+
+    # change decimal point
+    locale = QLocale()
+    if locale.decimalPoint() == ",":
+        txt_file_convert_dot_to_comma(os.path.join(path_txt, output_filename + '.txt'))
+
+    # export estimhab input
+    txtin = 'Discharge [m3/sec]:\t' + str(qmes[0]) + '\t' + str(qmes[1]) + '\n'
+    txtin += 'Width [m]:\t' + str(width[0]) + '\t' + str(width[1]) + '\n'
+    txtin += 'Height [m]:\t' + str(height[0]) + '\t' + str(height[1]) + '\n'
+    txtin += 'Median discharge [m3/sec]:\t' + str(q50) + '\n'
+    txtin += 'Mean substrate size [m]:\t' + str(substrat) + '\n'
+    if type(qrange) == str:
+        txtin += 'Chronicle discharge file path:\t' + qrange + '\n'
+    else:
+        txtin += 'Sequence from to by [m3/sec]:\t' + str(qrange[0]) + '\t' + str(qrange[1]) + '\t' + str(qrange[2]) + '\n'
+    txtin += 'Fish chosen:\t'
+    for n in fish_list:
+        txtin += n + '\t'
+    txtin = txtin[:-1]
+    txtin += '\n'
+    txtin += 'Output file:\t' + output_filename + '.txt\n'
+
+    # create input_estimhab dir if not exist
+    if not os.path.exists(os.path.join(path_input, "input_estimhab")):
+        os.makedirs(os.path.join(path_input, "input_estimhab"))
+
+    # write file
+    try:
+        with open(os.path.join(path_input, "input_estimhab", intput_filename + '.txt'), 'wt') as f:
+            f.write(txtin)
+    except PermissionError:
+        intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
+        with open(os.path.join(path_input, "input_estimhab", intput_filename + '.txt'), 'wt') as f:
+            f.write(txtin)
+    locale = QLocale()
+    if locale.decimalPoint() == ",":
+        txt_file_convert_dot_to_comma(os.path.join(path_input, "input_estimhab", intput_filename + '.txt'))
+
+    # copy chronible file
+    if type(qrange) == str:
+        sh_copy(qrange, os.path.join(path_input, "input_estimhab", os.path.basename(qrange)))
 
 
 def main():
