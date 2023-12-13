@@ -24,6 +24,7 @@ from PyQt5.QtCore import QLocale
 from stl import mesh
 from multiprocessing import Value, Pool, Lock, cpu_count
 from pandas import DataFrame
+from shutil import copy as sh_copy
 
 from src.hl_mod import unstructuredGridToVTK
 from src.paraview_mod import writePVD
@@ -34,6 +35,7 @@ from src.dev_tools_mod import copy_shapefiles, copy_hydrau_input_files, txt_file
 from src.data_2d_mod import Data2d
 from src.translator_mod import get_translator
 from src.hydrosignature_mod import hsexporttxt
+from src.tools_mod import read_chronicle_from_text_file
 
 
 from habby import HABBY_VERSION_STR
@@ -51,6 +53,7 @@ class Hdf5Management:
         self.hdf5_version = h5py.version.hdf5_version
         # project attributes
         self.path_prj = path_prj  # relative path to project
+        self.path_input = os.path.join(self.path_prj, "input")
         self.path_gis = os.path.join(self.path_prj, "output", "GIS")
         self.path_txt = os.path.join(self.path_prj, "output", "text")
         self.path_3d = os.path.join(self.path_prj, "output", "3D")
@@ -1243,7 +1246,6 @@ class Hdf5Management:
             qrange = self.file_object["qrange"][:].flatten().tolist()[0].decode("utf-8")
         else:
             qrange = self.file_object["qrange"][:].flatten().tolist()
-
         estimhab_dict = dict(q=self.file_object["qmes"][:].flatten().tolist(),
                              w=self.file_object["wmes"][:].flatten().tolist(),
                              h=self.file_object["hmes"][:].flatten().tolist(),
@@ -1267,8 +1269,6 @@ class Hdf5Management:
         self.estimhab_dict = estimhab_dict
 
     def export_estimhab_txt(self):
-        # text files output
-        txt_header = 'Discharge\tHeight\tWidth\tVelocity'
         q_all = self.estimhab_dict["q_all"]
         h_all = self.estimhab_dict["h_all"]
         w_all = self.estimhab_dict["w_all"]
@@ -1285,6 +1285,15 @@ class Hdf5Management:
         output_filename = "Estimhab"
         intput_filename = "Estimhab_input"
 
+        # header
+        date_all = None
+        txt_header = 'Discharge\tHeight\tWidth\tVelocity'
+        if type(qrange) == str:  # chronicle
+            chronicle_from_file, types_from_file = read_chronicle_from_text_file(qrange)
+            if "date" in types_from_file.keys():
+                txt_header = 'Date\tDischarge\tHeight\tWidth\tVelocity'
+                date_all = chronicle_from_file["date"]
+
         # check if exist and erase
         if os.path.exists(os.path.join(self.path_txt, output_filename + '.txt')):
             if not self.project_properties["erase_id"]:
@@ -1292,13 +1301,21 @@ class Hdf5Management:
                 intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
 
         # prep data
-        all_data = np.vstack((q_all, h_all, w_all, vel_all))
+        if date_all is None:
+            all_data = np.vstack((q_all, h_all, w_all, vel_all))
+        else:
+            all_data = np.vstack((date_all, q_all, h_all, w_all, vel_all))
+
         for f in range(0, len(fish_name)):
             txt_header += '\tOSI_' + fish_name[f] + '\tWUA_' + fish_name[f]
             all_data = np.vstack((all_data, OSI[f]))
             all_data = np.vstack((all_data, WUA[f]))
 
-        txt_header += '\n[m3/s]\t[m]\t[m]\t[m/s]'
+        # headers
+        if date_all is None:
+            txt_header += '\n[m3/s]\t[m]\t[m]\t[m/s]'
+        else:
+            txt_header += '\n[]\t[m3/s]\t[m]\t[m]\t[m/s]'
         for f in range(0, len(fish_name)):
             txt_header += '\t[-]\t[m2/100m]'
 
@@ -1307,7 +1324,7 @@ class Hdf5Management:
             np.savetxt(os.path.join(self.path_txt, output_filename + '.txt'),
                        all_data.T,
                        header=txt_header,
-                       fmt='%f',
+                       fmt="%s",
                        delimiter='\t')  # , newline=os.linesep
         except PermissionError:
             output_filename = "Estimhab_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
@@ -1315,7 +1332,7 @@ class Hdf5Management:
             np.savetxt(os.path.join(self.path_txt, output_filename + '.txt'),
                        all_data.T,
                        header=txt_header,
-                       fmt='%f',
+                       fmt='%s',
                        delimiter='\t')  # , newline=os.linesep
 
         # change decimal point
@@ -1330,25 +1347,35 @@ class Hdf5Management:
         txtin += 'Median discharge [m3/sec]:\t' + str(q50) + '\n'
         txtin += 'Mean substrate size [m]:\t' + str(substrat) + '\n'
         if type(qrange) == str:
-            txtin += 'Chronicle discharge [m3/sec]:\t' + qrange + '\n'
+            txtin += 'Chronicle discharge file path:\t' + qrange + '\n'
         else:
-            txtin += 'Minimum and maximum discharge [m3/sec]:\t' + str(qrange[0]) + '\t' + str(qrange[1]) + '\n'
+            txtin += 'Sequence from to by [m3/sec]:\t' + str(qrange[0]) + '\t' + str(qrange[1]) + '\t' + str(qrange[2]) + '\n'
         txtin += 'Fish chosen:\t'
         for n in fish_name:
             txtin += n + '\t'
         txtin = txtin[:-1]
         txtin += '\n'
         txtin += 'Output file:\t' + output_filename + '.txt\n'
+
+        # create input_estimhab dir if not exist
+        if not os.path.exists(os.path.join(self.path_input, "input_estimhab")):
+            os.makedirs(os.path.join(self.path_input, "input_estimhab"))
+
+        # write file
         try:
-            with open(os.path.join(self.path_txt, intput_filename + '.txt'), 'wt') as f:
+            with open(os.path.join(self.path_input, "input_estimhab", intput_filename + '.txt'), 'wt') as f:
                 f.write(txtin)
         except PermissionError:
             intput_filename = "Estimhab_input_" + time.strftime("%d_%m_%Y_at_%H_%M_%S")
-            with open(os.path.join(self.path_txt, intput_filename + '.txt'), 'wt') as f:
+            with open(os.path.join(self.path_input, "input_estimhab", intput_filename + '.txt'), 'wt') as f:
                 f.write(txtin)
         locale = QLocale()
         if locale.decimalPoint() == ",":
-            txt_file_convert_dot_to_comma(os.path.join(self.path_txt, intput_filename + '.txt'))
+            txt_file_convert_dot_to_comma(os.path.join(self.path_input, "input_estimhab", intput_filename + '.txt'))
+
+        # copy chronible file
+        if type(qrange) == str:
+            sh_copy(qrange, os.path.join(self.path_input, "input_estimhab", os.path.basename(qrange)))
 
     """ EXPORT 2D """
     def load_data_to_export(self, user_target_list, whole_profil=False):
