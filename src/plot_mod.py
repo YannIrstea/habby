@@ -884,10 +884,10 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
     except KeyError:
         reach_name = ""
 
-    if type(stat_data_dict["q_all"]) == str:
+    if type(stat_data_dict["qrange"]) == str:
         # chronicle_presence
         chronicle_presence = True
-        chronicle_from_file, types_from_file = read_chronicle_from_text_file(stat_data_dict["q_all"])
+        chronicle_from_file, types_from_file = read_chronicle_from_text_file(stat_data_dict["qrange"])
         if "date" in chronicle_from_file.keys():
             date_presence = True
             date_type = types_from_file["date"]
@@ -915,24 +915,31 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
         else:
             x_data = range(0, len(stat_data_dict["q_all"]))
 
+    marker = None
+    if project_properties['marker']:
+        marker = 'o'
+    else:
+        if len(x_data) == 1:
+            marker = 'o'
+
     # H
     ax_h.plot(x_data,
                   stat_data_dict["h_all"],
-                  color="black")
+                  color="black", marker=marker)
     ax_h.set_ylabel("height\n[m]")
     ax_h.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # W
     ax_w.plot(x_data,
                   stat_data_dict["w_all"],
-                  color="black")
+                  color="black", marker=marker)
     ax_w.set_ylabel("width\n[m]")
     ax_w.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
     # V
     ax_v.plot(x_data,
                   stat_data_dict["vel_all"],
-                  color="black")
+                  color="black", marker=marker)
     ax_v.set_ylabel("velocity\n[m/s]")
     ax_v.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
@@ -942,32 +949,31 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
     if date_presence:
         ax_date.plot(x_data,
                      stat_data_dict["q_all"],
-                     color="black")
+                     color="black", marker=marker)
         ax_date.set_ylabel("Discharge \n[m$^{3}$/sec]")
         ax_date.set_xlabel("Date [" + date_type + "]")
         ax_date.tick_params(axis='x', rotation=45)
+        ax_date.xaxis.set_major_formatter(date_format_mpl)
+        # if len(date_name) < 25:
+        #     ax_date.set_xticks(chronicle_from_file["units"])  # , rotation=45
+        #     ax_date.set_xticklabels(date_name)
+        # elif len(date_name) < 100:
+        #     ax_date.set_xticks(chronicle_from_file["units"][::3])
+        #     ax_date.set_xticklabels(date_name[::3])
+        # elif len(date_name) < 200:
+        #     ax_date.set_xticks(chronicle_from_file["units"][::10])
+        #     ax_date.set_xticklabels(date_name[::10])
+        # else:
+        #     ax_date.set_xticks(chronicle_from_file["units"][::20])
+        #     ax_date.set_xticklabels(date_name[::20])
     if chronicle_presence and not date_presence:
         ax_date.plot(x_data,
                      stat_data_dict["q_all"],
-                     color="black")
+                     color="black", marker=marker)
         ax_date.set_ylabel("Discharge \n[m$^{3}$/sec]")
         ax_date.set_xlabel("Unit []")
         ax_date.xaxis.set_ticklabels([])
         ax_date.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
-        if len(date_name) < 25:
-            ax_date.set_xticks(chronicle_from_file["units"])  # , rotation=45
-            ax_date.set_xticklabels(date_name)
-        elif len(date_name) < 100:
-            ax_date.set_xticks(chronicle_from_file["units"][::3])
-            ax_date.set_xticklabels(date_name[::3])
-        elif len(date_name) < 200:
-            ax_date.set_xticks(chronicle_from_file["units"][::10])
-            ax_date.set_xticklabels(date_name[::10])
-        else:
-            ax_date.set_xticks(chronicle_from_file["units"][::20])
-            ax_date.set_xticklabels(date_name[::20])
-        if date_presence:
-            ax_date.xaxis.set_major_formatter(date_format_mpl)
 
     # save image
     name_pict = stat_mod + "_hydraulic_" + reach_name + project_properties['format']
@@ -996,7 +1002,7 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
                    stat_data_dict["OSI"][fish_index],
                    label=stat_data_dict["fish_list"][fish_index],
                    color=color_list[fish_index],
-                   linestyle=style_list[fish_index])
+                   linestyle=style_list[fish_index], marker=marker)
     ax_osi.set_ylim([-0.1, 1.1])
     ax_osi.set_ylabel("Overall Suitability Index\n[]")
     ax_osi.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
@@ -1007,7 +1013,7 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
                     stat_data_dict["WUA"][fish_index],
                     label=stat_data_dict["fish_list"][fish_index],
                     color=color_list[fish_index],
-                    linestyle=style_list[fish_index])
+                    linestyle=style_list[fish_index], marker=marker)
     ax_wua.set_ylabel("WUA by 100 m\n[m²]")
     ax_wua.yaxis.set_label_coords(-0.1, 0.5)  # adjust/align ylabel position
 
@@ -1015,14 +1021,14 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
     if date_presence:
         ax_date.plot(x_data,
                      stat_data_dict["q_all"],
-                     color="black")
+                     color="black", marker=marker)
         ax_date.set_ylabel("Discharge \n[m$^{3}$/sec]")
         ax_date.set_xlabel("Date [" + date_type + "]")
         ax_date.tick_params(axis='x', rotation=45)
     if chronicle_presence and not date_presence:
         ax_date.plot(x_data,
                      stat_data_dict["q_all"],
-                     color="black")
+                     color="black", marker=marker)
         ax_date.set_ylabel("Discharge \n[m$^{3}$/sec]")
         ax_date.set_xlabel("Unit []")
         ax_date.xaxis.set_ticklabels([])

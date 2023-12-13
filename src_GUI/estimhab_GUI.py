@@ -551,11 +551,11 @@ class EstimhabW(StatModUseful):
         self.fromseq_radiobutton.setChecked(True)
         self.fromseq_radiobutton.clicked.connect(self.out_type_change)
         self.fromseq_radiobutton.clicked.connect(self.check_if_ready_to_compute)
-        self.from_txt_radiobutton = QRadioButton(self.tr("from .txt file"))
-        self.from_txt_radiobutton.clicked.connect(self.out_type_change)
-        self.from_txt_radiobutton.clicked.connect(self.check_if_ready_to_compute)
+        self.fromtxt_radiobutton = QRadioButton(self.tr("from .txt file"))
+        self.fromtxt_radiobutton.clicked.connect(self.out_type_change)
+        self.fromtxt_radiobutton.clicked.connect(self.check_if_ready_to_compute)
         hydraulic_data_layout.addWidget(self.fromseq_radiobutton, 0, 0)
-        hydraulic_data_layout.addWidget(self.from_txt_radiobutton, 0, 1)
+        hydraulic_data_layout.addWidget(self.fromtxt_radiobutton, 0, 1)
         hydraulic_data_layout.addWidget(self.fromseq_group, 1, 0)
         hydraulic_data_layout.addWidget(self.fromtxt_group, 1, 1)
         comput_button_layout = QHBoxLayout()
@@ -585,7 +585,7 @@ class EstimhabW(StatModUseful):
         if self.fromseq_radiobutton.isChecked():
             self.fromseq_group.setEnabled(True)
             self.fromtxt_group.setEnabled(False)
-        if self.from_txt_radiobutton.isChecked():
+        if self.fromtxt_radiobutton.isChecked():
             self.fromseq_group.setEnabled(False)
             self.fromtxt_group.setEnabled(True)
 
@@ -682,12 +682,15 @@ class EstimhabW(StatModUseful):
             self.eq50.setText(str(self.estimhab_dict["q50"]))
             if type(self.estimhab_dict["qrange"]) == str:
                 self.fromtxt_lineedit.setText(self.estimhab_dict["qrange"])
+                self.fromtxt_radiobutton.setChecked(True)
                 self.chro_file_path = self.estimhab_dict["qrange"]
             else:
+                self.fromseq_radiobutton.setChecked(True)
                 self.eqmin.setText(str(self.estimhab_dict["qrange"][0]))
                 self.eqmax.setText(str(self.estimhab_dict["qrange"][1]))
                 self.eqby.setText(str(self.estimhab_dict["qrange"][2]))
             self.esub.setText(str(self.estimhab_dict["substrate"]))
+            self.out_type_change()
 
     def check_if_ready_to_compute(self):
         self.export_button.setEnabled(False)
@@ -707,7 +710,7 @@ class EstimhabW(StatModUseful):
                 if self.eqmin.text() and self.eqmax.text() and self.eqby.text():
                     self.export_button.setEnabled(True)
                     self.show_button.setEnabled(True)
-            elif self.from_txt_radiobutton.isChecked():
+            elif self.fromtxt_radiobutton.isChecked():
                 if self.fromtxt_lineedit.text():
                     self.export_button.setEnabled(True)
                     self.show_button.setEnabled(True)
@@ -786,7 +789,7 @@ class EstimhabW(StatModUseful):
             h = [float(self.eh1.text().replace(",", ".")), float(self.eh2.text().replace(",", "."))]
             q50 = float(self.eq50.text().replace(",", "."))
             substrate = float(self.esub.text().replace(",", "."))
-            if self.from_txt_radiobutton.isChecked():
+            if self.fromtxt_radiobutton.isChecked():
                 qrange = self.chro_file_path
             else:
                 qrange = [float(self.eqmin.text().replace(",", ".")),
