@@ -31,7 +31,7 @@ from src.process_manager_mod import MyProcessManager
 from src.project_properties_mod import load_project_properties, change_specific_properties, load_specific_properties
 from src.dev_tools_mod import isstranumber
 from src.tools_mod import read_chronicle_from_text_file
-from src.estimhab_mod import estimhab_process, read_fishname
+from src.estimhab_mod import estimhab_process, read_fishname, nbclaq
 
 
 class StatModUseful(QScrollArea):
@@ -61,7 +61,6 @@ class StatModUseful(QScrollArea):
         self.eh2 = QLineEdit()
         self.eqmin = QLineEdit()
         self.eqmax = QLineEdit()
-        self.eqby = QLineEdit()
         self.list_f = QListWidget()
         self.selected_aquatic_animal_qtablewidget = QListWidget()
         self.chro_file_path = ""
@@ -361,7 +360,6 @@ class EstimhabW(StatModUseful):
         self.eq50.textChanged.connect(self.check_if_ready_to_compute)
         self.eqmin.textChanged.connect(self.check_if_ready_to_compute)
         self.eqmax.textChanged.connect(self.check_if_ready_to_compute)
-        self.eqby.textChanged.connect(self.check_if_ready_to_compute)
         self.esub.textChanged.connect(self.check_if_ready_to_compute)
         self.selected_aquatic_animal_qtablewidget.model().rowsInserted.connect(self.check_if_ready_to_compute)
         self.selected_aquatic_animal_qtablewidget.model().rowsRemoved.connect(self.check_if_ready_to_compute)
@@ -456,7 +454,6 @@ class EstimhabW(StatModUseful):
         # output
         self.eqmin.setFixedWidth(self.lineedit_width)
         self.eqmax.setFixedWidth(self.lineedit_width)
-        self.eqby.setFixedWidth(self.lineedit_width)
         self.fromseq_group = QGroupBox()
         fromseq_layout = QHBoxLayout(self.fromseq_group)
         fromseq_layout.addWidget(QLabel(self.tr("Qmin")))
@@ -465,10 +462,7 @@ class EstimhabW(StatModUseful):
         fromseq_layout.addWidget(QLabel(self.tr("Qmax")))
         fromseq_layout.addWidget(self.eqmax)
         fromseq_layout.addItem(QSpacerItem(self.spacer_width, 1))
-        fromseq_layout.addWidget(QLabel(self.tr("Qby")))
-        fromseq_layout.addWidget(self.eqby)
-        fromseq_layout.addWidget(QLabel(self.tr("[m<sup>3</sup>/s]")))
-        
+
         self.fromtxt_group = QGroupBox()
         fromtxt_layout = QHBoxLayout(self.fromtxt_group)
         fromtxt_layout.addWidget(QLabel(self.tr("Choose file")))
@@ -543,14 +537,16 @@ class EstimhabW(StatModUseful):
         self.doubleclick_models_group.double_clic_signal.connect(self.reset_models_group)
 
         # hydraulic_data_output_group
-        hydraulic_data_output_group = QGroupBox(self.tr('Desired output data'))
+        hydraulic_data_output_group = QGroupBox(self.tr('Desired habitat value'))
         hydraulic_data_layout = QGridLayout(hydraulic_data_output_group)
 
-        self.fromseq_radiobutton = QRadioButton(self.tr("from a sequence"))
+        self.fromseq_radiobutton = QRadioButton(self.tr("discharge from Qmin Qmax"))
+        self.fromseq_radiobutton.setToolTip(str(nbclaq) + self.tr(" values between Qmin Qmax"))
         self.fromseq_radiobutton.setChecked(True)
         self.fromseq_radiobutton.clicked.connect(self.out_type_change)
         self.fromseq_radiobutton.clicked.connect(self.check_if_ready_to_compute)
-        self.fromtxt_radiobutton = QRadioButton(self.tr("from .txt file"))
+        self.fromtxt_radiobutton = QRadioButton(self.tr("discharge chronicle from .txt file"))
+        self.fromtxt_radiobutton.setToolTip(self.tr("discharge chronicle from .txt file"))
         self.fromtxt_radiobutton.clicked.connect(self.out_type_change)
         self.fromtxt_radiobutton.clicked.connect(self.check_if_ready_to_compute)
         hydraulic_data_layout.addWidget(self.fromseq_radiobutton, 0, 0)
@@ -603,7 +599,6 @@ class EstimhabW(StatModUseful):
         # remove txt in lineedit
         self.eqmin.setText("")
         self.eqmax.setText("")
-        self.eqby.setText("")
 
     def reset_models_group(self):
         if self.selected_aquatic_animal_qtablewidget.count() > 0:
@@ -661,7 +656,6 @@ class EstimhabW(StatModUseful):
                 self.fromseq_radiobutton.setChecked(True)
                 self.eqmin.setText(str(self.estimhab_dict["qrange"][0]))
                 self.eqmax.setText(str(self.estimhab_dict["qrange"][1]))
-                self.eqby.setText(str(self.estimhab_dict["qrange"][2]))
             self.esub.setText(str(self.estimhab_dict["substrate"]))
             self.out_type_change()
 
@@ -680,7 +674,7 @@ class EstimhabW(StatModUseful):
         if self.selected_aquatic_animal_qtablewidget.count() > 0 and "" not in all_string_selection:
             # output
             if self.fromseq_radiobutton.isChecked():
-                if self.eqmin.text() and self.eqmax.text() and self.eqby.text():
+                if self.eqmin.text() and self.eqmax.text():
                     self.export_button.setEnabled(True)
                     self.show_button.setEnabled(True)
             elif self.fromtxt_radiobutton.isChecked():
@@ -766,8 +760,7 @@ class EstimhabW(StatModUseful):
                 qrange = self.chro_file_path
             else:
                 qrange = [float(self.eqmin.text().replace(",", ".")),
-                          float(self.eqmax.text().replace(",", ".")),
-                          float(self.eqby.text().replace(",", "."))]
+                          float(self.eqmax.text().replace(",", "."))]
         except ValueError:
             self.send_log.emit('Error: ' + self.tr('Some data are empty or not float. Cannot run Estimhab'))
             return

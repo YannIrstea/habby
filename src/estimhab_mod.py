@@ -26,6 +26,9 @@ from src.tools_mod import read_chronicle_from_text_file
 from src.project_properties_mod import load_specific_properties
 
 
+nbclaq = 50  # number of discharge point where the data have to be calculate
+
+
 def estimhab_process(project_properties, export=True, progress_value=None):
     # TODO: reactivate translation
     # load
@@ -122,6 +125,7 @@ def estimhab(estimhab_dict):
         q_all = chronicle_from_file["units"]
     else:  # seq
         q_all = np.array(list(frange(qrange[0], qrange[1], qrange[2])))  # from to by
+        # np.exp(np.log(qrange[0] + (qind + 0.5) * (np.log(qrange[1] - np.log(qrange[0])) / nbclaq)))
 
     # height
     slope = (np.log(height[1]) - np.log(height[0])) / (np.log(qmes[1]) - np.log(qmes[0]))
