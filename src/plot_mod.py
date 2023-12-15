@@ -953,7 +953,7 @@ def plot_stat_data(state, stat_data_dict, stat_mod, project_properties):
         ax_date.set_ylabel("Discharge \n[m$^{3}$/sec]")
         ax_date.set_xlabel("Date [" + date_type + "]")
         ax_date.tick_params(axis='x', rotation=45)
-        ax_date.xaxis.set_major_formatter(date_format_mpl)
+        # ax_date.xaxis.set_major_formatter(date_format_mpl)
         # if len(date_name) < 25:
         #     ax_date.set_xticks(chronicle_from_file["units"])  # , rotation=45
         #     ax_date.set_xticklabels(date_name)
