@@ -608,7 +608,7 @@ class EstimhabW(StatModUseful):
     def reset_models_group(self):
         if self.selected_aquatic_animal_qtablewidget.count() > 0:
             self.selected_aquatic_animal_qtablewidget.clear()
-            self.fill_fish_name()
+            self.fill_fish_name(True)
 
     def read_estimhab_dict(self):
         """
@@ -618,17 +618,17 @@ class EstimhabW(StatModUseful):
         self.estimhab_dict = load_specific_properties(self.path_prj,
                                                       [self.model_type])[0]
 
-    def fill_fish_name(self):
+    def fill_fish_name(self, reset=False):
         """
         This function reads all latin fish name from the xml files which are contained in the biological directory
         related to estimhab and fill GUI fish names
         """
         all_xmlfile = glob.glob(os.path.join(self.path_bio_estimhab, r'*.xml'))
+        selected_fish = []
+        if not reset:
+            if self.estimhab_dict:
+                selected_fish = self.estimhab_dict["xml_list"]
 
-        if self.estimhab_dict:
-            selected_fish = self.estimhab_dict["xml_list"]
-        else:
-            selected_fish = []
         fish_names = read_fishname(all_xmlfile)
         for fish_ind, fish_xml in enumerate(all_xmlfile):
             # check if not selected
