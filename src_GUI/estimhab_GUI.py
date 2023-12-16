@@ -796,10 +796,10 @@ class EstimhabW(StatModUseful):
             self.send_log.emit('Error: ' + self.tr('No fish selected. Cannot run Estimhab.'))
             return
         if type(qrange) != str:  # seq
-            if qrange[0] == "" or qrange[1] == "" or qrange[2] == "":
-                self.send_log.emit('Error: ' + self.tr('The sequence values must be specified (from, to and by).'))
+            if qrange[0] == "" or qrange[1] == "":
+                self.send_log.emit('Error: ' + self.tr('The sequence values must be specified (from, to ).'))
                 return
-            if not isstranumber(qrange[0]) or not isstranumber(qrange[1]) or not isstranumber(qrange[2]):
+            if not isstranumber(qrange[0]) or not isstranumber(qrange[1]):
                 self.send_log.emit('Error: ' + self.tr('The sequence values must be of numerical type.'))
                 return
             if qrange[0] >= qrange[1]:
@@ -811,10 +811,7 @@ class EstimhabW(StatModUseful):
             if not float(qrange[1]) > 0:
                 self.send_log.emit('Error: ' + self.tr('To sequence value must be strictly greater than 0.'))
                 return
-            if not float(qrange[2]) > 0:
-                self.send_log.emit('Error: ' + self.tr('By sequence value must be strictly greater than 0.'))
-                return
-            # check if the discharge range is realistic with the result
+             # check if the discharge range is realistic with the result
             self.qall = [q[0], q[1], qrange[0], qrange[1], q50]
             self.check_all_q()
         else:  # chro

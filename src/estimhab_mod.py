@@ -26,7 +26,7 @@ from src.tools_mod import read_chronicle_from_text_file
 from src.project_properties_mod import load_specific_properties
 
 
-nbclaq = 50  # number of discharge point where the data have to be calculate
+nbclaq =100  # number of discharge point where the data have to be calculate
 
 
 def estimhab_process(project_properties, export=True, progress_value=None):
@@ -124,7 +124,9 @@ def estimhab(estimhab_dict):
         chronicle_from_file, types_from_file = read_chronicle_from_text_file(qrange)
         q_all = chronicle_from_file["units"]
     else:  # seq
-        q_all = np.array(list(frange(qrange[0], qrange[1], qrange[2])))  # from to by
+        # generate nbclaq values of discharges spaced evenly on a log scale
+        q_all = np.geomspace(start=qrange[0], stop=qrange[1], num=nbclaq, endpoint=True)
+        #q_all = np.array(list(frange(qrange[0], qrange[1], qrange[2])))  # from to by
         # np.exp(np.log(qrange[0] + (qind + 0.5) * (np.log(qrange[1] - np.log(qrange[0])) / nbclaq)))
 
     # height
@@ -335,7 +337,7 @@ def export_estimhab_txt(estimhab_dict, project_properties):
     if type(qrange) == str:
         txtin += 'Chronicle discharge file path:\t' + qrange + '\n'
     else:
-        txtin += 'Sequence from to by [m3/sec]:\t' + str(qrange[0]) + '\t' + str(qrange[1]) + '\t' + str(qrange[2]) + '\n'
+        txtin += 'Sequence from to [m3/sec]:\t' + str(qrange[0]) + '\t' + str(qrange[1]) + '\n'
     txtin += 'Fish chosen:\t'
     for n in fish_list:
         txtin += n + '\t'
