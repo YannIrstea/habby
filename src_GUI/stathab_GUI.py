@@ -17,8 +17,9 @@ https://github.com/YannIrstea/habby
 from io import StringIO
 import os
 from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QFileDialog, \
-    QListWidget, QListWidgetItem, QMessageBox, QAbstractItemView, QFrame
+from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QFileDialog, QHBoxLayout, QCheckBox, \
+    QListWidget, QListWidgetItem, QMessageBox, QAbstractItemView, QFrame, QGroupBox, QVBoxLayout, \
+    QLineEdit
 import sys
 import copy
 from lxml import etree as ET
@@ -26,7 +27,6 @@ from lxml import etree as ET
 import src.dev_tools_mod
 import src.tools_mod
 from src import stathab_mod
-from src import hdf5_mod
 from src_GUI import estimhab_GUI
 from src.project_properties_mod import load_project_properties, save_project_properties
 from src.bio_info_mod import get_biomodels_informations_for_database, get_name_stage_codebio_fromstr
@@ -122,20 +122,27 @@ class StathabW(estimhab_GUI.StatModUseful):
 
         # prepare QLabel
         if self.riverint == 1:
-            self.l1 = QLabel(self.tr('Stathab Steep Input Files (.txt)'))
+            self.input_data_label = self.tr('Stathab Steep Input Files (.txt)')
         else:
-            self.l1 = QLabel(self.tr('Stathab Input Files (.txt)'))
-        loadb = QPushButton(self.tr("Select directory"))
+            self.input_data_label = self.tr('Stathab Input Files (.txt)')
+        loadb = QPushButton("...")
+        loadb.setFixedWidth(self.spacer_width)
+        loadb.setToolTip(self.tr("Select directory"))
         if len(self.dir_name) > 30:
             self.l0 = QLabel('...' + self.dir_name[-30:])
         else:
             self.l0 = QLabel(self.dir_name)
+        self.l1 = QLabel(self.input_data_label)
         l2 = QLabel(self.tr("Reaches"))
         self.l3 = QLabel(self.tr("File found"))
         self.l4 = QLabel(self.tr("File still needed"))
-        l6 = QLabel(self.tr("Selected models"))
-        # not used anymore (not really helpful). I let it ehre anyway for completness.
-        loadhdf5b = QPushButton(self.tr("Load data from hdf5"))
+
+        self.fromtxt_lineedit = QLineEdit("")
+        self.fromtxt_lineedit.setEnabled(False)
+        self.chro_file_pushbutton = QPushButton("...")
+        self.chro_file_pushbutton.clicked.connect(self.choose_chro_file)
+        self.chro_file_pushbutton.setFixedWidth(self.spacer_width)
+
         self.runb = QPushButton(self.tr("Run Stathab"))
         if self.riverint == 1:
             self.runb.setText(self.tr("Run Stathab Steep"))
@@ -151,7 +158,9 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.mystathab.riverint = self.riverint
 
         # explore_bio_model
-        self.explore_bio_model_pushbutton = QPushButton(self.tr('Choose biological models'))
+        self.explore_bio_model_pushbutton = QPushButton("...")
+        self.explore_bio_model_pushbutton.setFixedWidth(self.spacer_width)
+        self.explore_bio_model_pushbutton.setToolTip(self.tr('Choose biological models'))
         self.explore_bio_model_pushbutton.clicked.connect(self.open_bio_model_explorer)
 
         # avoid list which look too big or too small
@@ -164,7 +173,6 @@ class StathabW(estimhab_GUI.StatModUseful):
 
         # connect method with list
         loadb.clicked.connect(self.select_dir)
-        loadhdf5b.clicked.connect(self.select_hdf5)
         self.runb.clicked.connect(self.run_stathab_gui)
         self.list_re.itemClicked.connect(self.reach_selected)
         self.list_f.itemClicked.connect(self.add_fish)
@@ -209,22 +217,46 @@ class StathabW(estimhab_GUI.StatModUseful):
         content_widget = QFrame()
 
         # Layout
-        self.layout = QGridLayout(content_widget)
-        self.layout.addWidget(self.l1, 0, 0)
-        self.layout.addWidget(loadb, 0, 2)
-        self.layout.addWidget(self.l0, 0, 1)
-        self.layout.addWidget(l2, 1, 0)
-        self.layout.addWidget(self.l3, 1, 1)
-        self.layout.addWidget(self.l4, 1, 2)
-        self.layout.addWidget(self.list_re, 2, 0)
-        self.layout.addWidget(self.list_file, 2, 1)
-        self.layout.addWidget(self.list_needed, 2, 2)
-        self.layout.addWidget(l6, 4, 0)
-        self.layout.addWidget(self.selected_aquatic_animal_qtablewidget, 5, 0, 2, 1)
-        self.layout.addWidget(self.runb, 7, 2)
-        self.layout.addWidget(self.explore_bio_model_pushbutton, 7, 0)
+        data_input_group = QGroupBox(self.tr('Input data'))
 
-        # self.setLayout(self.layout3)
+        layout = QGridLayout(data_input_group)
+        layout.addWidget(self.l1, 0, 0)
+        layout.addWidget(self.l0, 0, 1)
+        layout.addWidget(loadb, 0, 2)
+        layout.addWidget(l2, 1, 0)
+        layout.addWidget(self.l3, 1, 1)
+        layout.addWidget(self.l4, 1, 2)
+        layout.addWidget(self.list_re, 2, 0)
+        layout.addWidget(self.list_file, 2, 1)
+        layout.addWidget(self.list_needed, 2, 2)
+
+        # models_group
+        models_group = QGroupBox(self.tr('Biological models'))
+        models_layout = QHBoxLayout(models_group)
+        models_layout.addWidget(self.selected_aquatic_animal_qtablewidget)
+        models_layout.addWidget(self.explore_bio_model_pushbutton)
+        models_layout.addStretch()
+
+        # hydraulic_data_output_group
+        hydraulic_data_output_group = QGroupBox(self.tr('Desired habitat value'))
+        hydraulic_data_layout = QGridLayout(hydraulic_data_output_group)
+        self.fromtxt_checkbox = QCheckBox(self.tr("from discharge chronicle file (.txt)"))
+        self.fromtxt_checkbox.setChecked(False)
+        self.fromtxt_checkbox.setToolTip(self.tr("discharge chronicle from .txt file"))
+        hydraulic_data_layout.addWidget(self.fromtxt_checkbox, 0, 0)
+        hydraulic_data_layout.addWidget(self.fromtxt_lineedit, 0, 1)
+        hydraulic_data_layout.addWidget(self.chro_file_pushbutton, 0, 2)
+
+        comput_button_layout = QHBoxLayout()
+        comput_button_layout.addStretch()
+        comput_button_layout.addWidget(self.runb)
+
+        layout3 = QVBoxLayout(content_widget)
+        layout3.addWidget(data_input_group, Qt.AlignLeft)
+        layout3.addWidget(models_group)
+        layout3.addWidget(hydraulic_data_output_group)
+        layout3.addLayout(comput_button_layout)
+
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
@@ -848,6 +880,11 @@ class StathabW(estimhab_GUI.StatModUseful):
                     self.send_log.emit('Warning: Slope is lower than 1%. Results might be unrealisitc \n')
                 if self.mystathab.data_ii[r][0] > 24:
                     self.send_log.emit('Warning: Slope is higher than 24%. Results might be unrealisitc \n')
+        if self.fromtxt_checkbox.isChecked():
+            if not os.path.exists(self.fromtxt_lineedit.text()):
+                self.send_log.emit(self.tr('Error: chronicle file not exit'))
+                return
+            self.mystathab.chronicle_file = self.fromtxt_lineedit.text()
 
         # run Stathab
         if self.riverint == 0:

@@ -19,16 +19,12 @@ import numpy as np
 from scipy import stats
 from scipy import optimize
 from scipy import interpolate
-import re
-import matplotlib.pyplot as plt
 import h5py
 from multiprocessing import Value
 
 from lxml import etree as ET
 
-import src.dev_tools_mod
 from src_GUI import estimhab_GUI
-from src import hdf5_mod
 from src.project_properties_mod import load_project_properties, save_project_properties
 from src.bio_info_mod import read_pref, copy_or_not_user_pref_curve_to_input_folder
 from src.plot_mod import plot_stat_data
@@ -42,6 +38,7 @@ class Stathab:
     """
 
     def __init__(self, name_prj, path_prj):
+        self.chronicle_file = "" # the path of chronicle file .txt
         self.qlist = []  # the list of dicharge for each reach, usually in rivdis.txt
         self.qwh = []  # the discharge, the width and height
         # at least at two different dicharges (rivqvh.txt) a list of np.array
@@ -597,7 +594,6 @@ class Stathab:
                     wua_h[r, index_habmodel, qind] = hv_h[r, index_habmodel, qind] * ws * 100  # WUA/100m of river
                     wua_v[r, index_habmodel, qind] = hv_v[r, index_habmodel, qind] * ws * 100  # WUA/100m of river
 
-
             # adding results by reach
             self.vclass_all.append(vclass)
             self.hclass_all.append(hclass)
@@ -613,6 +609,7 @@ class Stathab:
             self.data_list.append(dict(fish_list=[
                 dict_pref_stahab['code_bio_model'][index_habmodel] + '-' + dict_pref_stahab['stage'][index_habmodel] for
                 index_habmodel in range(nb_models)],
+                                        qrange=qmod,
                                        q_all=qmod,
                                        h_all=hmod,
                                        w_all=wmod,
@@ -766,6 +763,7 @@ class Stathab:
             self.data_list.append(dict(fish_list=[
                 dict_pref_stahab['code_bio_model'][index_habmodel] + '-' + dict_pref_stahab['stage'][index_habmodel] for
                 index_habmodel in range(nb_models)],
+                                       qrange=qmod,
                                        q_all=qmod,
                                        h_all=hmod,
                                        w_all=wmod,

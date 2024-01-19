@@ -67,6 +67,36 @@ class StatModUseful(QScrollArea):
         self.msge = QMessageBox()
         self.fish_selected = []
         self.qall = []  # q1 q2 qmin qmax q50. Value cannot be added directly because of stathab.
+        self.spacer_width = 20
+
+    def choose_chro_file(self):
+        self.chro_file_path = ""
+        project_properties = load_project_properties(self.path_prj)
+        if "Estimhab" in project_properties.keys():
+            if "qrange" in project_properties["Estimhab"].keys():
+                qrange = project_properties["Estimhab"]["qrange"]
+                if type(qrange) == str:  # chronicle
+                    if os.path.exists(qrange):
+                        self.chro_file_path = qrange
+
+        # find the filename based on user choice
+        filename_path = QFileDialog.getOpenFileName(self,
+                                                    self.tr("Select file"),
+                                                    self.chro_file_path,
+                                                    "File (*.txt)")[0]
+
+        # exeption: you should be able to clik on "cancel"
+        if filename_path:
+            self.path_last_file_loaded = os.path.dirname(filename_path)
+            chronicle_from_file, types_from_file = read_chronicle_from_text_file(filename_path)
+
+            if not chronicle_from_file:
+                self.send_log.emit(types_from_file)
+            else:
+                self.chro_file_path = filename_path
+                self.fromtxt_lineedit.setText(filename_path)
+        else:
+            self.send_log.emit(self.tr("Warning: Please specify a file."))
 
     def add_fish(self):
         """
@@ -402,8 +432,6 @@ class EstimhabW(StatModUseful):
                                                                                                            50))
         selected_model_label = QLabel(self.tr('Selected'))
 
-        self.spacer_width = 20
-
         # input
         q1_layout = QHBoxLayout()
         q1_layout.addWidget(QLabel('Q1 [m<sup>3</sup>/s]'))
@@ -553,12 +581,13 @@ class EstimhabW(StatModUseful):
         hydraulic_data_layout.addWidget(self.fromtxt_radiobutton, 0, 1)
         hydraulic_data_layout.addWidget(self.fromseq_group, 1, 0)
         hydraulic_data_layout.addWidget(self.fromtxt_group, 1, 1)
+
         comput_button_layout = QHBoxLayout()
+        comput_button_layout.addStretch()
         comput_button_layout.addWidget(self.show_button)
         comput_button_layout.addItem(QSpacerItem(self.spacer_width, 1))
         comput_button_layout.addWidget(self.export_button)
-        comput_button_layout.addStretch()
-        hydraulic_data_layout.addLayout(comput_button_layout, 2, 0)
+
         self.fromseq_group.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         self.doubleclick_output_group = DoubleClicOutputGroup()
         self.fromseq_group.setToolTip(self.tr("Double click to reset the outpout data group."))
@@ -571,7 +600,7 @@ class EstimhabW(StatModUseful):
         self.layout3.addWidget(hydraulic_data_group, Qt.AlignLeft)
         self.layout3.addWidget(models_group)
         self.layout3.addWidget(hydraulic_data_output_group)
-        # self.setLayout(self.layout3)
+        self.layout3.addLayout(comput_button_layout)
         self.setWidgetResizable(True)
         self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
@@ -699,35 +728,6 @@ class EstimhabW(StatModUseful):
             item = QListWidgetItem(all_file[i])
             # add them to the menu
             self.list_f.addItem(item)
-
-    def choose_chro_file(self):
-        self.chro_file_path = ""
-        project_properties = load_project_properties(self.path_prj)
-        if "Estimhab" in project_properties.keys():
-            if "qrange" in project_properties["Estimhab"].keys():
-                qrange = project_properties["Estimhab"]["qrange"]
-                if type(qrange) == str:  # chronicle
-                    if os.path.exists(qrange):
-                        self.chro_file_path = qrange
-
-        # find the filename based on user choice
-        filename_path = QFileDialog.getOpenFileName(self,
-                                                    self.tr("Select file"),
-                                                    self.chro_file_path,
-                                                    "File (*.txt)")[0]
-
-        # exeption: you should be able to clik on "cancel"
-        if filename_path:
-            self.path_last_file_loaded = os.path.dirname(filename_path)
-            chronicle_from_file, types_from_file = read_chronicle_from_text_file(filename_path)
-
-            if not chronicle_from_file:
-                self.send_log.emit(types_from_file)
-            else:
-                self.chro_file_path = filename_path
-                self.fromtxt_lineedit.setText(filename_path)
-        else:
-            self.send_log.emit(self.tr("Warning: Please specify a file."))
 
     def export_estmihab(self, show):
         """
