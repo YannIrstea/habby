@@ -16,10 +16,12 @@
       <CreationYear>1998</CreationYear>
       <Description Language="French">
          <![CDATA[
-         ORIGINE : Courbes CSP 1988 modifié en 1997 après consultation de différents experts.
-         Deux stades juvéniles décrits :
-         Premier stade = 1+ ou 0+ >13cm = noté ADULTE.
-         Deuxième stade= 0+ de 5 à 13cm.
+         ORIGINE : Courbes CSP 1988 modifiées en 1997 après consultation de différents experts.
+         D'après des travaux INRA-CSP sur des rivières du massif armoricain ralenties par des aménagements,
+         à macrophytes importants (jusqu'à 30 % surface) et population mixte saumon-truite.
+         Quatre stades décrits : frayère, Post-émergeants (2 à 8 cm), Alevins (8 à 15 cm), Juveniles (15 à 22 cm)
+         DOMAINE : Petites rivières côtières de moins de 60 km de long, et rivières plus larges à fond caillouteux type Allier.
+         pente 1 à 20 p.1000, module < 20m3/s, largeur < 20m fond sableux ou caillouteux.
          ]]>
       </Description>
       <Image>SAT01.png</Image>
@@ -40,7 +42,7 @@
                <SuitabilityIndex>0 0 0 0 0.77263 1 0 0</SuitabilityIndex>
             </SuitabilitySubstrate>
          </Stage>
-         <Stage Type="fry">
+		 <Stage Type="[20,80[" Dimension="Total Length" Unit="Millimeter" UnitSymbol="mm">
             <SuitabilityHeightOfWater>
                <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 2.58 5.16 7.74 10.32 12.9 15.48 18.06 20.65 23.23 25.81 28.39 30 31.55 36.13 38.71 41.29 43.87 46.45 49.03 51.61 54.19 56.77 59.35 61.94 64.52 67.1 69.68 72.26 74.84 77.42 80</HeightOfWaterValues>
                <SuitabilityIndex>0 0.1 0.29 0.54 0.8 0.94 0.98 1 1 1 1 1 1 0.95 0.7 0.55 0.4 0.28 0.17 0.09 0.03 0 0 0 0 0 0 0 0 0 0 0</SuitabilityIndex>
@@ -54,7 +56,7 @@
                <SuitabilityIndex>0 0 0 0.19134 0.70896 1 0.48943 0</SuitabilityIndex>
             </SuitabilitySubstrate>
          </Stage>
-         <Stage Type="juvenile">
+		 <Stage Type="[80,150[" Dimension="Total Length" Unit="Millimeter" UnitSymbol="mm">
             <SuitabilityHeightOfWater>
                <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 3.23 6.45 9.68 12.9 16.13 19.35 22.58 25.81 29.03 32.26 35.48 38.71 41.94 45.16 48.39 51.61 54.84 58.06 61.29 64.52 67.74 70.97 74.19 77.42 80.65 83.87 87.1 90.32 93.55 96.77 100</HeightOfWaterValues>
                <SuitabilityIndex>0 0.04 0.08 0.14 0.2 0.32 0.5 0.7 0.9 0.98 1 1 1 1 1 1 1 1 1 1 0.95 0.85 0.73 0.54 0.43 0.26 0.17 0.1 0.05 0.01 0 0</SuitabilityIndex>
@@ -68,7 +70,7 @@
                <SuitabilityIndex>0 0 0 0.09 0.67 1 0.987 0</SuitabilityIndex>
             </SuitabilitySubstrate>
          </Stage>
-         <Stage Type="adult">
+		 <Stage Type="[150,220[" Dimension="Total Length" Unit="Millimeter" UnitSymbol="mm">
             <SuitabilityHeightOfWater>
                <HeightOfWaterValues Unit="Centimeter" UnitSymbol="cm">0 3.23 6.45 9.68 12.9 16.13 19.35 22.58 26.31 29.03 32.26 35.48 38.71 41.94 45.16 48.39 51.61 54.84 58.06 61.29 64.52 67.74 70.97 74.19 77.42 80.65 83.87 87.1 90.32 93.55 96.77 100</HeightOfWaterValues>
                <SuitabilityIndex>0 0 0.02 0.04 0.05 0.07 0.13 0.22 0.35 0.57 0.7 0.8 0.9 0.95 0.98 1 1 1 1 1 0.95 0.85 0.67 0.52 0.37 0.27 0.15 0.1 0.05 0 0 0</SuitabilityIndex>
