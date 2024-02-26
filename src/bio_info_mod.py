@@ -338,6 +338,7 @@ def get_biomodels_informations_for_database(path_xml):
                                                                 hyd_opt_available=hyd_opt_available,
                                                                 sub_opt=sub_opt,
                                                                 sub_opt_available=sub_opt_available,
+                                                                hab_equation_case="",
                                                                 aquatic_animal_type=aquatic_animal_type,
                                                                 model_type=model_type,
                                                                 pref_file=path_xml,

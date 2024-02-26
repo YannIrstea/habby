@@ -19,23 +19,24 @@ import os
 import sys
 from multiprocessing import Process, Queue, Value, Event
 
-from PyQt5.QtCore import pyqtSignal, Qt, QTimer
-from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QHBoxLayout, QGroupBox, \
-    QComboBox, QTableWidget, QTableWidgetItem, \
-    QSizePolicy, QFrame, QCheckBox, QWidget
+from PyQt5.QtCore import pyqtSignal, Qt
+from PyQt5.QtGui import QColor, QPixmap
+from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QHBoxLayout, QGroupBox, QComboBox, QTableWidget, \
+    QTableWidgetItem, QSizePolicy, QFrame, QCheckBox, QWidget
 
 from src_GUI import estimhab_GUI
 from src_GUI.process_manager_GUI import ProcessProgLayout
 from src import hdf5_mod
-from src.project_properties_mod import load_project_properties, load_specific_properties, change_specific_properties, save_project_properties
+from src.project_properties_mod import load_project_properties, load_specific_properties, change_specific_properties, \
+    save_project_properties
 from src.user_preferences_mod import user_preferences
 from src.bio_info_mod import get_name_stage_codebio_fromstr
 from src.dev_tools_mod import sort_homogoeneous_dict_list_by_on_key
 from src.variable_unit_mod import HydraulicVariableUnitList
+from src.hab_equation_mod import hab_equation_manager
 
 
-class BioInfo(estimhab_GUI.StatModUseful):
+class CalcHabTab(estimhab_GUI.StatModUseful):
     """
     This class contains the tab with the biological information (the curves of preference). It inherites from
     StatModUseful. StatModuseful is a QWidget, with some practical signal (send_log and show_fig) and some functions
@@ -143,6 +144,14 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.remove_duplicate_model_pushbutton = QPushButton(self.tr("Remove duplicates models"))
         self.remove_duplicate_model_pushbutton.clicked.connect(self.remove_duplicates)
 
+        self.equ_label = QLabel()
+        self.equ_label.setToolTip(self.tr("Habitat equation case selected in project properties\nMore informations on wiki page : ") +
+                                           "\nhttps://habby.wiki.inrae.fr/en:manuel_reference:methode_micro:verif_habby")
+        self.equ_img_label = QLabel()
+        self.equ_img_label.setToolTip(self.tr("Habitat equation case selected in project properties\nMore informations on wiki page : ") +
+                                           "\nhttps://habby.wiki.inrae.fr/en:manuel_reference:methode_micro:verif_habby")
+        self.change_equation_case()
+
         # 1 column
         self.bio_model_choosen_title_label = QLabel(self.tr("Biological models choosen"))
         self.selected_aquatic_animal_qtablewidget = QTableWidget()
@@ -233,14 +242,24 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.layout4.addLayout(layout_prov_input, 0, 0, 1, 4, Qt.AlignLeft)  #
 
         model_groupbox = QGroupBox(self.tr("Model to compute"))
-        layout_prov = QGridLayout()
-        layout_prov.addWidget(self.explore_bio_model_pushbutton, 0, 0)
-        layout_prov.addWidget(self.create_duplicate_from_selection_pushbutton, 1, 0)
-        layout_prov.addWidget(self.remove_all_bio_model_pushbutton, 0, 1)
-        layout_prov.addWidget(self.remove_sel_bio_model_pushbutton, 1, 1)
-        layout_prov.addWidget(self.remove_duplicate_model_pushbutton, 2, 1)
-        model_groupbox.setLayout(layout_prov)
-        self.layout4.addWidget(model_groupbox, 1, 0, 1, 4, Qt.AlignLeft)  #
+        model_layout = QGridLayout()
+        model_layout.addWidget(self.explore_bio_model_pushbutton, 0, 0)
+        model_layout.addWidget(self.create_duplicate_from_selection_pushbutton, 1, 0)
+        model_layout.addWidget(self.remove_all_bio_model_pushbutton, 0, 1)
+        model_layout.addWidget(self.remove_sel_bio_model_pushbutton, 1, 1)
+        model_layout.addWidget(self.remove_duplicate_model_pushbutton, 2, 1)
+        model_groupbox.setLayout(model_layout)
+
+        equ_groupbox = QGroupBox(self.tr("Equation case"))
+        equ_layout = QGridLayout()
+        equ_layout.addWidget(self.equ_label, 0, 0)
+        equ_layout.addWidget(self.equ_img_label, 0, 1)
+        equ_groupbox.setLayout(equ_layout)
+
+        model_and_equ_layout = QGridLayout()
+        model_and_equ_layout.addWidget(model_groupbox, 0, 0)
+        model_and_equ_layout.addWidget(equ_groupbox, 0, 1, Qt.AlignLeft | Qt.AlignTop)
+        self.layout4.addLayout(model_and_equ_layout, 1, 0, 1, 4, Qt.AlignLeft)
 
         # 1 column
         self.layout4.addWidget(self.bio_model_choosen_title_label, 2, 0)
@@ -279,6 +298,22 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.hyd_mode_qtablewidget.verticalScrollBar().setValue(index)
         self.sub_mode_qtablewidget.verticalScrollBar().setValue(index)
         self.presence_qtablewidget.verticalScrollBar().setValue(index)
+
+    def change_equation_case(self):
+        project_properties = load_project_properties(self.path_prj)
+        equ_index = hab_equation_manager.names.index(project_properties["hab_equation_case"])
+        equ_sel = hab_equation_manager.list[equ_index]
+
+        # equ_label
+        self.equ_label.setText("(" + equ_sel.name + ")")
+
+        # equ_img_label
+        self.equ_pixmap = QPixmap(equ_sel.img_path)  #.scaled(250, 1750, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        self.equ_img_label.setPixmap(self.equ_pixmap)
+        self.equ_img_label.setScaledContents(True)
+
+        if hasattr(self.selected_aquatic_animal_qtablewidget, "rowCount"):
+            self.check_uncheck_allmodels_presence()
 
     def open_bio_model_explorer(self):
         self.nativeParentWidget().bio_model_explorer_dialog.open_bio_model_explorer("calc_hab")
@@ -405,7 +440,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                     # set positon to combobox
                     self.sub_mode_qtablewidget.cellWidget(index, 0).setCurrentIndex(substrate_type_available.index(new_sub_str))
 
-    def check_if_model_exist_in_hab(self, model_index):
+    def check_if_model_exist_in_hab(self, model_index, hab_equation_case):
         # 1 column
         item_str = self.selected_aquatic_animal_qtablewidget.item(model_index, 0).text()
         name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
@@ -415,9 +450,8 @@ class BioInfo(estimhab_GUI.StatModUseful):
         sub_opt_str = self.sub_mode_qtablewidget.cellWidget(model_index, 0).currentText()
         # 4 column
         item_checkbox = self.presence_qtablewidget.cellWidget(model_index, 0).layout().itemAt(0).widget()
-
         # get full name
-        fish_name_full = code_bio_model + "_" + stage + "_" + hyd_opt_str + "_" + sub_opt_str
+        fish_name_full = code_bio_model + "_" + stage + "_" + hyd_opt_str + "_" + sub_opt_str + "_" + hab_equation_case
 
         # check or not
         if fish_name_full in self.current_hab_informations_dict["fish_list"]:
@@ -426,10 +460,10 @@ class BioInfo(estimhab_GUI.StatModUseful):
             item_checkbox.setChecked(False)
 
     def check_uncheck_allmodels_presence(self):
-        print("check_uncheck_allmodels_presence")
         self.get_current_hab_informations()
+        hab_equation_case = load_project_properties(self.path_prj)["hab_equation_case"]
         for model_index in range(self.selected_aquatic_animal_qtablewidget.rowCount()):
-            self.check_if_model_exist_in_hab(model_index)
+            self.check_if_model_exist_in_hab(model_index, hab_equation_case)
 
     def color_hyd_combobox(self):
         """
@@ -439,6 +473,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         new_hyd_mode_index = self.sender().currentIndex()
 
         self.get_current_hab_informations()
+        hab_equation_case = load_project_properties(self.path_prj)["hab_equation_case"]
 
         # get info
         item_str = self.selected_aquatic_animal_qtablewidget.item(model_index, 0).text()
@@ -458,7 +493,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.selected_aquatic_animal_dict["hydraulic_mode_list"][model_index] = new_hyd_mode_index
 
         # check if exist
-        self.check_if_model_exist_in_hab(model_index)
+        self.check_if_model_exist_in_hab(model_index, hab_equation_case)
 
     def change_general_hyd_combobox(self):
         model_index = int(self.sender().objectName())
@@ -482,7 +517,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         new_sub_mode_index = self.sender().currentIndex()
 
         self.get_current_hab_informations()
-
+        hab_equation_case = load_project_properties(self.path_prj)["hab_equation_case"]
         # get info
         item_str = self.selected_aquatic_animal_qtablewidget.item(model_index, 0).text()
         name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
@@ -499,7 +534,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
         self.selected_aquatic_animal_dict["substrate_mode_list"][model_index] = new_sub_mode_index
 
         # check if exist
-        self.check_if_model_exist_in_hab(model_index)
+        self.check_if_model_exist_in_hab(model_index, hab_equation_case)
 
     def change_general_sub_combobox(self):
         model_index = int(self.sender().objectName())
@@ -527,6 +562,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
 
         # get_current_hab_informations
         self.get_current_hab_informations()
+        hab_equation_case = load_project_properties(self.path_prj)["hab_equation_case"]
 
         # clear
         self.selected_aquatic_animal_qtablewidget.clear()
@@ -672,13 +708,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 item_checkbox = QCheckBox()
                 item_checkbox.setEnabled(False)
                 item_checkbox.setObjectName(str(index))
-                # get full name
-                fish_name_full = code_bio_model + "_" + stage + "_" + item_combobox_hyd.currentText() + "_" + item_combobox_sub.currentText()
-                # check or not
-                if fish_name_full in self.current_hab_informations_dict["fish_list"]:
-                    item_checkbox.setChecked(True)
-                else:
-                    item_checkbox.setChecked(False)
+
                 cell_widget = QWidget()
                 lay_out = QHBoxLayout(cell_widget)
                 lay_out.addWidget(item_checkbox)
@@ -688,9 +718,11 @@ class BioInfo(estimhab_GUI.StatModUseful):
                 # add item_checkbox
                 self.presence_qtablewidget.setCellWidget(index, 0, cell_widget)
                 self.presence_qtablewidget.setRowHeight(index, 27)
+                # check_if_model_exist_in_hab
+                self.check_if_model_exist_in_hab(index, hab_equation_case)
 
             # general
-            self.bio_model_choosen_title_label.setText(self.tr("Biological models choosen (") + str(total_item) + ")")
+            self.bio_model_choosen_title_label.setText(self.tr("Biological models selected (") + str(total_item) + ")")
             if self.selected_aquatic_animal_dict["selected_aquatic_animal_list"]:
                 self.progress_layout.run_stop_button.setEnabled(True)
 
@@ -878,6 +910,7 @@ class BioInfo(estimhab_GUI.StatModUseful):
                                                             stage,
                                                              hyd_opt,
                                                              sub_opt,
+                                                                  load_project_properties(self.path_prj)["hab_equation_case"],
                                                              user_preferences.biological_models_dict["aquatic_animal_type"][index_fish],
                                                              user_preferences.biological_models_dict["model_type"][index_fish],
                                                              user_preferences.biological_models_dict["path_xml"][index_fish],

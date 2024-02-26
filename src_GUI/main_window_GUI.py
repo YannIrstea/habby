@@ -926,7 +926,7 @@ class MainWindows(QMainWindow):
         item_dict = self.bio_model_explorer_dialog.bio_model_infoselection_tab.item_dict
 
         if item_dict["source_str"] == "calc_hab":
-            self.central_widget.bioinfo_tab.fill_selected_models_listwidgets(item_dict)
+            self.central_widget.calchab_tab.fill_selected_models_listwidgets(item_dict)
         elif item_dict["source_str"] == "Stathab":
             self.central_widget.stathab_tab.fill_selected_models_listwidgets(item_dict["selected_aquatic_animal_list"])
         elif item_dict["source_str"] == "Stathab_steep":
@@ -971,23 +971,23 @@ class MainWindows(QMainWindow):
 
         # pass the info to the bio info tab
         if nb_lang == 0:
-            if hasattr(self.central_widget, "bioinfo_tab"):
-                self.central_widget.bioinfo_tab.lang = 'English'
+            if hasattr(self.central_widget, "calchab_tab"):
+                self.central_widget.calchab_tab.lang = 'English'
         elif nb_lang == 1:
-            if hasattr(self.central_widget, "bioinfo_tab"):
-                self.central_widget.bioinfo_tab.lang = 'French'
+            if hasattr(self.central_widget, "calchab_tab"):
+                self.central_widget.calchab_tab.lang = 'French'
         elif nb_lang == 2:
-            if hasattr(self.central_widget, "bioinfo_tab"):
-                self.central_widget.bioinfo_tab.lang = 'Spanish'
+            if hasattr(self.central_widget, "calchab_tab"):
+                self.central_widget.calchab_tab.lang = 'Spanish'
         elif nb_lang == 3:
-            if hasattr(self.central_widget, "bioinfo_tab"):
-                self.central_widget.bioinfo_tab.lang = 'Portuguese'
+            if hasattr(self.central_widget, "calchab_tab"):
+                self.central_widget.calchab_tab.lang = 'Portuguese'
         elif nb_lang == 4:
-            if hasattr(self.central_widget, "bioinfo_tab"):
-                self.central_widget.bioinfo_tab.lang = 'Italian'
+            if hasattr(self.central_widget, "calchab_tab"):
+                self.central_widget.calchab_tab.lang = 'Italian'
         else:
-            if hasattr(self.central_widget, "bioinfo_tab"):
-                self.central_widget.bioinfo_tab.lang = 'English'
+            if hasattr(self.central_widget, "calchab_tab"):
+                self.central_widget.calchab_tab.lang = 'English'
 
         # write the new language in the figure option to be able to get the title, axis in the right language
         if os.path.exists(self.path_prj):
@@ -1410,13 +1410,13 @@ class MainWindows(QMainWindow):
             else:
                 self.central_widget.substrate_tab = sub_and_merge_GUI.SubstrateTab(self.path_prj, self.name_prj)
 
-            if hasattr(self.central_widget, "bioinfo_tab"):
-                if not self.central_widget.bioinfo_tab:
-                    self.central_widget.bioinfo_tab = calc_hab_GUI.BioInfo(self.path_prj, self.name_prj)
+            if hasattr(self.central_widget, "calchab_tab"):
+                if not self.central_widget.calchab_tab:
+                    self.central_widget.calchab_tab = calc_hab_GUI.CalcHabTab(self.path_prj, self.name_prj)
                 else:
-                    self.central_widget.bioinfo_tab.__init__(self.path_prj, self.name_prj)
+                    self.central_widget.calchab_tab.__init__(self.path_prj, self.name_prj)
             else:
-                self.central_widget.bioinfo_tab = calc_hab_GUI.BioInfo(self.path_prj, self.name_prj)
+                self.central_widget.calchab_tab = calc_hab_GUI.CalcHabTab(self.path_prj, self.name_prj)
 
             if hasattr(self.central_widget, "data_explorer_tab"):
                 if not self.central_widget.data_explorer_tab:
@@ -1494,15 +1494,17 @@ class MainWindows(QMainWindow):
                     self.preferences_dialog = project_properties_GUI.ProjectPropertiesDialog(self.path_prj, self.name_prj, self.name_icon)
                     self.preferences_dialog.send_log.connect(self.central_widget.write_log)
                     self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.set_suffix_no_cut)
+                    self.preferences_dialog.change_equation_case_signal.connect(self.central_widget.calchab_tab.change_equation_case)
                 else:
                     self.preferences_dialog.__init__(self.path_prj, self.name_prj, self.name_icon)
                     self.preferences_dialog.send_log.connect(self.central_widget.write_log)
                     self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.set_suffix_no_cut)
+                    self.preferences_dialog.change_equation_case_signal.connect(self.central_widget.calchab_tab.change_equation_case)
             else:
                 self.preferences_dialog = project_properties_GUI.ProjectPropertiesDialog(self.path_prj, self.name_prj, self.name_icon)
                 self.preferences_dialog.send_log.connect(self.central_widget.write_log)
                 self.preferences_dialog.cut_mesh_partialy_dry_signal.connect(self.central_widget.hydro_tab.set_suffix_no_cut)
-
+                self.preferences_dialog.change_equation_case_signal.connect(self.central_widget.calchab_tab.change_equation_case)
         else:
             self.central_widget.welcome_tab = welcome_GUI.WelcomeW(self.path_prj, self.name_prj)
 
@@ -1526,8 +1528,8 @@ class MainWindows(QMainWindow):
                 self.central_widget.tab_widget.insertTab(self.central_widget.substrate_tab.tab_position,
                                                          self.central_widget.substrate_tab,
                                                          self.tr("Substrate"))  # 2
-                self.central_widget.tab_widget.insertTab(self.central_widget.bioinfo_tab.tab_position,
-                                                         self.central_widget.bioinfo_tab,
+                self.central_widget.tab_widget.insertTab(self.central_widget.calchab_tab.tab_position,
+                                                         self.central_widget.calchab_tab,
                                                          self.tr("Habitat Calc."))  # 3
                 self.central_widget.tab_widget.insertTab(self.central_widget.data_explorer_tab.tab_position,
                                                          self.central_widget.data_explorer_tab,
@@ -1987,7 +1989,7 @@ class CentralW(QWidget):
         if os.path.isfile(os.path.join(self.path_prj, self.name_prj + '.habby')):
             self.hydro_tab = hydrau_GUI.HydrauTab(path_prj, name_prj)
             self.substrate_tab = sub_and_merge_GUI.SubstrateTab(path_prj, name_prj)
-            self.bioinfo_tab = calc_hab_GUI.BioInfo(path_prj, name_prj, lang_bio)
+            self.calchab_tab = calc_hab_GUI.CalcHabTab(path_prj, name_prj, lang_bio)
             self.data_explorer_tab = data_explorer_GUI.DataExplorerTab(path_prj, name_prj)
             self.tools_tab = tools_GUI.ToolsTab(path_prj, name_prj)
             self.estimhab_tab = estimhab_GUI.EstimhabW(path_prj, name_prj)
@@ -2094,7 +2096,7 @@ class CentralW(QWidget):
             if go_physic:
                 self.tab_widget.addTab(self.hydro_tab, self.tr("Hydraulic"))  # 1
                 self.tab_widget.addTab(self.substrate_tab, self.tr("Substrate"))  # 2
-                self.tab_widget.addTab(self.bioinfo_tab, self.tr("Habitat Calc."))  # 3
+                self.tab_widget.addTab(self.calchab_tab, self.tr("Habitat Calc."))  # 3
                 self.tab_widget.addTab(self.data_explorer_tab, self.tr("Data explorer"))  # 4
                 self.tab_widget.addTab(self.tools_tab, self.tr("Tools"))  # 5
             if go_stat:
@@ -2237,7 +2239,7 @@ class CentralW(QWidget):
             self.estimhab_tab.send_log.connect(self.write_log)
             self.stathab_tab.send_log.connect(self.write_log)
             self.stathab_steep_tab.send_log.connect(self.write_log)
-            self.bioinfo_tab.send_log.connect(self.write_log)
+            self.calchab_tab.send_log.connect(self.write_log)
             self.fstress_tab.send_log.connect(self.write_log)
             self.data_explorer_tab.send_log.connect(self.write_log)
             self.tools_tab.send_log.connect(self.write_log)
@@ -2257,7 +2259,7 @@ class CentralW(QWidget):
             self.hydro_tab.model_group.drop_merge.connect(self.update_combobox_filenames)
             self.substrate_tab.sub_and_merge.drop_hydro.connect(self.update_combobox_filenames)
             self.substrate_tab.sub_and_merge.drop_merge.connect(self.update_combobox_filenames)
-            self.bioinfo_tab.allmodels_presence.connect(self.update_combobox_filenames)
+            self.calchab_tab.allmodels_presence.connect(self.update_combobox_filenames)
 
     def write_log(self, text_log):
         """
@@ -2418,7 +2420,7 @@ class CentralW(QWidget):
             self.substrate_tab.sub_and_merge.update_sub_hdf5_name()
 
             # calc hab combobox
-            self.bioinfo_tab.update_merge_list()
+            self.calchab_tab.update_merge_list()
 
             self.data_explorer_tab.refresh_type()
 
@@ -2469,9 +2471,9 @@ class CentralW(QWidget):
             if self.tab_widget.currentIndex() == self.substrate_tab.tab_position:
                 self.substrate_tab.sub_and_merge.update_sub_hdf5_name()
         # calc hab
-        if hasattr(self, "bioinfo_tab"):
-            if self.tab_widget.currentIndex() == self.bioinfo_tab.tab_position:
-                self.bioinfo_tab.update_merge_list()
+        if hasattr(self, "calchab_tab"):
+            if self.tab_widget.currentIndex() == self.calchab_tab.tab_position:
+                self.calchab_tab.update_merge_list()
         # data_explorer_tab
         if hasattr(self, "data_explorer_tab"):
             if self.tab_widget.currentIndex() == self.data_explorer_tab.tab_position:

@@ -14,31 +14,79 @@ Licence CeCILL v2.1
 https://github.com/YannIrstea/habby
 
 """
+import os
 import numpy as np
-import pandas as pd
-from scipy.interpolate import griddata
-import sys
-import time
-
-from src.variable_unit_mod import HydraulicVariableUnitManagement, HydraulicVariableUnitList, SuitabilityIndexVariable
 
 
 class HabEquationManager:
     def __init__(self):
-        self.equation_dict = dict()
+        self.eq_a = EquationA()
+        self.eq_b = EquationB()
+        self.eq_c = EquationC()
+        self.list = [self.eq_a, self.eq_b, self.eq_c]
+        self.names = [self.eq_a.name, self.eq_b.name, self.eq_c.name]
 
 
 class EquationA:
-    def __init__(self, hydraulic_variable_unit_list, unit_dict):
-        self.hsi = np.multiply(hydraulic_variable_unit_list)
+    def __init__(self):
+        self.name = "a"
+        self.img_path = os.path.join(os.getcwd(), 'file_dep', "equation_" + self.name + ".png")
+
+    def compute(self, variable_list):
+        # empty hsi array
+        hsi = np.array([1.0] * len(variable_list[0]))
+
+        # compute
+        for var in variable_list:
+            hsi *= var
+
+        # security
+        for var in variable_list:
+            hsi[var == 0] = 0
+
+        return hsi
 
 
+class EquationB:
+    def __init__(self):
+        self.name = "b"
+        self.img_path = os.path.join(os.getcwd(), 'file_dep', "equation_" + self.name + ".png")
+
+    def compute(self, variable_list):
+        # empty hsi array
+        hsi = np.array([1.0] * len(variable_list[0]))
+
+        # compute
+        for var in variable_list:
+            hsi *= var
+        hsi = np.power(hsi, 1 / 3)
+
+        # security
+        for var in variable_list:
+            hsi[var == 0] = 0
+
+        return hsi
 
 
+class EquationC:
+    def __init__(self):
+        self.name = "c"
+        self.img_path = os.path.join(os.getcwd(), 'file_dep', "equation_" + self.name + ".png")
 
-if __name__ == '__main__':
-    hvum = HydraulicVariableUnitManagement()
+    def compute(self, variable_list):
+        # empty hsi array
+        hsi = np.array([0.0] * len(variable_list[0]))
+
+        # compute
+        for var in variable_list:
+            hsi += var
+        hsi = hsi / len(variable_list)
+
+        # security
+        for var in variable_list:
+            hsi[var == 0] = 0
+
+        return hsi
 
 
-    equ_a = EquationA([hvum.h, hvum.v, hvum.sub])
-
+hab_equation_manager = HabEquationManager()

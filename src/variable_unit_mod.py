@@ -64,7 +64,7 @@ class HabitatSuitabilityIndexVariable(HydraulicVariable):
     """
     Represent HSI variable. Mesh cale.
     """
-    def __init__(self, name="", name_gui="", descr="", dtype=None, unit="", position="", value=None, hdf5=False,
+    def __init__(self, name="", name_gui="", hab_equation_case="", descr="", dtype=None, unit="", position="", value=None, hdf5=False,
                  sub=False, index_gui=-1, depend_on_h=True):
         super().__init__(name, name_gui, descr, dtype, unit, position, value, hdf5, sub, index_gui, depend_on_h)
         # hab data
@@ -115,10 +115,10 @@ class HydraulicVariableUnitList(list):
         super(HydraulicVariableUnitList, self).extend(hydraulic_variable_list)
         self.sort_by_names_gui()
 
-    def append_new_habitat_variable(self, code_bio_model, stage, hyd_opt, sub_opt, aquatic_animal_type, model_type,
+    def append_new_habitat_variable(self, code_bio_model, stage, hyd_opt, sub_opt, hab_equation_case, aquatic_animal_type, model_type,
                                     pref_file, path_img, hyd_opt_available=[], sub_opt_available=[], variable_list=None):
         # animal name
-        name = code_bio_model + "_" + stage + "_" + hyd_opt + "_" + sub_opt
+        name = code_bio_model + "_" + stage + "_" + hyd_opt + "_" + sub_opt + "_" + hab_equation_case
         # create variable
         hab_variable = HabitatSuitabilityIndexVariable(value=None,
                                                        unit="HSI",
@@ -140,6 +140,7 @@ class HydraulicVariableUnitList(list):
         hab_variable.hyd_opt_available = hyd_opt_available
         hab_variable.sub_opt = sub_opt
         hab_variable.sub_opt_available = sub_opt_available
+        hab_variable.hab_equation_case = hab_equation_case
         # append
         super(HydraulicVariableUnitList, self).append(hab_variable)
 

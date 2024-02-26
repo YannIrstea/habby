@@ -25,6 +25,7 @@ from src_GUI.dev_tools_GUI import QHLine, DoubleClicOutputGroup
 from src.project_properties_mod import load_project_properties, create_default_project_properties_dict, \
     save_project_properties
 from src.variable_unit_mod import HydraulicVariableUnitManagement
+from src.hab_equation_mod import hab_equation_manager
 
 
 class ProjectPropertiesDialog(QDialog):
@@ -36,6 +37,7 @@ class ProjectPropertiesDialog(QDialog):
     send_log = pyqtSignal(str, name='send_log')
     cut_mesh_partialy_dry_signal = pyqtSignal(bool,
                                               name='cut_mesh_partialy_dry_signal')  # to change suffix no_cut
+    change_equation_case_signal = pyqtSignal()
     """
     A PyQtsignal used to write the log.
     """
@@ -85,14 +87,24 @@ class ProjectPropertiesDialog(QDialog):
 
         # cut_2d_grid
         self.cut_2d_grid_label = QLabel(self.tr('Cut hydraulic mesh partialy wet'))
+        self.cut_2d_grid_label.setToolTip(self.tr("Cut hydraulic mesh partialy wet"))
         self.cut_2d_grid_checkbox = QCheckBox(self.tr(''))
 
         # min_height
         min_height_label = QLabel(self.tr('2D minimum water height [m]'))
+        min_height_label.setToolTip(self.tr("Water depth considered to be zero"))
         self.min_height_lineedit = QLineEdit("")
 
+        # minimal_mesh_area
         minimal_mesh_area_label = QLabel(self.tr('Minimal mesh area [m²]'))
+        minimal_mesh_area_label.setToolTip(self.tr("Mesh area considered to be zero"))
         self.minimal_mesh_area_lineedit = QLineEdit("")
+
+        # hab_equation_case
+        hab_equation_case_label = QLabel(self.tr('Habitat equation case'))
+        hab_equation_case_label.setToolTip(self.tr("Habitat equation case : https://habby.wiki.inrae.fr/en:manuel_reference:methode_micro:verif_habby"))
+        self.hab_equation_case_combobox = QComboBox()
+        self.hab_equation_case_combobox.setToolTip(self.tr("Habitat equation case : https://habby.wiki.inrae.fr/en:manuel_reference:methode_micro:verif_habby"))
 
         """ outputs widgets """
         self.mesh_whole_profile_hyd = QCheckBox("")
@@ -236,6 +248,7 @@ class ProjectPropertiesDialog(QDialog):
         layout_hyd_options.addRow(self.cut_2d_grid_label, self.cut_2d_grid_checkbox)
         layout_hyd_options.addRow(min_height_label, self.min_height_lineedit)
         layout_hyd_options.addRow(minimal_mesh_area_label, self.minimal_mesh_area_lineedit)
+        layout_hyd_options.addRow(hab_equation_case_label, self.hab_equation_case_combobox)
 
         # exports options
         self.layout_available_exports = QGridLayout()
@@ -349,6 +362,7 @@ class ProjectPropertiesDialog(QDialog):
         self.second_supercut_checkbox.stateChanged.connect(self.set_modification_presence)
         self.cut_2d_grid_checkbox.stateChanged.connect(self.set_modification_presence)
         self.minimal_mesh_area_lineedit.textChanged.connect(self.set_modification_presence)
+        self.hab_equation_case_combobox.currentIndexChanged.connect(self.set_modification_presence)
         self.min_height_lineedit.textChanged.connect(self.set_modification_presence)
         self.erase_data_checkbox.stateChanged.connect(self.set_modification_presence)
         self.pvd_variable_z_combobox.currentIndexChanged.connect(self.set_modification_presence)
@@ -384,6 +398,14 @@ class ProjectPropertiesDialog(QDialog):
         # minimal_mesh_area
         if "minimal_mesh_area" in project_properties.keys():
             self.minimal_mesh_area_lineedit.setText(str(project_properties['minimal_mesh_area']))
+        else:
+            self.send_log.emit('Warning: ' + self.tr('The current project is outdated. You might recreate a new one.'))
+
+        # minimal_mesh_area
+        if "hab_equation_case" in project_properties.keys():
+            self.hab_equation_case_combobox.clear()
+            self.hab_equation_case_combobox.addItems(hab_equation_manager.names)
+            self.hab_equation_case_combobox.setCurrentIndex(hab_equation_manager.names.index(project_properties['hab_equation_case']))
         else:
             self.send_log.emit('Warning: ' + self.tr('The current project is outdated. You might recreate a new one.'))
 
@@ -623,6 +645,9 @@ class ProjectPropertiesDialog(QDialog):
         except ValueError:
             self.send_log.emit('Error: ' + self.tr('Minimal mesh area should be float'))
 
+        # hab_equation_case
+        project_properties['hab_equation_case'] = self.hab_equation_case_combobox.currentText()
+
         if self.second_supercut_checkbox.isChecked():
             project_properties['second_supercut'] = True
         else:
@@ -659,6 +684,7 @@ class ProjectPropertiesDialog(QDialog):
 
         # project_properties['cut_mesh_partialy_dry'] to change suffix no_cut
         self.cut_mesh_partialy_dry_signal.emit(project_properties['cut_mesh_partialy_dry'])
+        self.change_equation_case_signal.emit()
 
         self.close()
 

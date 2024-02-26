@@ -25,6 +25,7 @@ from src.hdf5_mod import Hdf5Management
 from src.bio_info_mod import read_pref, copy_or_not_user_pref_curve_to_input_folder
 from src.substrate_mod import sandre_to_cemagref_by_percentage_array, sandre_to_cemagref_array, \
     pref_substrate_coarser_from_percentage_description, pref_substrate_dominant_from_percentage_description
+from src.hab_equation_mod import hab_equation_manager
 from src.translator_mod import get_translator
 
 
@@ -192,88 +193,94 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                             v_pref_c = np.interp(vel_t, pref_vel[0], pref_vel[1], left=np.nan, right=np.nan)
 
                         """ substrate pref """
-                        # Neglect
-                        if animal.sub_opt == "Neglect":
-                            s_pref_c = np.array([1] * ikle_t.shape[0])
-                        else:
-                            # conca substrate data_2d to on numpy array
-                            sub_t = np.empty(shape=(ikle_t.shape[0], len(
-                                hdf5.data_2d.hvum.hdf5_and_computable_list.hdf5s().subs().names())),
-                                             dtype=np.int64)
-                            for sub_class_num, sub_class_name in enumerate(
-                                    hdf5.data_2d.hvum.hdf5_and_computable_list.hdf5s().subs().names()):
-                                sub_t[:, sub_class_num] = hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][
-                                    sub_class_name]
+                        # conca substrate data_2d to on numpy array
+                        sub_t = np.empty(shape=(ikle_t.shape[0], len(
+                            hdf5.data_2d.hvum.hdf5_and_computable_list.hdf5s().subs().names())),
+                                         dtype=np.int64)
+                        for sub_class_num, sub_class_name in enumerate(
+                                hdf5.data_2d.hvum.hdf5_and_computable_list.hdf5s().subs().names()):
+                            sub_t[:, sub_class_num] = hdf5.data_2d[reach_number][unit_number]["mesh"]["data"][
+                                sub_class_name]
 
-                            # # sub_classification_code conversion ?
-                            # print("------------------------")
-                            # print("Warning: data_2d", data_2d_sub_classification_code)
-                            # print("Warning: hsi", hsi_sub_classification_code)
-                            if data_2d_sub_classification_code == "Sandre" and hsi_sub_classification_code == "Cemagref":
-                                # convert substrate data_2d to Cemagref
-                                if len(hdf5.data_2d.hvum.hdf5_and_computable_list.hdf5s().subs()) > 2:  # percentage
-                                    sub_t = sandre_to_cemagref_by_percentage_array(sub_t)
-                                else:
-                                    sub_t = sandre_to_cemagref_array(sub_t)
-
-                            # Coarser-Dominant
-                            if animal.sub_opt == "Coarser-Dominant":
-                                if hdf5.data_2d.sub_classification_method == "percentage":
-                                    s_pref_c_coarser = pref_substrate_coarser_from_percentage_description(
-                                        pref_sub[1], sub_t)
-                                    s_pref_c_dom = pref_substrate_dominant_from_percentage_description(
-                                        pref_sub[1], sub_t)
-                                    s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
-                                elif hdf5.data_2d.sub_classification_method == "coarser-dominant":
-                                    s_pref_c_coarser = pref_sub[1][sub_t[:, 0] - 1]
-                                    s_pref_c_dom = pref_sub[1][sub_t[:, 1] - 1]
-                                    s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
-                            # Coarser
-                            elif animal.sub_opt == "Coarser":
-                                if hdf5.data_2d.sub_classification_method == "percentage":
-                                    s_pref_c = pref_substrate_coarser_from_percentage_description(
-                                        pref_sub[1], sub_t)
-                                elif hdf5.data_2d.sub_classification_method == "coarser-dominant":
-                                    s_pref_c = pref_sub[1][sub_t[:, 0] - 1]
-                            # Dominant
-                            elif animal.sub_opt == "Dominant":
-                                if hdf5.data_2d.sub_classification_method == "percentage":
-                                    s_pref_c = pref_substrate_dominant_from_percentage_description(
-                                        pref_sub[1], sub_t)
-                                elif hdf5.data_2d.sub_classification_method == "coarser-dominant":
-                                    s_pref_c = pref_sub[1][sub_t[:, 1] - 1]
-                            # Percentage
-                            elif animal.sub_opt == "Percentage":
-                                if hdf5.data_2d.sub_classification_method == "percentage":
-                                    s_pref_c = np.sum((sub_t / 100) * pref_sub[1], axis=1)
-                                elif hdf5.data_2d.sub_classification_method == "coarser-dominant":
-                                    s_pref_c_coarser = pref_sub[1][sub_t[:, 0] - 1]
-                                    s_pref_c_dom = pref_sub[1][sub_t[:, 1] - 1]
-                                    s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
+                        # # sub_classification_code conversion ?
+                        # print("------------------------")
+                        # print("Warning: data_2d", data_2d_sub_classification_code)
+                        # print("Warning: hsi", hsi_sub_classification_code)
+                        if data_2d_sub_classification_code == "Sandre" and hsi_sub_classification_code == "Cemagref":
+                            # convert substrate data_2d to Cemagref
+                            if len(hdf5.data_2d.hvum.hdf5_and_computable_list.hdf5s().subs()) > 2:  # percentage
+                                sub_t = sandre_to_cemagref_by_percentage_array(sub_t)
                             else:
-                                print("Error: animal.sub_opt", animal.sub_opt, " not recognized.")
+                                sub_t = sandre_to_cemagref_array(sub_t)
+
+                        # Coarser-Dominant
+                        if animal.sub_opt == "Coarser-Dominant":
+                            if hdf5.data_2d.sub_classification_method == "percentage":
+                                s_pref_c_coarser = pref_substrate_coarser_from_percentage_description(
+                                    pref_sub[1], sub_t)
+                                s_pref_c_dom = pref_substrate_dominant_from_percentage_description(
+                                    pref_sub[1], sub_t)
+                                s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
+                            elif hdf5.data_2d.sub_classification_method == "coarser-dominant":
+                                s_pref_c_coarser = pref_sub[1][sub_t[:, 0] - 1]
+                                s_pref_c_dom = pref_sub[1][sub_t[:, 1] - 1]
+                                s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
+                        # Coarser
+                        elif animal.sub_opt == "Coarser":
+                            if hdf5.data_2d.sub_classification_method == "percentage":
+                                s_pref_c = pref_substrate_coarser_from_percentage_description(
+                                    pref_sub[1], sub_t)
+                            elif hdf5.data_2d.sub_classification_method == "coarser-dominant":
+                                s_pref_c = pref_sub[1][sub_t[:, 0] - 1]
+                        # Dominant
+                        elif animal.sub_opt == "Dominant":
+                            if hdf5.data_2d.sub_classification_method == "percentage":
+                                s_pref_c = pref_substrate_dominant_from_percentage_description(
+                                    pref_sub[1], sub_t)
+                            elif hdf5.data_2d.sub_classification_method == "coarser-dominant":
+                                s_pref_c = pref_sub[1][sub_t[:, 1] - 1]
+                        # Percentage
+                        elif animal.sub_opt == "Percentage":
+                            if hdf5.data_2d.sub_classification_method == "percentage":
+                                s_pref_c = np.sum((sub_t / 100) * pref_sub[1], axis=1)
+                            elif hdf5.data_2d.sub_classification_method == "coarser-dominant":
+                                s_pref_c_coarser = pref_sub[1][sub_t[:, 0] - 1]
+                                s_pref_c_dom = pref_sub[1][sub_t[:, 1] - 1]
+                                s_pref_c = (0.2 * s_pref_c_coarser) + (0.8 * s_pref_c_dom)
+                        elif animal.sub_opt == "Neglect":
+                            pass
+                        else:
+                            print("Error: animal.sub_opt", animal.sub_opt, " not recognized.")
+                            return
 
                         """ compute habitat value """
                         try:
-                            # HV
-                            if "H" in animal.hyd_opt and "V" in animal.hyd_opt:
-                                hsi = h_pref_c * v_pref_c * s_pref_c
-                                hsi[h_pref_c == 0] = 0
-                                hsi[v_pref_c == 0] = 0
-                                hsi[s_pref_c == 0] = 0
-                            # H
-                            elif "H" in animal.hyd_opt:
-                                hsi = h_pref_c * s_pref_c
-                                hsi[h_pref_c == 0] = 0
-                                hsi[s_pref_c == 0] = 0
-                            # V
-                            elif "V" in animal.hyd_opt:
-                                hsi = v_pref_c * s_pref_c
-                                hsi[v_pref_c == 0] = 0
-                                hsi[s_pref_c == 0] = 0
+                            hab_equ_index = hab_equation_manager.names.index(project_properties["hab_equation_case"])
+                            hab_equ = hab_equation_manager.list[hab_equ_index]
                             # Neglect
+                            if animal.sub_opt == "Neglect":
+                                # HV
+                                if "HV" in animal.hyd_opt:
+                                    hsi = hab_equ.compute([h_pref_c, v_pref_c])
+                                # H
+                                elif "H" in animal.hyd_opt:
+                                    hsi = hab_equ.compute([h_pref_c])
+                                # V
+                                elif "V" in animal.hyd_opt:
+                                    hsi = hab_equ.compute([v_pref_c])
                             else:
-                                hsi = s_pref_c
+                                # HV
+                                if "HV" in animal.hyd_opt:
+                                    hsi = hab_equ.compute([h_pref_c, v_pref_c, s_pref_c])
+                                # H
+                                elif "H" in animal.hyd_opt:
+                                    hsi = hab_equ.compute([h_pref_c,  s_pref_c])
+                                # V
+                                elif "V" in animal.hyd_opt:
+                                    hsi = hab_equ.compute([v_pref_c, s_pref_c])
+                                # Neglect hyd_opt
+                                else:
+                                    hsi = s_pref_c
                         except ValueError:
                             print('Error: ' + qt_tr.translate("calcul_hab_mod",
                                                               'One time step misses substrate, velocity or water height value.'))

@@ -74,6 +74,7 @@ def create_default_project_properties_dict(all_export_enabled=False):
     project_properties['coeff_std'] = 3
     project_properties['second_supercut'] = True
     project_properties['minimal_mesh_area'] = 0.001
+    project_properties['hab_equation_case'] = "a"
     project_properties['min_height_hyd'] = 0.001  # node mesh minimum water height consider like dry
     project_properties['cut_mesh_partialy_dry'] = True  # cut of not mesh partialy wet
     project_properties['erase_id'] = True  # erase file (hdf5, outputs) if exist. if not set date/hour in filename
@@ -294,6 +295,13 @@ def load_project_properties(path_prj):
         print('Warning: No project file (.habby) found.\n')
     else:
         project_properties = json.load(open(project_file_abs_path, "r"))
+
+    # compare keys to add new ones
+    default_project_properties = create_default_project_properties_dict()
+    if len(project_properties.keys()) < len(default_project_properties.keys()):
+        key_diff = list(set(set(default_project_properties.keys()) - project_properties.keys()))
+        if key_diff:
+            project_properties[key_diff[0]] = default_project_properties[key_diff[0]]
 
     # check if project move
     if path_prj != project_properties["path_prj"]:  # update all path

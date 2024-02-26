@@ -134,7 +134,7 @@ class SubstrateAndMerge(QWidget):
     drop_hydro = pyqtSignal()
     drop_merge = pyqtSignal()
     """
-    A pyqtsignal which signal that merged hydro data is ready. The signal is for the bioinfo_tab and is collected
+    A pyqtsignal which signal that merged hydro data is ready. The signal is for the calhab_tab and is collected
     by MainWindows1.py.
     """
 

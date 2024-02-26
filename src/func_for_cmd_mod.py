@@ -22,10 +22,6 @@ from copy import deepcopy
 import h5py
 import matplotlib
 import numpy as np
-
-import src.dev_tools_mod
-import src.hydraulic_results_manager_mod
-
 matplotlib.use("qt5agg")
 import matplotlib.pyplot as plt
 from multiprocessing import Process, Value, Queue
@@ -46,6 +42,8 @@ import src.calcul_hab_mod
 import src.hydraulic_process_mod
 import src.merge_mod
 import src.substrate_mod
+import src.dev_tools_mod
+import src.hydraulic_results_manager_mod
 
 
 def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False, erase_id=True):
@@ -1290,6 +1288,9 @@ def cli_calc_hab(arguments, project_properties):
         # sub_opt
         if arg[:8] == 'sub_opt=':
             run_choice["sub_opt"] = arg[8:].split(",")
+        # hab_equation_case
+        if arg[:18] == 'hab_equation_case=':
+            run_choice["hab_equation_case"] = arg[18:].split(",")
 
     user_target_list = HydraulicVariableUnitList()
     for i in range(len(run_choice["pref_file_list"])):
@@ -1312,6 +1313,7 @@ def cli_calc_hab(arguments, project_properties):
                                                              run_choice["stage_list"][i],
                                                              run_choice["hyd_opt"][i],
                                                              run_choice["sub_opt"][i],
+                                                             run_choice["hab_equation_case"][i],
                                                              information_model_dict["aquatic_animal_type"],
                                                              information_model_dict["model_type"],
                                                              run_choice["pref_file_list"][i],
