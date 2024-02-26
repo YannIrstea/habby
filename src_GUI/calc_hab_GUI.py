@@ -250,7 +250,7 @@ class CalcHabTab(estimhab_GUI.StatModUseful):
         model_layout.addWidget(self.remove_duplicate_model_pushbutton, 2, 1)
         model_groupbox.setLayout(model_layout)
 
-        equ_groupbox = QGroupBox(self.tr("Equation case"))
+        equ_groupbox = QGroupBox(self.tr("Equation case for univariate models"))
         equ_layout = QGridLayout()
         equ_layout.addWidget(self.equ_label, 0, 0)
         equ_layout.addWidget(self.equ_img_label, 0, 1)
@@ -440,7 +440,7 @@ class CalcHabTab(estimhab_GUI.StatModUseful):
                     # set positon to combobox
                     self.sub_mode_qtablewidget.cellWidget(index, 0).setCurrentIndex(substrate_type_available.index(new_sub_str))
 
-    def check_if_model_exist_in_hab(self, model_index, hab_equation_case):
+    def check_if_model_exist_in_hab(self, model_index, hab_equation_case, model_type):
         # 1 column
         item_str = self.selected_aquatic_animal_qtablewidget.item(model_index, 0).text()
         name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
@@ -451,8 +451,10 @@ class CalcHabTab(estimhab_GUI.StatModUseful):
         # 4 column
         item_checkbox = self.presence_qtablewidget.cellWidget(model_index, 0).layout().itemAt(0).widget()
         # get full name
-        fish_name_full = code_bio_model + "_" + stage + "_" + hyd_opt_str + "_" + sub_opt_str + "_" + hab_equation_case
-
+        if model_type == "univariate suitability index curves":
+            fish_name_full = code_bio_model + "_" + stage + "_" + hyd_opt_str + "_" + sub_opt_str + "_" + hab_equation_case
+        else:
+            fish_name_full = code_bio_model + "_" + stage + "_" + hyd_opt_str + "_" + sub_opt_str
         # check or not
         if fish_name_full in self.current_hab_informations_dict["fish_list"]:
             item_checkbox.setChecked(True)
@@ -463,7 +465,12 @@ class CalcHabTab(estimhab_GUI.StatModUseful):
         self.get_current_hab_informations()
         hab_equation_case = load_project_properties(self.path_prj)["hab_equation_case"]
         for model_index in range(self.selected_aquatic_animal_qtablewidget.rowCount()):
-            self.check_if_model_exist_in_hab(model_index, hab_equation_case)
+            item_str = self.selected_aquatic_animal_qtablewidget.item(model_index, 0).text()
+            name_fish, stage, code_bio_model = get_name_stage_codebio_fromstr(item_str)
+            index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
+            index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
+            model_type = user_preferences.biological_models_dict["model_type"][model_index][index_stage]
+            self.check_if_model_exist_in_hab(model_index, hab_equation_case, model_type)
 
     def color_hyd_combobox(self):
         """
@@ -482,6 +489,7 @@ class CalcHabTab(estimhab_GUI.StatModUseful):
         index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
         hydraulic_type_available = [self.sender().itemText(i) for i in range(self.sender().count())]
         default_choice_index = hydraulic_type_available.index(user_preferences.biological_models_dict["hydraulic_type"][index_fish][index_stage])
+        model_type = user_preferences.biological_models_dict["model_type"][model_index][index_stage]
 
         # change color if default choosen
         if new_hyd_mode_index == default_choice_index:
@@ -493,7 +501,7 @@ class CalcHabTab(estimhab_GUI.StatModUseful):
         self.selected_aquatic_animal_dict["hydraulic_mode_list"][model_index] = new_hyd_mode_index
 
         # check if exist
-        self.check_if_model_exist_in_hab(model_index, hab_equation_case)
+        self.check_if_model_exist_in_hab(model_index, hab_equation_case, model_type)
 
     def change_general_hyd_combobox(self):
         model_index = int(self.sender().objectName())
@@ -525,6 +533,8 @@ class CalcHabTab(estimhab_GUI.StatModUseful):
         index_stage = user_preferences.biological_models_dict["stage_and_size"][index_fish].index(stage)
         substrate_type_available = [self.sender().itemText(i) for i in range(self.sender().count())]
         default_choice_index = substrate_type_available.index(user_preferences.biological_models_dict["substrate_type"][index_fish][index_stage])
+        model_type = user_preferences.biological_models_dict["model_type"][model_index][index_stage]
+
         if new_sub_mode_index == default_choice_index:
             self.sender().setStyleSheet(self.combobox_style_default)
         else:
@@ -534,7 +544,7 @@ class CalcHabTab(estimhab_GUI.StatModUseful):
         self.selected_aquatic_animal_dict["substrate_mode_list"][model_index] = new_sub_mode_index
 
         # check if exist
-        self.check_if_model_exist_in_hab(model_index, hab_equation_case)
+        self.check_if_model_exist_in_hab(model_index, hab_equation_case, model_type)
 
     def change_general_sub_combobox(self):
         model_index = int(self.sender().objectName())
@@ -719,7 +729,8 @@ class CalcHabTab(estimhab_GUI.StatModUseful):
                 self.presence_qtablewidget.setCellWidget(index, 0, cell_widget)
                 self.presence_qtablewidget.setRowHeight(index, 27)
                 # check_if_model_exist_in_hab
-                self.check_if_model_exist_in_hab(index, hab_equation_case)
+                model_type = user_preferences.biological_models_dict["model_type"][index_fish]
+                self.check_if_model_exist_in_hab(index, hab_equation_case, model_type)
 
             # general
             self.bio_model_choosen_title_label.setText(self.tr("Biological models selected (") + str(total_item) + ")")

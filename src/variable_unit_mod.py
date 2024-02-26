@@ -118,7 +118,10 @@ class HydraulicVariableUnitList(list):
     def append_new_habitat_variable(self, code_bio_model, stage, hyd_opt, sub_opt, hab_equation_case, aquatic_animal_type, model_type,
                                     pref_file, path_img, hyd_opt_available=[], sub_opt_available=[], variable_list=None):
         # animal name
-        name = code_bio_model + "_" + stage + "_" + hyd_opt + "_" + sub_opt + "_" + hab_equation_case
+        if model_type == "univariate suitability index curves":
+            name = code_bio_model + "_" + stage + "_" + hyd_opt + "_" + sub_opt + "_" + hab_equation_case
+        else:
+            name = code_bio_model + "_" + stage + "_" + hyd_opt + "_" + sub_opt
         # create variable
         hab_variable = HabitatSuitabilityIndexVariable(value=None,
                                                        unit="HSI",

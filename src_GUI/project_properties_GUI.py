@@ -102,9 +102,9 @@ class ProjectPropertiesDialog(QDialog):
 
         # hab_equation_case
         hab_equation_case_label = QLabel(self.tr('Habitat equation case'))
-        hab_equation_case_label.setToolTip(self.tr("Habitat equation case : https://habby.wiki.inrae.fr/en:manuel_reference:methode_micro:verif_habby"))
+        hab_equation_case_label.setToolTip(self.tr("Habitat equation case for univariate models\nhttps://habby.wiki.inrae.fr/en:manuel_reference:methode_micro:verif_habby"))
         self.hab_equation_case_combobox = QComboBox()
-        self.hab_equation_case_combobox.setToolTip(self.tr("Habitat equation case : https://habby.wiki.inrae.fr/en:manuel_reference:methode_micro:verif_habby"))
+        self.hab_equation_case_combobox.setToolTip(self.tr("Habitat equation case for univariate models\nhttps://habby.wiki.inrae.fr/en:manuel_reference:methode_micro:verif_habby"))
 
         """ outputs widgets """
         self.mesh_whole_profile_hyd = QCheckBox("")
