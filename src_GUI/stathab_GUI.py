@@ -327,7 +327,7 @@ class StathabW(estimhab_GUI.StatModUseful):
                     self.selected_aquatic_animal_qtablewidget.addItem(item_str)
                     self.fish_selected.append(item_str)
                 else:
-                    self.send_log.emit('Warning: ' + item_str + " has neither height nor velocity in "
+                    self.send_log.emit('Warning: ' + item_str + " has neither height or velocity in "
                                                                 "biological model (not usable with " +
                                        self.model_type.replace("_", " ") + ").")
         self.save_xml()

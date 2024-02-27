@@ -40,10 +40,6 @@ class EquationA:
         for var in variable_list:
             hsi *= var
 
-        # security
-        for var in variable_list:
-            hsi[var == 0] = 0
-
         return hsi
 
 
@@ -59,11 +55,7 @@ class EquationB:
         # compute
         for var in variable_list:
             hsi *= var
-        hsi = np.power(hsi, 1 / 3)
-
-        # security
-        for var in variable_list:
-            hsi[var == 0] = 0
+        hsi = np.power(hsi, 1 / len(variable_list))
 
         return hsi
 
@@ -81,10 +73,6 @@ class EquationC:
         for var in variable_list:
             hsi += var
         hsi = hsi / len(variable_list)
-
-        # security
-        for var in variable_list:
-            hsi[var == 0] = 0
 
         return hsi
 
