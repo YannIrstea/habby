@@ -30,7 +30,8 @@ binaries = osgeo_pyds + triangle_pyds
 
 hidden_imports = [
     'gdal',
-    'pkg_resources.py2_warn']
+    'pkg_resources.py2_warn',
+    'scipy.special._cdflib']
 # pkg_resources.py2_warn : if not set, .exe crash (Failed to execute script pyi_rth_pkgres)
 
 from src.hydraulic_results_manager_mod import HydraulicModelInformation

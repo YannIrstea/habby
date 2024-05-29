@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "HABBY"
-#define MyAppVersion "1.5.11"
+#define MyAppVersion "1.6.01"
 #define MyAppPublisher "INRAE EDF OFB"
 #define MyAppURL "https://habby.wiki.inrae.fr/"
 #define MyAppExeName "habby.exe"
@@ -30,7 +30,7 @@ Compression=lzma
 SolidCompression=yes
 ChangesAssociations=yes
 SetupIconFile=C:\habby_dev\habby\file_dep\habby_icon.ico
-UninstallDisplayIcon=C:\habby_dev\habby\file_dep\habby_icon.ico
+UninstallDisplayIcon={app}\file_dep\habby_icon.ico
 PrivilegesRequiredOverridesAllowed=dialog
 
 

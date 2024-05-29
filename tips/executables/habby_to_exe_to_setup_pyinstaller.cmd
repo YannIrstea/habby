@@ -6,7 +6,7 @@
 :: PATHS
 SET habby_path=C:\habby_dev\habby
 SET envir_virtuels_path=C:\habby_dev\env_virtuels
-SET envir_virtuel_name=env_habby_dev_pip
+SET envir_virtuel_name=env_habby_dev_pip_py311
 
 ::::::::::: ACTIVATE VIRTUAL ENV ::::::::::::::
 :: not conda
