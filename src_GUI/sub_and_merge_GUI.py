@@ -19,12 +19,8 @@ from multiprocessing import Process, Queue, Value, Event
 import numpy as np
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtWidgets import QWidget, QPushButton, \
-    QLabel, QGridLayout, \
-    QLineEdit, QFileDialog, QSpacerItem, \
-    QComboBox, QMessageBox, QGroupBox, \
-    QRadioButton, QScrollArea, QFrame, QVBoxLayout, QSizePolicy, \
-    QHBoxLayout
+from PyQt5.QtWidgets import QWidget, QPushButton, QLabel, QGridLayout, QLineEdit, QFileDialog, QSpacerItem, \
+    QComboBox, QMessageBox, QGroupBox, QRadioButton, QScrollArea, QFrame, QVBoxLayout, QSizePolicy, QHBoxLayout
 from lxml import etree as ET
 import sys
 
@@ -33,9 +29,8 @@ import src.merge_mod
 import src.project_properties_mod
 import src.substrate_mod
 import src.tools_mod
-from src import hdf5_mod
 from src.project_properties_mod import load_project_properties, load_specific_properties, save_project_properties
-from src_GUI.dev_tools_GUI import change_button_color, QGroupBoxCollapsible
+from src_GUI.dev_tools_GUI import QGroupBoxCollapsible
 from src_GUI.process_manager_GUI import ProcessProgLayout
 
 np.set_printoptions(threshold=np.inf)

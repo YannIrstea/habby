@@ -405,6 +405,16 @@ class ModelInfoGroup(QGroupBox):
         self.hdf5_name_lineedit = QLineEdit()
         self.hdf5_name_lineedit.returnPressed.connect(self.load_hydraulic_create_hdf5)
 
+        self.gpkg_export_label = QLabel(self.tr('Raw data'))
+        self.gpkg_export_label.setToolTip(self.tr("raw data export to gpkg file"))
+        self.gpkg_export_button_layout = QHBoxLayout()
+        self.gpkg_export_lineedit = QLineEdit()
+        self.gpkg_export_button_layout.addWidget(self.gpkg_export_lineedit)
+        self.gpkg_export_pushbutton = QPushButton(self.tr("Export GPKG"))
+        self.gpkg_export_pushbutton.setToolTip(self.tr("raw data export to gpkg file"))
+        self.gpkg_export_button_layout.addWidget(self.gpkg_export_pushbutton)
+        self.gpkg_export_pushbutton.clicked.connect(self.export_raw_data_to_gpkg)
+
         # last_hydraulic_file_label
         self.last_hydraulic_file_label = QLabel(self.tr('Last file created'))
         self.last_hydraulic_file_name_label = QLabel(self.tr('no file'))
@@ -438,9 +448,13 @@ class ModelInfoGroup(QGroupBox):
         self.hydrau_layout.addWidget(self.epsg_label, 9, 1)
         self.hydrau_layout.addWidget(self.hdf5_name_title_label, 10, 0)
         self.hydrau_layout.addWidget(self.hdf5_name_lineedit, 10, 1)
-        self.hydrau_layout.addLayout(self.progress_layout, 11, 0, 1, 2)
-        self.hydrau_layout.addWidget(self.last_hydraulic_file_label, 12, 0)
-        self.hydrau_layout.addWidget(self.last_hydraulic_file_name_label, 12, 1)
+
+        self.hydrau_layout.addWidget(self.gpkg_export_label, 11, 0)
+        self.hydrau_layout.addLayout(self.gpkg_export_button_layout, 11, 1)
+
+        self.hydrau_layout.addLayout(self.progress_layout, 12, 0, 1, 2)
+        self.hydrau_layout.addWidget(self.last_hydraulic_file_label, 13, 0)
+        self.hydrau_layout.addWidget(self.last_hydraulic_file_name_label, 13, 1)
         self.setLayout(self.hydrau_layout)
 
     def update_for_lammi(self, on=False):
@@ -716,6 +730,9 @@ class ModelInfoGroup(QGroupBox):
         self.units_name_label.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["unit_type"])  # kind of unit
         self.update_unit_from_reach()
         self.epsg_label.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["epsg_code"])
+
+        self.gpkg_export_lineedit.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"][:-4] + ".gpkg")
+
         self.hdf5_name_lineedit.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"])  # hdf5 name
         extension = "hyd"
         if self.hydrau_description_list[self.input_file_combobox.currentIndex()]["sub"]:
@@ -794,6 +811,57 @@ class ModelInfoGroup(QGroupBox):
         self.unit_number_label.setText(text)  # number units
 
         self.progress_layout.run_stop_button.setEnabled(True)
+
+    def export_raw_data_to_gpkg(self):
+        """
+        The function export raw data to GPKG file from user selection
+        """
+        if self.gpkg_export_pushbutton.isEnabled():
+            # get minimum water height as we might neglect very low water height
+            self.project_properties = load_project_properties(self.path_prj)
+
+            # get timestep and epsg selected
+            for i in range(len(self.hydrau_description_list)):
+                for reach_number in range(int(self.hydrau_description_list[i]["reach_number"])):
+                    if not any(self.hydrau_description_list[i]["unit_list_tf"][reach_number]):
+                        self.send_log.emit(
+                            "Error: " + self.tr("No units selected for : ") + self.hydrau_description_list[i][
+                                "filename_source"] + "\n")
+                        return
+
+            # check if extension is set by user (one hdf5 case)
+            self.name_hdf5 = self.hdf5_name_lineedit.text()
+            self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"] = self.name_hdf5
+            if self.name_hdf5 == "":
+                self.send_log.emit('Error: ' + self.tr('.hyd output filename is empty. Please specify it.'))
+                return
+            # 
+            # # check if extension is set by user (multi hdf5 case)
+            # hydrau_description_multiple = deepcopy(
+            #     self.hydrau_description_list)  # create copy to not erase inital choices
+            # for hdf5_num in range(len(hydrau_description_multiple)):
+            #     if not os.path.splitext(hydrau_description_multiple[hdf5_num]["hdf5_name"])[1]:
+            #         hydrau_description_multiple[hdf5_num]["hdf5_name"] = hydrau_description_multiple[hdf5_num][
+            #                                                                  "hdf5_name"] + ".hyd"
+            #     # refresh filename_source
+            #     if self.hydrau_case == '2.a' or self.hydrau_case == '2.b':
+            #         filename_source_list = hydrau_description_multiple[hdf5_num]["filename_source"].split(", ")
+            #         new_filename_source_list = []
+            #         for reach_number in range(len(hydrau_description_multiple[hdf5_num]["unit_list_tf"])):
+            #             for file_num, file in enumerate(filename_source_list):
+            #                 if hydrau_description_multiple[hdf5_num]["unit_list_tf"][reach_number][file_num]:
+            #                     new_filename_source_list.append(filename_source_list[file_num])
+            #         hydrau_description_multiple[hdf5_num]["filename_source"] = ", ".join(new_filename_source_list)
+            #
+            # # process_manager
+            # self.progress_layout.process_manager.set_hyd_mode(self.path_prj, hydrau_description_multiple,
+            #                                                   self.project_properties)
+            #
+            # # process_prog_show
+            # self.progress_layout.start_process()
+            #
+            # # script
+            # self.create_script(hydrau_description_multiple)
 
     def load_hydraulic_create_hdf5(self):
         """
