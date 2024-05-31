@@ -17,7 +17,6 @@ https://github.com/YannIrstea/habby
 import numpy as np
 import pandas as pd
 from scipy.interpolate import griddata
-import sys
 from copy import deepcopy
 
 from src.manage_grid_mod import linear_z_cross, connectivity_mesh_table
@@ -403,12 +402,6 @@ class Data2d(list):
         All mesh entierly dry are always cuted. if CutMeshPartialyDry is True, partialy dry mesh are also cuted.
         This function works for one unit of a reach.
 
-        :param ikle: the connectivity table of the 2D grid
-        :param point_all: the coordinate x,y,z of the points
-        :param water_height: the water height data given on the nodes
-        :param velocity: the velocity given on the nodes
-        :param min_height: the minimum water height considered (as model sometime have cell with very low water height)
-        :param CutMeshPartialyDry: If True partialy dry mesh are cuted
         :return: the update connectivity table, the coordinates of the point, the height of the water and the
                  velocity on the updated grid and the indices of the old connectivity table in the new cell orders.
         """
@@ -598,6 +591,7 @@ class Data2d(list):
                     velocity_ok = np.append(velocity_ok, np.zeros(lpns - nbdouble, dtype=velocity.dtype), axis=0)
 
                     # temp
+                    temp_data = None
                     if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.nodes().names():
                         # inter_height = scipy.interpolate.griddata(xy, values, point_p, method='linear')
                         temp_data = griddata(points=self[reach_number][unit_number]["node"][self.hvum.xy.name],
@@ -610,6 +604,7 @@ class Data2d(list):
                     self[reach_number][unit_number]["node"]["data"] = \
                         self[reach_number][unit_number]["node"]["data"].iloc[
                             ipt_iklenew_unique]
+                    temp_ok = None
                     if self.hvum.temp.name in self.hvum.hdf5_and_computable_list.nodes().names():
                         temp_ok = np.append(self[reach_number][unit_number]["node"]["data"][self.hvum.temp.name],
                                             temp_data,
@@ -618,8 +613,7 @@ class Data2d(list):
                     # new pandas dataframe (to be added to the end)
                     nan_pd = pd.DataFrame(np.nan, index=np.arange(lpns - nbdouble),
                                           columns=self[reach_number][unit_number]["node"]["data"].columns.values)
-                    self[reach_number][unit_number]["node"]["data"] = self[reach_number][unit_number]["node"][
-                        "data"].append(nan_pd)
+                    self[reach_number][unit_number]["node"]["data"] = pd.concat([self[reach_number][unit_number]["node"]["data"], nan_pd])
                     self[reach_number][unit_number]["node"]["data"][self.hvum.h.name] = water_height_ok
                     self[reach_number][unit_number]["node"]["data"][self.hvum.v.name] = velocity_ok
                     self[reach_number][unit_number]["node"]["data"][self.hvum.z.name] = point_all_ok[:, 2]
@@ -734,8 +728,7 @@ class Data2d(list):
     def compute_variables(self, variable_computable_list):
         """
         Compute all necessary variables.
-        :param node_variable_list:
-        :param mesh_variable_list:
+        :param variable variable_computable_list:
         :return:
         """
         if not type(variable_computable_list) == HydraulicVariableUnitList and type(variable_computable_list) == list:
@@ -845,7 +838,7 @@ class Data2d(list):
         Accyrately lists the neighbours of each triangle from the subsection of the mesh we are interested in.
         For the rest of the triangles, the returned list will only contain the neighbours which belong to the interesting subsection
         :param tin:
-        :param bank_mesh_indices:
+        :param interest_mesh_indices:
         :return:
         """
         if interest_mesh_indices is None:
@@ -872,8 +865,8 @@ class Data2d(list):
 
         return neighbouring_triangles, neighbour_count
 
-        segment_to_triangle = {}  # dict where each key is a tuple of vertices (v1,v2) and the content is a list of triangles sharing the segment (v1,v2)
-        triangle_count = {}  # dict whose keys are the same as above, and the content is the number of triangles which contain each segment
+        # segment_to_triangle = {}   dict where each key is a tuple of vertices (v1,v2) and the content is a list of triangles sharing the segment (v1,v2)
+        # triangle_count = {} dict whose keys are the same as above, and the content is the number of triangles which contain each segment
 
         segment_sides_found = np.zeros((len(tin), 3), dtype=bool)
         neighbouring_triangles = [[] for _ in range(len(tin))]
