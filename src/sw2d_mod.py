@@ -100,9 +100,9 @@ def load_sw2d_and_modify_grid(name_hdf5, geom_sw2d_file, result_sw2d_file, path_
     nodes = coord_p
     nbnode = nodes.shape[0]
     nbtriangle = triangles.shape[0]
-    connect = np.zeros(nbnode, dtype=np.int)
+    connect = np.zeros(nbnode, dtype=int)
     connect[np.ravel(triangles)] = 1
-    pointer = np.zeros(nbnode, dtype=np.int)
+    pointer = np.zeros(nbnode, dtype=int)
     k = 0
     for i in range(nbnode):
         if connect[i]:
@@ -216,8 +216,8 @@ def read_mesh_sw2d(geofile, pathfile):
             nint = data[2]
             nnod = data[3]
             # reading info on cells
-            noNodElem = np.zeros((ncel, 1), dtype=np.int)
-            nnCel = np.zeros((ncel, 1), dtype=np.int)
+            noNodElem = np.zeros((ncel, 1), dtype=int)
+            nnCel = np.zeros((ncel, 1), dtype=int)
             data = np.fromfile(f, dtype=np.int32, count=1)  # label
             for i in range(ncel):
                 data = np.fromfile(f, dtype=np.int32, count=3)
@@ -226,12 +226,12 @@ def read_mesh_sw2d(geofile, pathfile):
                 data = np.fromfile(f, dtype=np.float, count=4)
             data = np.fromfile(f, dtype=np.int32, count=1)  # end label
             # reading connectivity
-            ### listNoNodElem = np.zeros([ncel, np.max(noNodElem)], dtype=np.int)
+            ### listNoNodElem = np.zeros([ncel, np.max(noNodElem)], dtype=int)
             listNoNodElem = []
             for i in range(int(ncel)):
                 data = np.fromfile(f, dtype=np.int32, count=1)  # label
 
-                ikle = np.zeros(noNodElem[i], dtype=np.int)
+                ikle = np.zeros(noNodElem[i], dtype=int)
 
                 for j in range(int(noNodElem[i])):
                     ikle[j] = np.fromfile(f, dtype=np.int32, count=1) - 1

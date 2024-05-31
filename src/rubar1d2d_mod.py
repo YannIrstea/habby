@@ -1040,7 +1040,7 @@ def load_dat_2d(geofile, path):
     data_l = data_geo2d[1].split()
     m2 = 2
     m = 1
-    ikle = np.empty((nb_cell, 4), dtype=np.int)
+    ikle = np.empty((nb_cell, 4), dtype=int)
     ikle_list = []
     while m < nb_cell * 3:
         if m >= len(data_geo2d):
@@ -1050,7 +1050,7 @@ def load_dat_2d(geofile, path):
         # data_l = data_geo2d[m].split()
         data_l = wrap(data_geo2d[m], 6)
         if m2 == m:
-            ind_l = np.array([-1] * 4, dtype=np.int)
+            ind_l = np.array([-1] * 4, dtype=int)
             for i in range(0, len(data_l) - 1):
                 try:
                     ind_l[i] = int(data_l[i + 1]) - 1

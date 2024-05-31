@@ -115,9 +115,9 @@ def load_iber2d_and_modify_grid(name_hdf5, geom_iber2d_file,
     nodes = coord_p
     nbnode = nodes.shape[0]
     nbtriangle = triangles.shape[0]
-    connect = np.zeros(nbnode, dtype=np.int)
+    connect = np.zeros(nbnode, dtype=int)
     connect[np.ravel(triangles)] = 1
-    pointer = np.zeros(nbnode, dtype=np.int)
+    pointer = np.zeros(nbnode, dtype=int)
     k = 0
     for i in range(nbnode):
         if connect[i]:

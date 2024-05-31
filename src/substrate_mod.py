@@ -489,7 +489,7 @@ def load_sub_sig(sub_description, progress_value):
     layer_defn = layer.GetLayerDefn()
 
     header_list = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
-    sub_array = np.empty(shape=(len(layer), len(header_list)), dtype=np.int)
+    sub_array = np.empty(shape=(len(layer), len(header_list)), dtype=int)
     for feature_ind, feature in enumerate(layer):
         try:
             sub_array[feature_ind] = [feature.GetField(j) for j in header_list]
@@ -680,7 +680,7 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
         triangle_geom_list = []
         triangle_records_list = []
         regions_points_array_dup_check = []
-        regions_values = np.empty(shape=(len(layer_polygon), len(header_list)), dtype=np.int)
+        regions_values = np.empty(shape=(len(layer_polygon), len(header_list)), dtype=int)
         layer_polygon.ResetReading()
         shape_geom = None
         hole_presence = False
@@ -864,7 +864,7 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
                   " in 'input' project folder, these help you to find an invalid geometry. Correct it and try again.")
             for triangle_invalid_index in triangle_invalid_index_list:
                 # set sub_default_values
-                triangle_records_list[triangle_invalid_index, :] = np.array(sub_description_system["sub_default_values"].split(", ")).astype(np.int)
+                triangle_records_list[triangle_invalid_index, :] = np.array(sub_description_system["sub_default_values"].split(", ")).astype(int)
 
                 # get geom
                 p1 = triangle_geom_list[triangle_invalid_index][0]
@@ -1245,7 +1245,7 @@ def sandre_to_cemagref_by_percentage_array(records_sandre_array):
     :param records_sandre_array: all records sandre
     :return: records_cemagref_array: all records cemagref
     """
-    records_cemagref_array=np.empty((records_sandre_array.shape[0], 8), np.int)
+    records_cemagref_array=np.empty((records_sandre_array.shape[0], 8), int)
     records_cemagref_array[:, (0, 1)] = records_sandre_array[:, (0, 1)]
     records_cemagref_array[:, 2] = records_sandre_array[:, 2]+records_sandre_array[:, 3]
     records_cemagref_array[:, 3] = records_sandre_array[:, 4] + records_sandre_array[:, 5]

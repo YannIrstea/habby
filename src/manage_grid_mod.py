@@ -2272,7 +2272,7 @@ def quadrangles_to_triangles(ikle4, xy, z, h, v):
         v = np.append(v, np.array([vi]), axis=0)
         # chek whether the quadrangle is partially wet
         h4 = h[[q0, q1, q2, q3]]
-        bhw = (h4 > 0).astype(np.int)
+        bhw = (h4 > 0).astype(int)
         n4_type = np.sum(bhw)  # 0=dry 4=wet 1,2 or 3 = partially wet
         if n4_type != 0 and n4_type != 4:  # the quadrangle is partially wet
             hi, vi = 0, 0
