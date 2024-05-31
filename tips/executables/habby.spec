@@ -31,6 +31,7 @@ binaries = osgeo_pyds + triangle_pyds
 hidden_imports = [
     'gdal',
     'pkg_resources.py2_warn',
+    'pkg_resources.extern',
     'scipy.special._cdflib']
 # pkg_resources.py2_warn : if not set, .exe crash (Failed to execute script pyi_rth_pkgres)
 
@@ -41,7 +42,11 @@ hidden_imports.extend(["src." + s for s in HydraulicModelInformation().file_mod_
 a = Analysis([os.path.join(habby_dev_path, "habby", 'habby.py')],
              pathex=[],
              binaries=osgeo_pyds,
-             datas=[],
+             datas=[(os.path.join(habby_dev_path, "habby", "biology"), "biology"),
+                    (os.path.join(habby_dev_path, "habby", "doc"), "doc"),
+                    (os.path.join(habby_dev_path, "habby", "model_hydro"), "model_hydro"),
+                    (os.path.join(habby_dev_path, "habby", "translation"), "translation"),
+                    (os.path.join(habby_dev_path, "habby", "file_dep"), "file_dep")],
              hiddenimports=hidden_imports,
              hookspath=[],
              runtime_hooks=[],

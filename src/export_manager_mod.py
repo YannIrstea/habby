@@ -20,7 +20,7 @@ import matplotlib as mpl
 from PyQt5.QtCore import QLocale #, QCoreApplication as qt_tr
 import numpy as np
 from osgeo.ogr import __file__ as ogr_path
-os.environ['PROJ_LIB'] = os.path.join(os.path.dirname(ogr_path), "data\proj")
+os.environ['PROJ_LIB'] = os.path.join(os.path.dirname(ogr_path), "data/proj")
 from osgeo import ogr
 from osgeo import osr
 osr.UseExceptions()

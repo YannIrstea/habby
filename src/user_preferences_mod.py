@@ -251,10 +251,16 @@ class UserPreferences(AppDataFolders):
 
         # format for gui
         for key in self.biological_models_dict["orderedKeys"]:
-            if type(self.biological_models_dict[key][0]) == list:
-                self.biological_models_dict["orderedKeysmultilist"].append(True)
+            if self.biological_models_dict[key]:
+                if type(self.biological_models_dict[key][0]) == list:
+                    self.biological_models_dict["orderedKeysmultilist"].append(True)
+                else:
+                    self.biological_models_dict["orderedKeysmultilist"].append(False)
+            # empty list
             else:
-                self.biological_models_dict["orderedKeysmultilist"].append(False)
+                # No biological model
+                print("Error: No biology models found. Current working directory seems to be changed :", os.getcwd())
+                return
 
     def check_need_update_biology_models_json(self):
         # create_biology_models_dict (new)

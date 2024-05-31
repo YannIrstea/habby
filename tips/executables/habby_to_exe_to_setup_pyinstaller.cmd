@@ -31,13 +31,6 @@ ECHO remove temp folder
 if exist build\pyinstaller\temp rmdir /Q /S build\pyinstaller\temp
 if exist __pycache__ rmdir /Q /S __pycache__
 
-ECHO copy folders
-robocopy biology build\pyinstaller\habby\biology /E > nul
-robocopy doc build\pyinstaller\habby\doc /E > nul
-robocopy model_hydro build\pyinstaller\habby\model_hydro /E > nul
-robocopy translation build\pyinstaller\habby\translation /E > nul
-robocopy file_dep build\pyinstaller\habby\file_dep /E > nul
-
 if %VarQuestion%== n ECHO run executable to see errors
 if %VarQuestion%== n build\pyinstaller\habby\habby.exe
 if %VarQuestion%== n ECHO executable created in ..\habby\build\pyinstaller

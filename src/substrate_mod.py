@@ -25,7 +25,7 @@ import numpy as np
 import triangle as tr
 from PyQt5.QtCore import QCoreApplication as qt_tr
 from osgeo.ogr import __file__ as ogr_path
-os.environ['PROJ_LIB'] = os.path.join(os.path.dirname(ogr_path), "data\proj")
+os.environ['PROJ_LIB'] = os.path.join(os.path.dirname(ogr_path), "data/proj")
 from osgeo import ogr
 from osgeo import osr
 from osgeo.ogr import GetDriverByName
