@@ -1376,9 +1376,9 @@ class Unit(dict):
             # froude from mesh h and v
             self["mesh"]["data"][self.hvum.froude.name] = self["mesh"]["data"][self.hvum.v.name] / np.sqrt(
                 self.hvum.g.value * self["mesh"]["data"][self.hvum.h.name])
-            with pd.option_context('mode.use_inf_as_na', True):
-                self["mesh"]["data"][self.hvum.froude.name] = self["mesh"]["data"][self.hvum.froude.name].fillna(
-                    0)  # divid by 0 return Nan
+            # divid by 0 return Nan
+            self["mesh"]["data"].loc[self["mesh"]["data"][self.hvum.froude.name] < 0, self.hvum.froude.name] = 0
+            self["mesh"]["data"][self.hvum.froude.name] = self["mesh"]["data"][self.hvum.froude.name].fillna(0)
 
         # compute from node
         else:
@@ -1551,9 +1551,9 @@ class Unit(dict):
         # compute froude
         self["node"]["data"][self.hvum.froude.name] = self["node"]["data"][self.hvum.v.name] / np.sqrt(
             self.hvum.g.value * self["node"]["data"][self.hvum.h.name])
-        with pd.option_context('mode.use_inf_as_na', True):
-            self["node"]["data"][self.hvum.froude.name] = self["node"]["data"][self.hvum.froude.name].fillna(
-                0)  # divid by 0 return Nan
+        # divid by 0 return Nan
+        self["node"]["data"].loc[self["node"]["data"][self.hvum.froude.name] < 0, self.hvum.froude.name] = 0
+        self["node"]["data"][self.hvum.froude.name] = self["node"]["data"][self.hvum.froude.name].fillna(0)
 
     def c_node_hydraulic_head(self):
         # compute hydraulic_head = (z + h) + ((v ** 2) / (2 * self.hvum.g.value))

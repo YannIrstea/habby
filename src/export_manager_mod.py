@@ -19,12 +19,15 @@ import time
 import matplotlib as mpl
 from PyQt5.QtCore import QLocale #, QCoreApplication as qt_tr
 import numpy as np
+from osgeo.ogr import __file__ as ogr_path
+os.environ['PROJ_LIB'] = os.path.join(os.path.dirname(ogr_path), "data\proj")
 from osgeo import ogr
 from osgeo import osr
+osr.UseExceptions()
 from pandas import DataFrame
 from matplotlib import pyplot as plt
 
-from src.bio_info_mod import get_biomodels_informations_for_database, read_pref
+from src.bio_info_mod import read_pref
 from src.plot_mod import plot_suitability_curve, plot_suitability_curve_hem, plot_suitability_curve_bivariate
 
 locale = QLocale()
