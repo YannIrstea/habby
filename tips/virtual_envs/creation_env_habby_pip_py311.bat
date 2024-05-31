@@ -1,6 +1,6 @@
 :::::::::::::::::::::::::::: PYTHON PATH and GDAL wheel filename ::::::::::::::::::::::::::::
 SET python_source_path=%USERPROFILE%\AppData\Local\Programs\Python\Python311\python.exe
-SET gdal_wheel_path="C:\habby_dev\dependence\GDAL-3.4.3-cp311-cp311-win_amd64.whl"
+SET gdal_wheel_path="C:\habby_dev\dependence\GDAL-3.8.4-cp311-cp311-win_amd64.whl"
 
 :::::::::::::::::::::::::::: HABBY PYTHON VIRTUAL ENV PATH :::::::::::::::
 SET habby_dev_path=C:\habby_dev
