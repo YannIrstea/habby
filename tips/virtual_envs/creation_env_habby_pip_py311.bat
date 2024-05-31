@@ -18,7 +18,7 @@ SET habby_path=%habby_dev_path%\habby
 %envir_virtuel_path%/Scripts/python.exe -m pip install --upgrade pip
 %envir_virtuel_path%/Scripts/pip install setuptools --upgrade
 %envir_virtuel_path%/Scripts/pip install -r %habby_path%\requirements.txt
-:: gdal dowload wheel from : https://www.lfd.uci.edu/~gohlke/pythonlibs/#gdal and set install it with pip
+:: gdal dowload wheel from : https://github.com/cgohlke/geospatial-wheels/releases and set install it with pip
 %envir_virtuel_path%/Scripts/pip install %gdal_wheel_path%
 
 :::::::::::::::::::::::::::: RUN HABBY :::::::::::::::
