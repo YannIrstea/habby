@@ -575,7 +575,7 @@ def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all,
 
         # # elevation
         # fig = plt.figure()
-        # cm = plt.cm.get_cmap('terrain')
+        # cm = plt.get_cmap('terrain')
         # sc = plt.scatter(coord_c[:, 0], coord_c[:, 1], c=elev, vmin=np.nanmin(elev), vmax=np.nanmax(elev), s=s1,cmap=cm, edgecolors='none')
         # cbar = plt.colorbar(sc)
         # cbar.ax.set_ylabel('Elev. [m]')
@@ -668,8 +668,8 @@ def scatter_plot(coord, data, data_name, my_cmap, s1, t):
     """
     s2 = s1 / 10
     fig = plt.figure()
-    cm = plt.cm.get_cmap(my_cmap)
-    # cm = plt.cm.get_cmap('plasma')
+    cm = plt.get_cmap(my_cmap)
+    # cm = plt.get_cmap('plasma')
 
     data_big = data[data > 0]
     # sc = plt.hexbin(coord_c[:, 0], coord_c[:, 1], C=vel_c0, gridsize=70, cmap=cm)

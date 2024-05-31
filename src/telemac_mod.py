@@ -150,7 +150,7 @@ def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):
 
     for i in timestep:
         plt.figure()
-        cm = plt.cm.get_cmap('terrain')
+        cm = plt.get_cmap('terrain')
         sc = plt.scatter(coord_p2[:, 0], coord_p2[:, 1], c=h[i], vmin=np.nanmin(h[i]), vmax=np.nanmax(h[i]), s=6,
                          cmap=cm,
                          edgecolors='none')
@@ -167,7 +167,7 @@ def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):
         # plt.close()
 
         plt.figure()
-        cm = plt.cm.get_cmap('terrain')
+        cm = plt.get_cmap('terrain')
         sc = plt.scatter(coord_p2[:, 0], coord_p2[:, 1], c=v[i], vmin=np.nanmin(v[i]), vmax=np.nanmax(v[i]), s=6,
                          cmap=cm,
                          edgecolors='none')

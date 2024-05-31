@@ -835,7 +835,7 @@ class ModelInfoGroup(QGroupBox):
             if self.name_hdf5 == "":
                 self.send_log.emit('Error: ' + self.tr('.hyd output filename is empty. Please specify it.'))
                 return
-            # 
+            #
             # # check if extension is set by user (multi hdf5 case)
             # hydrau_description_multiple = deepcopy(
             #     self.hydrau_description_list)  # create copy to not erase inital choices

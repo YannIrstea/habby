@@ -285,7 +285,7 @@ def plot_suitability_curve_bivariate(state, information_model_dict, selected_fis
     mpl.rcParams['legend.loc'] = 'best'
     mpl.rcParams['lines.linewidth'] = project_properties['line_width']
     mpl.rcParams['axes.grid'] = project_properties['grid']
-    cmap = copy(mpl.cm.get_cmap(project_properties['color_map']))  # get color map
+    cmap = copy(plt.get_cmap(project_properties['color_map']))  # get color map
 
     if selected_fish_stage is not None:
         print("Error: No figure for all stages.")
@@ -1084,7 +1084,7 @@ def plot_map_node(state, data_xy, data_tin, data_plot, plot_string_dict, light_d
     extent_list = light_data_2d.data_extent  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = copy(mpl.cm.get_cmap(project_properties['color_map']))
+    cmap = copy(plt.get_cmap(project_properties['color_map']))
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1134,7 +1134,7 @@ def plot_map_mesh(state, data_xy, data_tin, data_plot, plot_string_dict, light_d
     extent_list = light_data_2d.data_extent  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = copy(mpl.cm.get_cmap(project_properties['color_map']))
+    cmap = copy(plt.get_cmap(project_properties['color_map']))
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1216,7 +1216,7 @@ def plot_to_check_mesh_merging(hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data, merge
     masked_array = np.ma.array(sub_data, mask=np.isnan(sub_data))  # create nan mask
     # data_min = masked_array.min()
     # data_max = masked_array.max()
-    cmap = mpl.cm.get_cmap("jet")
+    cmap = plt.get_cmap("jet")
     cmap.set_bad(color='black', alpha=1.0)
     n = len(sub_data)
     norm = mpl.colors.Normalize(vmin=data_min, vmax=data_max)
@@ -1265,7 +1265,7 @@ def plot_to_check_mesh_merging(hyd_xy, hyd_tin, sub_xy, sub_tin, sub_data, merge
     masked_array = np.ma.array(merge_data, mask=np.isnan(merge_data))  # create nan mask
     # data_min = masked_array.min()
     # data_max = masked_array.max()
-    cmap = mpl.cm.get_cmap("jet")
+    cmap = plt.get_cmap("jet")
     cmap.set_bad(color='black', alpha=1.0)
     n = len(merge_data)
     norm = mpl.colors.Normalize(vmin=data_min, vmax=data_max)
@@ -1326,7 +1326,7 @@ def plot_map_onlymesh(state, data_xy, data_tin, plot_string_dict, data_descripti
     extent_list = list(map(float, data_description["data_extent"].split(", ")))  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = copy(mpl.cm.get_cmap(project_properties['color_map']))  # get color map
+    cmap = copy(plt.get_cmap(project_properties['color_map']))  # get color map
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1396,7 +1396,7 @@ def plot_map_substrate(state, data_xy, data_tin, data_plot, plot_string_dict, li
     extent_list = light_data_2d.data_extent  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = mpl.cm.get_cmap(project_properties['color_map'])
+    cmap = plt.get_cmap(project_properties['color_map'])
     if light_data_2d.sub_classification_code == "Cemagref":
         max_class = 8
         listcathegories = list(range(1, max_class + 2))
@@ -1454,7 +1454,7 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict,
     extent_list = light_data_2d.data_extent  # get extent [xMin, yMin, xMax, yMax]
 
     # colors
-    cmap = copy(mpl.cm.get_cmap(project_properties['color_map']))
+    cmap = copy(plt.get_cmap(project_properties['color_map']))
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1741,7 +1741,7 @@ def get_colors_styles_line_from_nb_input(input_nb):
     :return: style_list: by input
     """
     colors_number = 8
-    cm = mpl.cm.get_cmap('gist_ncar')
+    cm = plt.get_cmap('gist_ncar')
     color_base_list = [cm(i / colors_number) for i in range(colors_number)] * input_nb
     color_list = color_base_list[:input_nb]
     line_styles_base_list = ['solid', 'dotted', 'dashed', 'dashdot']  # 4 style
