@@ -1267,7 +1267,7 @@ def check_stahab_files(filename,check_neg,lchkcolhead,lchklines,check_sumone):
         for iline, line in enumerate(lines):
             if '\n' in line:
                 line = line[:-1]
-            if file_extension.lower == '.csv' or ';' in line:
+            if file_extension.lower() == '.csv' or ';' in line:
                 col = line.split(';')
             else:
                 col = line.split()
