@@ -114,10 +114,10 @@ def check_hrr_description(list_reach, list_unit, fhrr_manager_file):
                     else:
                         col2 = col
                     # check if reachname is known get the numreach
-                    if breachname and not(len(list_reach)==1):
+                    if breachname :
                         numreach = -1
                         for ilk, lk in enumerate(list_reach):
-                            if col2[3].lower() == lk[0].lower():
+                            if col2[3].lower() == lk.lower():
                                 numreach = ilk
                                 break
                         if numreach == -1:
