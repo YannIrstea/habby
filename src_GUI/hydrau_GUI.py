@@ -209,10 +209,10 @@ class HydrauTab(QScrollArea):
         if os.path.isfile(info_filename):
             with open(info_filename, 'rt', encoding='utf8') as f:
                 text = f.read()
-            text2 = text.split('MORE INFO')
+            text2 = text.split('Author(s)')
             self.msgi.setText('<a href="' + website + '">' + mod_name + "</a>" + text2[0])
             if len(text2[1]):
-                self.msgi.setDetailedText(text2[1])
+                self.msgi.setDetailedText('Author(s)' + text2[1])
         else:
             self.msgi.setText(self.tr('Choose a type of hydraulic model !         '))
             self.msgi.setDetailedText('No detailed info yet.')

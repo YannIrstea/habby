@@ -1,0 +1,5 @@
+ is a lake model : x, y, z node data and a water level chronicle.
+Author(s): INRAE
+Licence: 
+MORE INFO
+Lake format has the extensions ".txt".
