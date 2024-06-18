@@ -70,6 +70,10 @@ class ProjectPropertiesDialog(QDialog):
         self.erase_data_label = QLabel(self.tr('Erase file if exist'))
         self.erase_data_checkbox = QCheckBox(self.tr(''))
 
+        # hrr
+        self.hrr_threshold_label = QLabel(self.tr('HRR threshold value [m/s]'))
+        self.hrr_threshold_lineedit = QLineEdit("")
+
         """ hyd options """
         # Hydraulic Aberrations
         first_supercut = QLabel(self.tr('1st Remove Hydraulic Aberrations'))
@@ -237,7 +241,7 @@ class ProjectPropertiesDialog(QDialog):
         general_options_group = QGroupBox(self.tr("General options"))
         general_options_group.setLayout(layout_general_options)
         layout_general_options.addRow(self.erase_data_label, self.erase_data_checkbox)
-
+        layout_general_options.addRow(self.hrr_threshold_label, self.hrr_threshold_lineedit)
         layout_hyd_options = QFormLayout()
         general_hyd_group = QGroupBox(self.tr("Physical model options"))
         general_hyd_group.setLayout(layout_hyd_options)
@@ -365,6 +369,7 @@ class ProjectPropertiesDialog(QDialog):
         self.hab_equation_case_combobox.currentIndexChanged.connect(self.set_modification_presence)
         self.min_height_lineedit.textChanged.connect(self.set_modification_presence)
         self.erase_data_checkbox.stateChanged.connect(self.set_modification_presence)
+        self.hrr_threshold_lineedit.textChanged.connect(self.set_modification_presence)
         self.pvd_variable_z_combobox.currentIndexChanged.connect(self.set_modification_presence)
         self.vertical_exaggeration_lineedit.textChanged.connect(self.set_modification_presence)
         for checkbox in self.output_checkbox_list:
@@ -414,6 +419,11 @@ class ProjectPropertiesDialog(QDialog):
             self.erase_data_checkbox.setChecked(True)
         else:
             self.erase_data_checkbox.setChecked(False)
+
+        if "hrr_threshold_value" in project_properties.keys():
+            self.hrr_threshold_lineedit.setText(str(project_properties['hrr_threshold_value']))
+        else:
+            self.send_log.emit('Warning: ' + self.tr("The current project is outdated. You might recreate a new one. 'hrr_threshold_value' key not found."))
 
         # Hydraulic Aberrations
         if "first_supercut" in project_properties.keys():

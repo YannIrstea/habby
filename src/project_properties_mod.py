@@ -68,6 +68,7 @@ def create_default_project_properties_dict(all_export_enabled=False):
     project_properties['HS_input_class'] = dict(path="",
                                                  file="")
     project_properties['hrr_manager_file'] = ""
+    project_properties['hrr_threshold_value'] = 4
     project_properties['mesh_manager_file'] = ""
     project_properties['first_supercut'] = False
     project_properties['neighbors_level'] = 3
