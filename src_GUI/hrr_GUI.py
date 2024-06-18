@@ -17,7 +17,7 @@ https://github.com/YannIrstea/habby
 import os
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import QLabel, QListWidget, QAbstractItemView, QMessageBox, QFrame, QGridLayout, QVBoxLayout, \
-    QSizePolicy, QScrollArea, QListWidgetItem, QCheckBox, QHBoxLayout, QPushButton, QFileDialog
+    QSizePolicy, QScrollArea, QListWidgetItem, QLineEdit, QPushButton, QFileDialog
 
 from src.process_manager_mod import MyProcessManager
 from src.hdf5_mod import get_filename_by_type_physic, Hdf5Management
@@ -87,11 +87,15 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.name_prj = name_prj
         self.send_log = send_log
         self.pathfile = ""
-        self.hrr_manager_file = ""
         self.path_last_file_loaded = self.path_prj
         self.project_properties = load_project_properties(self.path_prj)
         self.setTitle(title)
         self.init_ui()
+        self.hrr_manager_file = self.read_attribute_xml("hrr_manager_file")
+        # update if exist
+        if os.path.exists(self.hrr_manager_file):
+            self.hrr_manager_lineedit.setText(os.path.basename(self.hrr_manager_file))
+            self.hrr_manager_lineedit.setToolTip(self.hrr_manager_file)
         # process_manager
         self.process_manager = MyProcessManager("hrr")
 
@@ -106,15 +110,6 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.file_selection_listwidget.verticalScrollBar().valueChanged.connect(self.change_scroll_position)
         self.scrollbar = self.file_selection_listwidget.verticalScrollBar()
 
-        self.hrr_time_checkbox = QCheckBox(self.tr("HRR manager file (.txt)"))
-        self.hrr_time_checkbox.stateChanged.connect(self.hrr_time_checkbox_change)
-        self.hrr_time_label = QLabel("")
-        self.hrr_time_file_select_pushbutton = QPushButton("...")
-        self.hrr_time_file_select_pushbutton.clicked.connect(self.hrr_time_file_dialog)
-
-        self.hrr_time_label.setEnabled(False)
-        self.hrr_time_file_select_pushbutton.setEnabled(False)
-
         file_selection_layout = QGridLayout()
         file_selection_layout.addWidget(file_selection_label, 0, 0)
         file_selection_layout.addWidget(self.file_selection_listwidget, 1, 0)
@@ -122,9 +117,15 @@ class ComputingGroup(QGroupBoxCollapsible):
         file_selection_layout.setColumnStretch(0, 30)
         file_selection_layout.setColumnStretch(1, 1)
 
+        hrr_manager_label_title = QLabel(self.tr("HRR manager file (.txt)"))
+        self.hrr_manager_lineedit = QLineEdit("")
+        self.hrr_manager_lineedit.textChanged.connect(self.hrr_manager_lineedit_change)
+        self.hrr_time_file_select_pushbutton = QPushButton("...")
+        self.hrr_time_file_select_pushbutton.clicked.connect(self.hrr_time_file_dialog)
+
         self.time_layout = QGridLayout()
-        self.time_layout.addWidget(self.hrr_time_checkbox, 0, 0, Qt.AlignLeft)
-        self.time_layout.addWidget(self.hrr_time_label, 0, 1, Qt.AlignLeft)
+        self.time_layout.addWidget(hrr_manager_label_title, 0, 0, Qt.AlignLeft)
+        self.time_layout.addWidget(self.hrr_manager_lineedit, 0, 1, Qt.AlignLeft)
         self.time_layout.addWidget(self.hrr_time_file_select_pushbutton, 0, 2, Qt.AlignLeft)
 
         """ progress layout """
@@ -183,8 +184,8 @@ class ComputingGroup(QGroupBoxCollapsible):
         if filename:
             self.pathfile = filename  # source file path
             self.save_xml("hrr_manager_file")
-            self.hrr_manager_file = self.read_attribute_xml("hrr_manager_file")
-            self.hrr_time_label.setText(os.path.basename(self.hrr_manager_file))
+            self.hrr_manager_lineedit.setText(os.path.basename(self.hrr_manager_file))
+            self.hrr_manager_lineedit.setToolTip(self.hrr_manager_file)
 
     def update_gui(self):
         selected_file_names = [selection_el.text() for selection_el in self.file_selection_listwidget.selectedItems()]
@@ -214,13 +215,11 @@ class ComputingGroup(QGroupBoxCollapsible):
         if self.file_selection_listwidget.count() == 1:
             self.file_selection_listwidget.selectAll()
 
-    def hrr_time_checkbox_change(self):
-        if self.hrr_time_checkbox.isChecked():
-            self.hrr_time_label.setEnabled(True)
-            self.hrr_time_file_select_pushbutton.setEnabled(True)
+    def hrr_manager_lineedit_change(self):
+        if self.hrr_manager_lineedit.text():
+            self.progress_layout.run_stop_button.setEnabled(True)
         else:
-            self.hrr_time_label.setEnabled(False)
-            self.hrr_time_file_select_pushbutton.setEnabled(False)
+            self.progress_layout.run_stop_button.setEnabled(False)
 
     def change_scroll_position(self, index):
         self.file_selection_listwidget.verticalScrollBar().setValue(index)
@@ -230,7 +229,7 @@ class ComputingGroup(QGroupBoxCollapsible):
         self.progress_layout.progress_bar.setValue(0)
         self.progress_layout.progress_label.setText(
             "{0:.0f}/{1:.0f}".format(0.0, len(selection)))
-        if selection:
+        if selection and self.hrr_manager_lineedit.text():
             self.progress_layout.run_stop_button.setEnabled(True)
         else:
             self.progress_layout.run_stop_button.setEnabled(False)
