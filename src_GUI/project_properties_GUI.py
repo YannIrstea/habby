@@ -241,7 +241,6 @@ class ProjectPropertiesDialog(QDialog):
         general_options_group = QGroupBox(self.tr("General options"))
         general_options_group.setLayout(layout_general_options)
         layout_general_options.addRow(self.erase_data_label, self.erase_data_checkbox)
-        layout_general_options.addRow(self.hrr_threshold_label, self.hrr_threshold_lineedit)
         layout_hyd_options = QFormLayout()
         general_hyd_group = QGroupBox(self.tr("Physical model options"))
         general_hyd_group.setLayout(layout_hyd_options)
@@ -335,6 +334,7 @@ class ProjectPropertiesDialog(QDialog):
         layout_figures.addRow(resolution_label, self.resolution_lineedit)
         layout_figures.addRow(type_fishname_label, self.type_fishname_combobox)
         layout_figures.addRow(marquers_hab_fig_label, self.marquers_hab_fig_checkbox)
+        layout_figures.addRow(self.hrr_threshold_label, self.hrr_threshold_lineedit)
 
         # general
         layout = QGridLayout(self)
@@ -420,11 +420,6 @@ class ProjectPropertiesDialog(QDialog):
         else:
             self.erase_data_checkbox.setChecked(False)
 
-        if "hrr_threshold_value" in project_properties.keys():
-            self.hrr_threshold_lineedit.setText(str(project_properties['hrr_threshold_value']))
-        else:
-            self.send_log.emit('Warning: ' + self.tr("The current project is outdated. You might recreate a new one. 'hrr_threshold_value' key not found."))
-
         # Hydraulic Aberrations
         if "first_supercut" in project_properties.keys():
             self.neighbor_level_lineedit.setText(str(project_properties['neighbors_level']))
@@ -504,6 +499,12 @@ class ProjectPropertiesDialog(QDialog):
             self.marquers_hab_fig_checkbox.setChecked(True)
         else:
             self.marquers_hab_fig_checkbox.setChecked(False)
+
+        # hrr_threshold_value
+        if "hrr_threshold_value" in project_properties.keys():
+            self.hrr_threshold_lineedit.setText(str(project_properties['hrr_threshold_value']))
+        else:
+            self.send_log.emit('Warning: ' + self.tr("The current project is outdated. You might recreate a new one. 'hrr_threshold_value' key not found."))
 
     def open_preferences(self):
         self.set_pref_gui_from_dict()
