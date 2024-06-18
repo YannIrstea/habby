@@ -70,10 +70,6 @@ class ProjectPropertiesDialog(QDialog):
         self.erase_data_label = QLabel(self.tr('Erase file if exist'))
         self.erase_data_checkbox = QCheckBox(self.tr(''))
 
-        # hrr
-        self.hrr_threshold_label = QLabel(self.tr('HRR threshold value [m/s]'))
-        self.hrr_threshold_lineedit = QLineEdit("")
-
         """ hyd options """
         # Hydraulic Aberrations
         first_supercut = QLabel(self.tr('1st Remove Hydraulic Aberrations'))
@@ -222,6 +218,12 @@ class ProjectPropertiesDialog(QDialog):
         # marquers_hab_fig
         marquers_hab_fig_label = QLabel(self.tr('Markers for habitat figures'))
         self.marquers_hab_fig_checkbox = QCheckBox(self.tr(''))
+
+        # hrr
+        self.hrr_threshold_label = QLabel(self.tr('HRR threshold value [m/s]'))
+        self.hrr_threshold_label.setToolTip(self.tr('HRR maximum value for ploting only'))
+        self.hrr_threshold_lineedit = QLineEdit("")
+        self.hrr_threshold_lineedit.setToolTip(self.tr('HRR maximum value for ploting only'))
 
         # reset default
         self.reset_by_default_pref = QPushButton(self.tr('Reset by default'))
