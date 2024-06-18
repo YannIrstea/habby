@@ -526,8 +526,8 @@ class ProjectPropertiesDialog(QDialog):
         if fig_size:
             fig_size = fig_size.split(',')
             try:
-                project_properties['width'] = np.float(fig_size[0])
-                project_properties['height'] = np.float(fig_size[1])
+                project_properties['width'] = float(fig_size[0])
+                project_properties['height'] = float(fig_size[1])
             except IndexError:
                 self.send_log.emit('Error: ' + self.tr('The size of the figure should be in the format: num1,num2.\n'))
             except ValueError:
