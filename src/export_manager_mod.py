@@ -262,9 +262,9 @@ def export_mesh_layer_to_gpkg(filename_path, layer_name, epsg_code, unit_data, w
 
     # create new layer
     if not crs.ExportToWkt():  # '' == crs unknown
-        layer = ds.CreateLayer(name=layer_name, geom_type=ogr.wkbPolygon, options=['OVERWRITE=YES'])
+        layer = ds.CreateLayer(name=layer_name, geom_type=ogr.wkbPolygon25D, options=['OVERWRITE=YES'])
     else:  # crs known
-        layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPolygon, options=['OVERWRITE=YES'])
+        layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPolygon25D, options=['OVERWRITE=YES'])
 
     # create fields (no width no precision to be specified with GPKG)
     layer.CreateField(ogr.FieldDefn('ID', ogr.OFTInteger))  # Add one attribute
@@ -301,7 +301,7 @@ def export_mesh_layer_to_gpkg(filename_path, layer_name, epsg_code, unit_data, w
         ring.AddPoint(*p3)
         ring.AddPoint(*p1)
         # Create polygon
-        poly = ogr.Geometry(ogr.wkbPolygon)
+        poly = ogr.Geometry(ogr.wkbPolygon25D)
         poly.AddGeometry(ring)
         # Create a new feature
         feat = ogr.Feature(defn)
