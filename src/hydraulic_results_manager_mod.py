@@ -335,12 +335,16 @@ class HydraulicSimulationResultsAnalyzer:
             # init variables
             discharge_presence = False  # "Q[" in headers
             time_presence = False  # "T[" in headers
+            water_level_presence = False   # "water_level["
             selectedfiles_textfiles_matching = False
 
             # read text file
             with open(self.index_hydrau_file_path, 'rt', encoding="utf-8") as f:
                 dataraw = f.read()
             # get epsg code
+            if "EPSG=" not in dataraw.split("\n")[0]:
+                self.hydrau_description_list = "Error: indexHYDRAU.txt file is not well formated. 'EPSG=' not found"
+                return
             epsg_code = dataraw.split("\n")[0].split("EPSG=")[1].strip()
             # read headers and nb row
             headers = dataraw.split("\n")[1].split()
@@ -371,8 +375,12 @@ class HydraulicSimulationResultsAnalyzer:
 
             elif not self.index_hydrau_file_selected:  # from file
                 # self.more_than_one_file_selected_by_user or more_than_one_file_in indexHYDRAU (if from .txt)
-                if len(list(set(data_index_file["filename"]))) > 1:
-                    self.more_than_one_file_selected_by_user = True
+                try:
+                    if len(list(set(data_index_file["filename"]))) > 1:
+                        self.more_than_one_file_selected_by_user = True
+                except KeyError:
+                    self.hydrau_description_list = "Error: indexHYDRAU.txt file is not well formated. Column 'filename' not found."
+                    return
                 # textfiles filesexisting matching
                 selectedfiles_textfiles_match = [False] * len(data_index_file["filename"])
                 for i, file_from_indexfile in enumerate(data_index_file["filename"]):
@@ -428,6 +436,12 @@ class HydraulicSimulationResultsAnalyzer:
                 reach_list = data_index_file[headers[reach_index]]
                 if len(set(reach_list)) > 1:
                     multi_reach = True
+            if any("water_level[" in s for s in headers):
+                water_level_presence = True
+                water_level_index = [i for i, s in enumerate(headers) if 'water_level[' in s][0]
+                start = headers[water_level_index].find('water_level[') + len('water_level[')
+                end = headers[water_level_index].find(']', start)
+                water_level_unit = headers[water_level_index][start:end]
 
             """ CHECK CASE """
             if not self.more_than_one_file_selected_by_user and discharge_presence and not time_presence:
@@ -448,7 +462,8 @@ class HydraulicSimulationResultsAnalyzer:
                     self.hydrau_case = "4.a"
                 if data_index_file[headers[time_index]][0] != "all":
                     self.hydrau_case = "4.b"
-
+            if water_level_presence:
+                self.hydrau_case = "Lake"
             # print("self.hydrau_case", self.hydrau_case)
 
             """ ALL CASE """
