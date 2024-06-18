@@ -1127,6 +1127,8 @@ def plot_map_mesh(state, data_xy, data_tin, data_plot, plot_string_dict, light_d
     colorbar_label = plot_string_dict["colorbar_label"]
 
     # data
+    if "horizontal ramping rate" in plot_string_dict["variable_title"].lower():
+        data_plot[data_plot > project_properties["hrr_threshold_value"]] = project_properties["hrr_threshold_value"]
     masked_array = np.ma.array(data_plot, mask=np.isnan(data_plot))  # create nan mask
     data_min = masked_array.min()
     data_max = masked_array.max()
