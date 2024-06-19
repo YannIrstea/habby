@@ -35,8 +35,16 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
     """
     def __init__(self, filename, folder_path, model_type, path_prj):
         super().__init__(filename, folder_path, model_type, path_prj)
-        self.file_type = "lake"
-
+        self.file_type = "ascii"
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
+                                                    attribute_list=["z"],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.h.name,
+                                                    attribute_list=["h"],
+                                                    position="node")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.v.name,
+                                                    attribute_list=["v"],
+                                                    position="node")
         # is extension ok ?
         if os.path.splitext(self.filename)[1] not in self.extensions_list:
             self.warning_list.append("Error: The extension of file is not : " + ", ".join(self.extensions_list) + ".")
@@ -57,7 +65,53 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         :param file_path:
         :return: the reachname list and the unit description (times or discharges)
         """
-        print("get_lake_model_description")
+        self.get_hydraulic_variable_list()
+        self.get_time_step()
+
+    def get_hydraulic_variable_list(self):
+        """Get hydraulic variable list from file."""
+        # get list from source
+        varnames = ["z", "h"]
+
+        # check witch variable is available
+        self.hvum.detect_variable_from_software_attribute(varnames)
+
+    def get_time_step(self):
+        """Get time step information from file."""
+
+        with open(self.index_hydrau_file_path, 'rt', encoding="utf-8") as f:
+            # read text file
+            dataraw = f.read()
+            # get epsg code
+            if "EPSG=" not in dataraw.split("\n")[0]:
+                self.hydrau_description_list = "Error: indexHYDRAU.txt file is not well formated. 'EPSG=' not found"
+                return
+            epsg_code = dataraw.split("\n")[0].split("EPSG=")[1].strip()
+            # read headers and nb row
+            headers = dataraw.split("\n")[1].split()
+            nb_row = len(dataraw.split("\n"))
+            # create one dict for all column
+            data_index_file = dict((key, []) for key in headers)
+            data_row_list = dataraw.split("\n")[2:]
+            try:
+                for line in data_row_list:
+                    if line == "":
+                        # print("empty line")
+                        pass
+                    else:
+                        for index, column_name in enumerate(headers):
+                            # "\t" is the column separator
+                            # (if split without arg, date with time is also splitted for hec ras 2D)
+                            data_index_file[column_name].append(line.split("\t")[index])
+            except IndexError:
+                self.hydrau_description_list = "Error: indexHYDRAU.txt file is not well formated. Column separator is a tabulation."
+                return
+
+        timestep_float_list = data_index_file[column_name]
+
+        self.timestep_name_list = list(map(str, timestep_float_list))  # always one reach
+        self.timestep_nb = len(self.timestep_name_list)
+        self.timestep_unit = "water_level [m]"
 
     def load_hydraulic(self, timestep_name_wish_list):
         """

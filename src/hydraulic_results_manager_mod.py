@@ -201,6 +201,7 @@ class HydraulicSimulationResultsAnalyzer:
         # input
         self.filename_path_list = filename_path_list
         self.filename_list = [os.path.basename(filename_path) for filename_path in filename_path_list]
+        self.water_level_input = False
         # path
         self.folder_path = os.path.dirname(self.filename_path_list[0])
         self.index_hydrau_file_path = os.path.join(self.folder_path, self.index_hydrau_file_name)
@@ -375,556 +376,443 @@ class HydraulicSimulationResultsAnalyzer:
 
             elif not self.index_hydrau_file_selected:  # from file
                 # self.more_than_one_file_selected_by_user or more_than_one_file_in indexHYDRAU (if from .txt)
-                try:
-                    if len(list(set(data_index_file["filename"]))) > 1:
-                        self.more_than_one_file_selected_by_user = True
-                except KeyError:
-                    self.hydrau_description_list = "Error: indexHYDRAU.txt file is not well formated. Column 'filename' not found."
-                    return
-                # textfiles filesexisting matching
-                selectedfiles_textfiles_match = [False] * len(data_index_file["filename"])
-                for i, file_from_indexfile in enumerate(data_index_file["filename"]):
-                    if os.path.isfile(os.path.join(self.folder_path, file_from_indexfile)):
-                        if file_from_indexfile in self.filename_list:
+                if self.model_type == "lake":
+                    try:
+                        if len(list(set(data_index_file["water_level[m]"]))) > 1:
+                            self.water_level_input = True
+                    except KeyError:
+                        self.hydrau_description_list = "Error: indexHYDRAU.txt file is not well formated. Column 'water_level[m]' not found."
+                        return
+                else:
+                    try:
+                        if len(list(set(data_index_file["filename"]))) > 1:
+                            self.more_than_one_file_selected_by_user = True
+                    except KeyError:
+                        self.hydrau_description_list = "Error: indexHYDRAU.txt file is not well formated. Column 'filename' not found."
+                        return
+                    # textfiles filesexisting matching
+                    selectedfiles_textfiles_match = [False] * len(data_index_file["filename"])
+                    for i, file_from_indexfile in enumerate(data_index_file["filename"]):
+                        if os.path.isfile(os.path.join(self.folder_path, file_from_indexfile)):
+                            if file_from_indexfile in self.filename_list:
+                                selectedfiles_textfiles_match[i] = True
+                            else:
+                                selectedfiles_textfiles_match[i] = False
+                        else:
+                            self.hydrau_description_list = "Error: " + file_from_indexfile + " doesn't exist in " + self.folder_path
+                            return
+
+            elif self.index_hydrau_file_selected:  # from indexHYDRAU.txt
+                if self.model_type != "lake":
+                    try:
+                        # self.more_than_one_file_selected_by_user or more_than_one_file_in indexHYDRAU (if from .txt)
+                        if len(list(set(data_index_file["filename"]))) > 1:
+                            self.more_than_one_file_selected_by_user = True
+                    except KeyError:
+                        self.hydrau_description_list = "Error: filename column not recognized"
+                        return
+                    # textfiles filesexisting matching
+                    selectedfiles_textfiles_match = [False] * len(data_index_file["filename"])
+                    for i, file_from_indexfile in enumerate(data_index_file["filename"]):
+                        if os.path.isfile(os.path.join(self.folder_path, file_from_indexfile)):
                             selectedfiles_textfiles_match[i] = True
                         else:
-                            selectedfiles_textfiles_match[i] = False
-                    else:
-                        self.hydrau_description_list = "Error: " + file_from_indexfile + " doesn't exist in " + self.folder_path
-                        return
-            elif self.index_hydrau_file_selected:  # from indexHYDRAU.txt
-                try:
-                    # self.more_than_one_file_selected_by_user or more_than_one_file_in indexHYDRAU (if from .txt)
-                    if len(list(set(data_index_file["filename"]))) > 1:
-                        self.more_than_one_file_selected_by_user = True
-                except KeyError:
-                    self.hydrau_description_list = "Error: filename column not recognized"
-                    return
-                # textfiles filesexisting matching
-                selectedfiles_textfiles_match = [False] * len(data_index_file["filename"])
-                for i, file_from_indexfile in enumerate(data_index_file["filename"]):
-                    if os.path.isfile(os.path.join(self.folder_path, file_from_indexfile)):
-                        selectedfiles_textfiles_match[i] = True
-                    else:
-                        self.hydrau_description_list = "Error: " + file_from_indexfile + " doesn't exist in " + self.folder_path
-                        return
-
-            # check conditions
-            if all(selectedfiles_textfiles_match):
-                selectedfiles_textfiles_matching = True
-                self.filename_list = data_index_file["filename"]
-                self.filename_path_list = [os.path.join(self.folder_path, filename) for filename in self.filename_list]
-            if any("Q[" in s for s in headers) and self.model_type != "lammi":
-                discharge_presence = True  # "Q[" in headers
-                discharge_index = [i for i, s in enumerate(headers) if 'Q[' in s][0]
-                start = headers[discharge_index].find('Q[') + len('Q[')
-                end = headers[discharge_index].find(']', start)
-                discharge_unit = headers[discharge_index][start:end]
-                # sort by discharge if not done
-                data_index_file = sort_homogoeneous_dict_list_by_on_key(data_index_file,
-                                                                        headers[discharge_index], data_type=float)
-            if any("T[" in s for s in headers):
-                time_presence = True  # "T[" in headers
-                time_index = [i for i, s in enumerate(headers) if 'T[' in s][0]
-                start = headers[time_index].find('T[') + len('T[')
-                end = headers[time_index].find(']', start)
-                time_unit = headers[time_index][start:end]
-            if any("reachname" in s for s in headers):
-                reach_presence = True  # "reachname" in headers
-                reach_index = [i for i, s in enumerate(headers) if 'reachname' in s][0]
-                # check if all reachname are equal
-                reach_list = data_index_file[headers[reach_index]]
-                if len(set(reach_list)) > 1:
-                    multi_reach = True
-            if any("water_level[" in s for s in headers):
-                water_level_presence = True
-                water_level_index = [i for i, s in enumerate(headers) if 'water_level[' in s][0]
-                start = headers[water_level_index].find('water_level[') + len('water_level[')
-                end = headers[water_level_index].find(']', start)
-                water_level_unit = headers[water_level_index][start:end]
-
-            """ CHECK CASE """
-            if not self.more_than_one_file_selected_by_user and discharge_presence and not time_presence:
-                self.hydrau_case = "1.a"
-            if not self.more_than_one_file_selected_by_user and discharge_presence and time_presence:
-                self.hydrau_case = "1.b"
-            if self.more_than_one_file_selected_by_user and discharge_presence and not time_presence:
-                self.hydrau_case = "2.a"
-            if self.more_than_one_file_selected_by_user and discharge_presence and time_presence:
-                self.hydrau_case = "2.b"
-            if not self.more_than_one_file_selected_by_user and not discharge_presence and time_presence:
-                if data_index_file[headers[time_index]][0] == "all":
-                    self.hydrau_case = "3.a"
-                if data_index_file[headers[time_index]][0] != "all":
-                    self.hydrau_case = "3.b"
-            if self.more_than_one_file_selected_by_user and not discharge_presence and time_presence:
-                if data_index_file[headers[time_index]][0] == "all":
-                    self.hydrau_case = "4.a"
-                if data_index_file[headers[time_index]][0] != "all":
-                    self.hydrau_case = "4.b"
-            if water_level_presence:
-                self.hydrau_case = "Lake"
-            # print("self.hydrau_case", self.hydrau_case)
-
-            """ ALL CASE """
-            # hdf5 name and source filenames
-            if self.more_than_one_file_selected_by_user:
-                # pathfile[0] = self.folder_path  # source file path
-                if not self.index_hydrau_file_selected:  # from file
-                    namefile = ", ".join(self.filename_list)  # source file name
-                    name_hdf5 = "_".join([os.path.splitext(filename)[0] for filename in self.filename_list]).replace(".", "_") + ".hyd"
-                if self.index_hydrau_file_selected:  # from indexHYDRAU.txt
-                    namefile = ", ".join(data_index_file["filename"])  # source file name
-                    name_hdf5 = "_".join(
-                        [os.path.splitext(file)[0].replace(".", "_") for file in data_index_file["filename"]]) + ".hyd"
-                    if selectedfiles_textfiles_match and len(name_hdf5) > 25:
-                        name_hdf5 = os.path.splitext(data_index_file["filename"][0])[0].replace(".", "_") \
-                                    + "_to_" + \
-                                    os.path.splitext(data_index_file["filename"][-1])[0].replace(".", "_") + ".hyd"
-            if not self.more_than_one_file_selected_by_user:
-                if not self.index_hydrau_file_selected:  # from file
-                    namefile = self.filename_list[0]  # source file name
-                    name_hdf5 = os.path.splitext(namefile)[0].replace(".", "_") + ".hyd"
-                if self.index_hydrau_file_selected:  # from indexHYDRAU.txt
-                    namefile = data_index_file["filename"][0]  # source file name
-                    name_hdf5 = os.path.splitext(data_index_file["filename"][0])[0].replace(".", "_") + ".hyd"
-            if self.model_type == 'rubar2d':
-                data_index_file[headers[0]] = [namefile]
-
-            # self.hydrau_description_list
-            self.hydrau_description_list = [dict(path_prj=self.path_prj,
-                                                name_prj=self.name_prj,
-                                                hydrau_case=self.hydrau_case,
-                                                filename_source=namefile,
-                                                path_filename_source=self.folder_path,
-                                                hdf5_name=name_hdf5,
-                                                model_type=self.model_type,
-                                                model_dimension=str(self.nb_dim),
-                                                epsg_code=epsg_code,
-                                                index_hydrau=True)]
-
-            # CASE 1.a """
-            if self.hydrau_case == "1.a":
-                # get units name from file
-                hsr = HydraulicSimulationResultsSelector(data_index_file["filename"][0],
-                                                         self.folder_path, self.model_type, self.path_prj)
-                self.warning_list.extend(hsr.warning_list)
-                if not hsr.valid_file:
-                    return
-                # get units name from indexHYDRAU.txt file
-                unit_name_from_index_file = data_index_file[headers[discharge_index]]
-                # check if lenght of two loading units
-                if hsr.timestep_nb > len(unit_name_from_index_file):
-                    self.hydrau_description_list = "Error: units number from indexHYDRAU inferior than TELEMAC selected."
-                    return
-
-                if reach_presence:
-                    reach_name = [data_index_file[headers[reach_index]][0]]
-                else:
-                    reach_name = ["unknown"]
-
-                # items
-                if hsr.timestep_nb == len(unit_name_from_index_file):
-                    pass
-                if hsr.timestep_nb < len(unit_name_from_index_file):
-                    index_file = data_index_file[headers[0]].index(self.filename)
-                    data_index_file[headers[0]] = [data_index_file[headers[0]][index_file]]
-                    data_index_file[headers[discharge_index]] = [data_index_file[headers[discharge_index]][index_file]]
-
-                variable_name_unit_dict = hsr.hvum.software_detected_list
-
-                # self.hydrau_description_list
-                self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
-                self.hydrau_description_list[0]["unit_list"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
-                self.hydrau_description_list[0]["unit_list_full"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
-                self.hydrau_description_list[0]["unit_list_tf"] = [[True] * hsr.timestep_nb] * hsr.reach_number
-                self.hydrau_description_list[0]["unit_number"] = str(1)
-                self.hydrau_description_list[0]["unit_type"] = "discharge [" + discharge_unit + "]"
-                self.hydrau_description_list[0]["reach_list"] = reach_name
-                self.hydrau_description_list[0]["reach_number"] = str(1)
-                self.hydrau_description_list[0]["reach_type"] = "river"
-                self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
-                self.hydrau_description_list[0]["flow_type"] = "continuous flow"  # transient flow
-                self.hydrau_description_list[0]["sub"] = hsr.sub
-
-            # CASE 1.b """
-            elif self.hydrau_case == "1.b":
-                # get units name from file
-                hsr = HydraulicSimulationResultsSelector(namefile,
-                                                         self.folder_path, self.model_type, self.path_prj)
-                self.warning_list.extend(hsr.warning_list)
-                if not hsr.valid_file:
-                    return
-                # get units name from indexHYDRAU.txt file
-                unit_name_from_index_file = data_index_file[headers[time_index]][data_index_file[headers[0]].index(namefile)]
-
-                # check if lenght of two loading units
-                if unit_name_from_index_file not in hsr.timestep_name_list:
-                    self.hydrau_description_list = "Error: " + unit_name_from_index_file + " doesn't exist in file"
-                    return
-
-                if reach_presence:
-                    reach_name = [data_index_file[headers[reach_index]][0]]
-                else:
-                    reach_name = ["unknown"]
-
-                variable_name_unit_dict = hsr.hvum.software_detected_list
-
-                if self.model_type == "basement2d":
-                    self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hyd"
-                elif self.model_type == "lammi":
-                    self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hab"
-
-                # self.hydrau_description_list
-                self.hydrau_description_list[0]["unit_list"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
-                self.hydrau_description_list[0]["unit_list_full"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
-                self.hydrau_description_list[0]["unit_list_tf"] = [[True] * len(data_index_file[headers[discharge_index]])] * hsr.reach_number
-                self.hydrau_description_list[0]["unit_number"] = str(1)
-                self.hydrau_description_list[0]["unit_type"] = "discharge [" + discharge_unit + "]"
-                self.hydrau_description_list[0]["timestep_list"] = data_index_file[headers[time_index]]
-                self.hydrau_description_list[0]["reach_list"] = reach_name
-                self.hydrau_description_list[0]["reach_number"] = str(1)
-                self.hydrau_description_list[0]["reach_type"] = "river"
-                self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
-                self.hydrau_description_list[0]["flow_type"] = "continuous flow"  # transient flow
-                self.hydrau_description_list[0]["sub"] = hsr.sub
-
-            # CASE 2.a """
-            elif self.hydrau_case == "2.a":
-                # get units name from files (must have only one time step by file)
-                for file in data_index_file["filename"]:
-                    # get units name from file
-                    hsr = HydraulicSimulationResultsSelector(file,
-                                                             self.folder_path, self.model_type, self.path_prj)
-                    self.warning_list.extend(hsr.warning_list)
-                    if not hsr.valid_file:
-                        continue
-                    if hsr.timestep_name_list == ["0.0"] and hsr.timestep_nb == 1:
-                        pass
-                    else:
-                        if hsr.timestep_nb > 1:
-                            self.hydrau_description_list = "Error: file " + file + " contain more than one time step (timestep :" \
-                                   + str(hsr.timestep_name_list) + ")"
+                            self.hydrau_description_list = "Error: " + file_from_indexfile + " doesn't exist in " + self.folder_path
                             return
-                    if file == data_index_file["filename"][-1]:  # last
-                        variable_name_unit_dict = hsr.hvum.software_detected_list
 
-                if reach_presence:
-                    reach_name = [data_index_file[headers[reach_index]][0]]
-                if not reach_presence:
-                    reach_name = ["unknown"]
+            if self.model_type != "lake":
+                # check conditions
+                if all(selectedfiles_textfiles_match):
+                    selectedfiles_textfiles_matching = True
+                    self.filename_list = data_index_file["filename"]
+                    self.filename_path_list = [os.path.join(self.folder_path, filename) for filename in self.filename_list]
+                if any("Q[" in s for s in headers) and self.model_type != "lammi":
+                    discharge_presence = True  # "Q[" in headers
+                    discharge_index = [i for i, s in enumerate(headers) if 'Q[' in s][0]
+                    start = headers[discharge_index].find('Q[') + len('Q[')
+                    end = headers[discharge_index].find(']', start)
+                    discharge_unit = headers[discharge_index][start:end]
+                    # sort by discharge if not done
+                    data_index_file = sort_homogoeneous_dict_list_by_on_key(data_index_file,
+                                                                            headers[discharge_index], data_type=float)
+                if any("T[" in s for s in headers):
+                    time_presence = True  # "T[" in headers
+                    time_index = [i for i, s in enumerate(headers) if 'T[' in s][0]
+                    start = headers[time_index].find('T[') + len('T[')
+                    end = headers[time_index].find(']', start)
+                    time_unit = headers[time_index][start:end]
+                if any("reachname" in s for s in headers):
+                    reach_presence = True  # "reachname" in headers
+                    reach_index = [i for i, s in enumerate(headers) if 'reachname' in s][0]
+                    # check if all reachname are equal
+                    reach_list = data_index_file[headers[reach_index]]
+                    if len(set(reach_list)) > 1:
+                        multi_reach = True
+                if any("water_level[" in s for s in headers):
+                    water_level_presence = True
+                    water_level_index = [i for i, s in enumerate(headers) if 'water_level[' in s][0]
+                    start = headers[water_level_index].find('water_level[') + len('water_level[')
+                    end = headers[water_level_index].find(']', start)
+                    water_level_unit = headers[water_level_index][start:end]
 
-                # # check if selected files are equal to data_index_file
-                # if len(self.filename_list) != len(data_index_file["filename"]):
-                #     for index, selected_file in enumerate(data_index_file["filename"]):
+                """ CHECK CASE """
+                if not self.more_than_one_file_selected_by_user and discharge_presence and not time_presence:
+                    self.hydrau_case = "1.a"
+                if not self.more_than_one_file_selected_by_user and discharge_presence and time_presence:
+                    self.hydrau_case = "1.b"
+                if self.more_than_one_file_selected_by_user and discharge_presence and not time_presence:
+                    self.hydrau_case = "2.a"
+                if self.more_than_one_file_selected_by_user and discharge_presence and time_presence:
+                    self.hydrau_case = "2.b"
+                if not self.more_than_one_file_selected_by_user and not discharge_presence and time_presence:
+                    if data_index_file[headers[time_index]][0] == "all":
+                        self.hydrau_case = "3.a"
+                    if data_index_file[headers[time_index]][0] != "all":
+                        self.hydrau_case = "3.b"
+                if self.more_than_one_file_selected_by_user and not discharge_presence and time_presence:
+                    if data_index_file[headers[time_index]][0] == "all":
+                        self.hydrau_case = "4.a"
+                    if data_index_file[headers[time_index]][0] != "all":
+                        self.hydrau_case = "4.b"
 
-                # index_to_keep = []
-                # for index, selected_file in enumerate(data_index_file["filename"]):
-                #     if selected_file in [os.path.basename(element) for element in self.filename_list]:
-                #         index_to_keep.append(index)
-                # for header in headers:
-                #     data_index_file[header] = [data_index_file[header][index] for index in index_to_keep]
-
+                """ ALL CASE """
+                # hdf5 name and source filenames
+                if self.more_than_one_file_selected_by_user:
+                    # pathfile[0] = self.folder_path  # source file path
+                    if not self.index_hydrau_file_selected:  # from file
+                        namefile = ", ".join(self.filename_list)  # source file name
+                        name_hdf5 = "_".join([os.path.splitext(filename)[0] for filename in self.filename_list]).replace(".", "_") + ".hyd"
+                    if self.index_hydrau_file_selected:  # from indexHYDRAU.txt
+                        namefile = ", ".join(data_index_file["filename"])  # source file name
+                        name_hdf5 = "_".join(
+                            [os.path.splitext(file)[0].replace(".", "_") for file in data_index_file["filename"]]) + ".hyd"
+                        if selectedfiles_textfiles_match and len(name_hdf5) > 25:
+                            name_hdf5 = os.path.splitext(data_index_file["filename"][0])[0].replace(".", "_") \
+                                        + "_to_" + \
+                                        os.path.splitext(data_index_file["filename"][-1])[0].replace(".", "_") + ".hyd"
+                if not self.more_than_one_file_selected_by_user:
+                    if not self.index_hydrau_file_selected:  # from file
+                        namefile = self.filename_list[0]  # source file name
+                        name_hdf5 = os.path.splitext(namefile)[0].replace(".", "_") + ".hyd"
+                    if self.index_hydrau_file_selected:  # from indexHYDRAU.txt
+                        namefile = data_index_file["filename"][0]  # source file name
+                        name_hdf5 = os.path.splitext(data_index_file["filename"][0])[0].replace(".", "_") + ".hyd"
+                if self.model_type == 'rubar2d':
+                    data_index_file[headers[0]] = [namefile]
 
                 # self.hydrau_description_list
-                self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
-                self.hydrau_description_list[0]["unit_list"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
-                self.hydrau_description_list[0]["unit_list_full"] = [list(data_index_file[headers[discharge_index]])]  * hsr.reach_number
-                self.hydrau_description_list[0]["unit_list_tf"] = [selectedfiles_textfiles_match] * hsr.reach_number
-                self.hydrau_description_list[0]["unit_number"] = str(selectedfiles_textfiles_match.count(True))
-                self.hydrau_description_list[0]["unit_type"] = "discharge [" + discharge_unit + "]"
-                self.hydrau_description_list[0]["reach_list"] = reach_name
-                self.hydrau_description_list[0]["reach_number"] = str(1)
-                self.hydrau_description_list[0]["reach_type"] = "river"
-                self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
-                self.hydrau_description_list[0]["flow_type"] = "continuous flow"  # transient flow
-                self.hydrau_description_list[0]["sub"] = hsr.sub
+                self.hydrau_description_list = [dict(path_prj=self.path_prj,
+                                                    name_prj=self.name_prj,
+                                                    hydrau_case=self.hydrau_case,
+                                                    filename_source=namefile,
+                                                    path_filename_source=self.folder_path,
+                                                    hdf5_name=name_hdf5,
+                                                    model_type=self.model_type,
+                                                    model_dimension=str(self.nb_dim),
+                                                    epsg_code=epsg_code,
+                                                    index_hydrau=True)]
 
-            # CASE 2.b """
-            elif self.hydrau_case == "2.b":
-                for rowindex, file in enumerate(data_index_file["filename"]):
+                # CASE 1.a """
+                if self.hydrau_case == "1.a":
                     # get units name from file
-                    hsr = HydraulicSimulationResultsSelector(file,
+                    hsr = HydraulicSimulationResultsSelector(data_index_file["filename"][0],
                                                              self.folder_path, self.model_type, self.path_prj)
                     self.warning_list.extend(hsr.warning_list)
                     if not hsr.valid_file:
-                        continue
+                        return
                     # get units name from indexHYDRAU.txt file
-                    unit_name_from_index_file = data_index_file[headers[time_index]][rowindex]
+                    unit_name_from_index_file = data_index_file[headers[discharge_index]]
+                    # check if lenght of two loading units
+                    if hsr.timestep_nb > len(unit_name_from_index_file):
+                        self.hydrau_description_list = "Error: units number from indexHYDRAU inferior than TELEMAC selected."
+                        return
+
+                    if reach_presence:
+                        reach_name = [data_index_file[headers[reach_index]][0]]
+                    else:
+                        reach_name = ["unknown"]
+
+                    # items
+                    if hsr.timestep_nb == len(unit_name_from_index_file):
+                        pass
+                    if hsr.timestep_nb < len(unit_name_from_index_file):
+                        index_file = data_index_file[headers[0]].index(self.filename)
+                        data_index_file[headers[0]] = [data_index_file[headers[0]][index_file]]
+                        data_index_file[headers[discharge_index]] = [data_index_file[headers[discharge_index]][index_file]]
+
+                    variable_name_unit_dict = hsr.hvum.software_detected_list
+
+                    # self.hydrau_description_list
+                    self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
+                    self.hydrau_description_list[0]["unit_list"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
+                    self.hydrau_description_list[0]["unit_list_full"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
+                    self.hydrau_description_list[0]["unit_list_tf"] = [[True] * hsr.timestep_nb] * hsr.reach_number
+                    self.hydrau_description_list[0]["unit_number"] = str(1)
+                    self.hydrau_description_list[0]["unit_type"] = "discharge [" + discharge_unit + "]"
+                    self.hydrau_description_list[0]["reach_list"] = reach_name
+                    self.hydrau_description_list[0]["reach_number"] = str(1)
+                    self.hydrau_description_list[0]["reach_type"] = "river"
+                    self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
+                    self.hydrau_description_list[0]["flow_type"] = "continuous flow"  # transient flow
+                    self.hydrau_description_list[0]["sub"] = hsr.sub
+
+                # CASE 1.b """
+                elif self.hydrau_case == "1.b":
+                    # get units name from file
+                    hsr = HydraulicSimulationResultsSelector(namefile,
+                                                             self.folder_path, self.model_type, self.path_prj)
+                    self.warning_list.extend(hsr.warning_list)
+                    if not hsr.valid_file:
+                        return
+                    # get units name from indexHYDRAU.txt file
+                    unit_name_from_index_file = data_index_file[headers[time_index]][data_index_file[headers[0]].index(namefile)]
+
                     # check if lenght of two loading units
                     if unit_name_from_index_file not in hsr.timestep_name_list:
-                        self.hydrau_description_list = "Error: " + unit_name_from_index_file + " don't exist in " + file
+                        self.hydrau_description_list = "Error: " + unit_name_from_index_file + " doesn't exist in file"
                         return
-                    if file == data_index_file["filename"][-1]:  # last
-                        variable_name_unit_dict = hsr.hvum.software_detected_list
 
-                # selected files same than indexHYDRAU file
-                if not selectedfiles_textfiles_matching:
-                    self.hydrau_description_list = "Error: selected files are different from indexHYDRAU files"
-                    return
-
-                # multi reach from file cases
-                filename_list = data_index_file[headers[0]]
-                if reach_presence:
-                    reach_name = data_index_file[headers[reach_index]]
-                    # duplicates filename presence +
-                    if len(filename_list) != len(list(set(filename_list))) and len(reach_name) != len(list(set(reach_name))) and \
-                        len(list(set(filename_list))) == len(list(set(reach_name))):
-                        reach_name = list(set(reach_name))
-                        filename_list
-                        list(data_index_file[headers[discharge_index]])
-
-                    else:
-                        reach_name = [data_index_file[headers[reach_index]][0]]
-                else:
-                    reach_name = ["unknown"]
-
-                # self.hydrau_description_list
-                self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
-                self.hydrau_description_list[0]["unit_list"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
-                self.hydrau_description_list[0]["unit_list_full"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
-                self.hydrau_description_list[0]["unit_list_tf"] = [[True] * len(data_index_file[headers[discharge_index]])] * hsr.reach_number
-                self.hydrau_description_list[0]["unit_number"] = str(len(data_index_file[headers[discharge_index]]))
-                self.hydrau_description_list[0]["unit_type"] = "discharge [" + discharge_unit + "]"
-                self.hydrau_description_list[0]["timestep_list"] = data_index_file[headers[time_index]]
-                self.hydrau_description_list[0]["reach_list"] = reach_name
-                self.hydrau_description_list[0]["reach_number"] = str(1)
-                self.hydrau_description_list[0]["reach_type"] = "river"
-                self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
-                self.hydrau_description_list[0]["flow_type"] = "continuous flow"  # transient flow
-                self.hydrau_description_list[0]["sub"] = hsr.sub
-
-            # CASE 3.a """
-            elif self.hydrau_case == "3.a":
-                # get units name from file
-                hsr = HydraulicSimulationResultsSelector(data_index_file[headers[0]][0],
-                                                         self.folder_path, self.model_type, self.path_prj)
-                self.warning_list.extend(hsr.warning_list)
-                if not hsr.valid_file:
-                    return
-                # selected files same than indexHYDRAU file
-                if not selectedfiles_textfiles_matching:
-                    self.hydrau_description_list = "Error: selected files are different from indexHYDRAU files"
-                    return
-
-                if reach_presence:
-                    reach_name = [data_index_file[headers[reach_index]][0]]
-                if not reach_presence:
-                    reach_name = ["unknown"]
-
-                variable_name_unit_dict = hsr.hvum.software_detected_list
-
-                if self.model_type == "basement2d":
-                    self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hyd"
-                elif self.model_type == "lammi":
-                    self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hab"
-
-                # self.hydrau_description_list
-                self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
-                self.hydrau_description_list[0]["unit_list"] = [list(hsr.timestep_name_list)] * hsr.reach_number
-                self.hydrau_description_list[0]["unit_list_full"] = [list(hsr.timestep_name_list)] * hsr.reach_number
-                self.hydrau_description_list[0]["unit_list_tf"] = [[True] * hsr.timestep_nb] * hsr.reach_number
-                self.hydrau_description_list[0]["unit_number"] = str(hsr.timestep_nb)
-                self.hydrau_description_list[0]["unit_type"] = hsr.timestep_unit
-                self.hydrau_description_list[0]["reach_list"] = reach_name
-                self.hydrau_description_list[0]["reach_number"] = str(1)
-                self.hydrau_description_list[0]["reach_type"] = "river"
-                self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
-                self.hydrau_description_list[0]["flow_type"] = "transient flow"  # continuous flow
-                self.hydrau_description_list[0]["sub"] = hsr.sub
-
-            # CASE 3.b """
-            elif self.hydrau_case == "3.b":
-                # get units name from file
-                hsr = HydraulicSimulationResultsSelector(data_index_file[headers[0]][0],
-                                                         self.folder_path, self.model_type, self.path_prj)
-                self.warning_list.extend(hsr.warning_list)
-                if not hsr.valid_file:
-                    return
-                # get units name from indexHYDRAU.txt file
-                unit_name_from_index_file = data_index_file[headers[time_index]][0]
-
-                unit_name_from_index_file2 = []
-                for element_unit in unit_name_from_index_file.split(";"):
-                    if "/" in element_unit:  # from to
-                        from_unit, to_unit = element_unit.split("/")
-                        try:
-                            from_unit_index = hsr.timestep_name_list.index(from_unit)
-                            to_unit_index = hsr.timestep_name_list.index(to_unit)
-                            unit_name_from_index_file2 = unit_name_from_index_file2 + \
-                                                         hsr.timestep_name_list[from_unit_index:to_unit_index + 1]
-                        except ValueError:
-                            self.hydrau_description_list = "Error: can't found time step : " + from_unit + " or " + to_unit + " in " + \
-                                   data_index_file[headers[0]][0]
-                            return
-                    else:
-                        unit_name_from_index_file2.append(element_unit)
-                timestep_to_select = []
-                for timestep_value in hsr.timestep_name_list:
-                    if timestep_value in unit_name_from_index_file2:
-                        timestep_to_select.append(True)
-                    else:
-                        timestep_to_select.append(False)
-
-                # selected files same than indexHYDRAU file
-                if not selectedfiles_textfiles_matching:
-                    self.hydrau_description_list = "Error: selected files are different from indexHYDRAU files"
-                    return
-
-                if reach_presence:
-                    reach_name = [data_index_file[headers[reach_index]][0]]
-                if not reach_presence:
-                    reach_name = ["unknown"]
-
-                variable_name_unit_dict = hsr.hvum.software_detected_list
-
-                if self.model_type == "basement2d":
-                    self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hyd"
-                elif self.model_type == "lammi":
-                    self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hab"
-
-                # self.hydrau_description_list
-                self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
-                self.hydrau_description_list[0]["unit_list"] = [unit_name_from_index_file2] * hsr.reach_number
-                self.hydrau_description_list[0]["unit_list_full"] = [hsr.timestep_name_list] * hsr.reach_number
-                self.hydrau_description_list[0]["unit_list_tf"] = [timestep_to_select] * hsr.reach_number
-                self.hydrau_description_list[0]["unit_number"] = str(len(unit_name_from_index_file2))
-                self.hydrau_description_list[0]["unit_type"] = "time [" + time_unit + "]"
-                self.hydrau_description_list[0]["reach_list"] = reach_name
-                self.hydrau_description_list[0]["reach_number"] = str(1)
-                self.hydrau_description_list[0]["reach_type"] = "river"
-                self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
-                self.hydrau_description_list[0]["flow_type"] = "transient flow"  # continuous flow
-                self.hydrau_description_list[0]["sub"] = hsr.sub
-
-            # CASE 4.a """
-            elif self.hydrau_case == "4.a":
-                # selected files same than indexHYDRAU file
-                if not selectedfiles_textfiles_matching:
-                    self.hydrau_description_list = "Error: selected files are different from indexHYDRAU files"
-                    return
-
-                self.hydrau_description_list = []
-                for i, file in enumerate(data_index_file[headers[0]]):
-                    # get units name from file
-                    hsr = HydraulicSimulationResultsSelector(file,
-                                                             self.folder_path, self.model_type, self.path_prj)
-                    self.warning_list.extend(hsr.warning_list)
-                    if not hsr.valid_file:
-                        continue
-
-                    # hdf5 filename
-                    blob2, ext = os.path.splitext(file)
-                    name_hdf5 = blob2 + ".hyd"
-
-                    # reach name
                     if reach_presence:
-                        reach_name = [data_index_file[headers[reach_index]][i]]
-                    if not reach_presence:
+                        reach_name = [data_index_file[headers[reach_index]][0]]
+                    else:
                         reach_name = ["unknown"]
 
                     variable_name_unit_dict = hsr.hvum.software_detected_list
 
-                    # multi description
-                    self.hydrau_description_list.append(dict(path_prj=self.path_prj,
-                                                             name_prj=self.name_prj,
-                                                             hydrau_case=self.hydrau_case,
-                                                             filename_source=file,
-                                                             path_filename_source=self.folder_path,
-                                                             hdf5_name=name_hdf5,
-                                                             model_type=self.model_type,
-                                                             model_dimension=str(self.nb_dim),
-                                                             epsg_code=epsg_code,
-                                                             unit_list=[list(hsr.timestep_name_list)] * hsr.reach_number,
-                                                             unit_list_full=[list(hsr.timestep_name_list)] * hsr.reach_number,
-                                                             unit_list_tf=[[True] * hsr.timestep_nb] * hsr.reach_number,
-                                                             unit_number=str(hsr.timestep_nb),
-                                                             unit_type=hsr.timestep_unit,
-                                                             reach_list=reach_name,
-                                                             reach_number=str(1),
-                                                             reach_type="river",
-                                                             variable_name_unit_dict=variable_name_unit_dict,
-                                                             flow_type="transient flow",
-                                                             sub=hsr.sub,
-                                                             index_hydrau=True))  # continuous flow
+                    if self.model_type == "basement2d":
+                        self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hyd"
+                    elif self.model_type == "lammi":
+                        self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hab"
 
-            # CASE 4.b """
-            elif self.hydrau_case == "4.b":
-                # selected files same than indexHYDRAU file
-                if not selectedfiles_textfiles_matching:
-                    self.hydrau_description_list = "Error: selected files are different from indexHYDRAU files"
-                    return
+                    # self.hydrau_description_list
+                    self.hydrau_description_list[0]["unit_list"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
+                    self.hydrau_description_list[0]["unit_list_full"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
+                    self.hydrau_description_list[0]["unit_list_tf"] = [[True] * len(data_index_file[headers[discharge_index]])] * hsr.reach_number
+                    self.hydrau_description_list[0]["unit_number"] = str(1)
+                    self.hydrau_description_list[0]["unit_type"] = "discharge [" + discharge_unit + "]"
+                    self.hydrau_description_list[0]["timestep_list"] = data_index_file[headers[time_index]]
+                    self.hydrau_description_list[0]["reach_list"] = reach_name
+                    self.hydrau_description_list[0]["reach_number"] = str(1)
+                    self.hydrau_description_list[0]["reach_type"] = "river"
+                    self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
+                    self.hydrau_description_list[0]["flow_type"] = "continuous flow"  # transient flow
+                    self.hydrau_description_list[0]["sub"] = hsr.sub
 
-                # multi_reach
-                if multi_reach and reach_presence:
-                    # check if unit nb by reach is equal
-                    unit_list_all_reach = []
-                    unit_list_full_all_reach = []
-                    unit_list_tf_all_reach = []
-                    for i, file in enumerate(data_index_file[headers[0]]):
+                # CASE 2.a """
+                elif self.hydrau_case == "2.a":
+                    # get units name from files (must have only one time step by file)
+                    for file in data_index_file["filename"]:
                         # get units name from file
                         hsr = HydraulicSimulationResultsSelector(file,
                                                                  self.folder_path, self.model_type, self.path_prj)
                         self.warning_list.extend(hsr.warning_list)
                         if not hsr.valid_file:
                             continue
-                        unit_list_full_all_reach.append(hsr.timestep_name_list)
-                        # get units name from indexHYDRAU.txt file
-                        unit_name_from_index_file = data_index_file[headers[time_index]][i]
-                        unit_name_from_index_file2 = []
-                        for element_unit in unit_name_from_index_file.split(";"):
-                            if "/" in element_unit:  # from to
-                                from_unit, to_unit = element_unit.split("/")
-                                try:
-                                    from_unit_index = hsr.timestep_name_list.index(from_unit)
-                                    to_unit_index = hsr.timestep_name_list.index(to_unit)
-                                    unit_name_from_index_file2 = unit_name_from_index_file2 + \
-                                                                 hsr.timestep_name_list[
-                                                                 from_unit_index:to_unit_index + 1]
-                                except ValueError:
+                        if hsr.timestep_name_list == ["0.0"] and hsr.timestep_nb == 1:
+                            pass
+                        else:
+                            if hsr.timestep_nb > 1:
+                                self.hydrau_description_list = "Error: file " + file + " contain more than one time step (timestep :" \
+                                       + str(hsr.timestep_name_list) + ")"
+                                return
+                        if file == data_index_file["filename"][-1]:  # last
+                            variable_name_unit_dict = hsr.hvum.software_detected_list
 
-                                    self.hydrau_description_list = "Error: can't found time step : " + from_unit + " or " + to_unit + " in " + \
-                                           data_index_file[headers[0]][i]
-                                    return
-                            else:
-                                unit_name_from_index_file2.append(element_unit)
+                    if reach_presence:
+                        reach_name = [data_index_file[headers[reach_index]][0]]
+                    if not reach_presence:
+                        reach_name = ["unknown"]
 
-                        unit_list_all_reach.append(unit_name_from_index_file2)
+                    # # check if selected files are equal to data_index_file
+                    # if len(self.filename_list) != len(data_index_file["filename"]):
+                    #     for index, selected_file in enumerate(data_index_file["filename"]):
 
-                        unit_index_from_file = []
-                        for item in hsr.timestep_name_list:
-                            if item in unit_name_from_index_file2 or "all" in unit_name_from_index_file2:
-                                unit_index_from_file.append(True)
-                            else:
-                                unit_index_from_file.append(False)
-                        unit_list_tf_all_reach.append(unit_index_from_file)
+                    # index_to_keep = []
+                    # for index, selected_file in enumerate(data_index_file["filename"]):
+                    #     if selected_file in [os.path.basename(element) for element in self.filename_list]:
+                    #         index_to_keep.append(index)
+                    # for header in headers:
+                    #     data_index_file[header] = [data_index_file[header][index] for index in index_to_keep]
 
-                        variable_name_unit_dict = hsr.hvum.software_detected_list
-
-                    # check if unit nb by reach is equal
-                    unit_nb_list = []
-                    for i, file in enumerate(data_index_file[headers[0]]):
-                        unit_nb_list.append(len(unit_list_all_reach[i]))
-                    if len(set(unit_nb_list)) > 1:
-                        self.hydrau_description_list = "Error: Timestep number are not equal for selected reachs."
-                        return
 
                     # self.hydrau_description_list
                     self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
-                    self.hydrau_description_list[0]["unit_list"] = list(unit_list_all_reach)
-                    self.hydrau_description_list[0]["unit_list_full"] = list(unit_list_full_all_reach)
-                    self.hydrau_description_list[0]["unit_list_tf"] = unit_list_tf_all_reach
-                    self.hydrau_description_list[0]["unit_number"] = str(unit_nb_list[0])
+                    self.hydrau_description_list[0]["unit_list"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
+                    self.hydrau_description_list[0]["unit_list_full"] = [list(data_index_file[headers[discharge_index]])]  * hsr.reach_number
+                    self.hydrau_description_list[0]["unit_list_tf"] = [selectedfiles_textfiles_match] * hsr.reach_number
+                    self.hydrau_description_list[0]["unit_number"] = str(selectedfiles_textfiles_match.count(True))
+                    self.hydrau_description_list[0]["unit_type"] = "discharge [" + discharge_unit + "]"
+                    self.hydrau_description_list[0]["reach_list"] = reach_name
+                    self.hydrau_description_list[0]["reach_number"] = str(1)
+                    self.hydrau_description_list[0]["reach_type"] = "river"
+                    self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
+                    self.hydrau_description_list[0]["flow_type"] = "continuous flow"  # transient flow
+                    self.hydrau_description_list[0]["sub"] = hsr.sub
+
+                # CASE 2.b """
+                elif self.hydrau_case == "2.b":
+                    for rowindex, file in enumerate(data_index_file["filename"]):
+                        # get units name from file
+                        hsr = HydraulicSimulationResultsSelector(file,
+                                                                 self.folder_path, self.model_type, self.path_prj)
+                        self.warning_list.extend(hsr.warning_list)
+                        if not hsr.valid_file:
+                            continue
+                        # get units name from indexHYDRAU.txt file
+                        unit_name_from_index_file = data_index_file[headers[time_index]][rowindex]
+                        # check if lenght of two loading units
+                        if unit_name_from_index_file not in hsr.timestep_name_list:
+                            self.hydrau_description_list = "Error: " + unit_name_from_index_file + " don't exist in " + file
+                            return
+                        if file == data_index_file["filename"][-1]:  # last
+                            variable_name_unit_dict = hsr.hvum.software_detected_list
+
+                    # selected files same than indexHYDRAU file
+                    if not selectedfiles_textfiles_matching:
+                        self.hydrau_description_list = "Error: selected files are different from indexHYDRAU files"
+                        return
+
+                    # multi reach from file cases
+                    filename_list = data_index_file[headers[0]]
+                    if reach_presence:
+                        reach_name = data_index_file[headers[reach_index]]
+                        # duplicates filename presence +
+                        if len(filename_list) != len(list(set(filename_list))) and len(reach_name) != len(list(set(reach_name))) and \
+                            len(list(set(filename_list))) == len(list(set(reach_name))):
+                            reach_name = list(set(reach_name))
+                            filename_list
+                            list(data_index_file[headers[discharge_index]])
+
+                        else:
+                            reach_name = [data_index_file[headers[reach_index]][0]]
+                    else:
+                        reach_name = ["unknown"]
+
+                    # self.hydrau_description_list
+                    self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
+                    self.hydrau_description_list[0]["unit_list"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
+                    self.hydrau_description_list[0]["unit_list_full"] = [list(data_index_file[headers[discharge_index]])] * hsr.reach_number
+                    self.hydrau_description_list[0]["unit_list_tf"] = [[True] * len(data_index_file[headers[discharge_index]])] * hsr.reach_number
+                    self.hydrau_description_list[0]["unit_number"] = str(len(data_index_file[headers[discharge_index]]))
+                    self.hydrau_description_list[0]["unit_type"] = "discharge [" + discharge_unit + "]"
+                    self.hydrau_description_list[0]["timestep_list"] = data_index_file[headers[time_index]]
+                    self.hydrau_description_list[0]["reach_list"] = reach_name
+                    self.hydrau_description_list[0]["reach_number"] = str(1)
+                    self.hydrau_description_list[0]["reach_type"] = "river"
+                    self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
+                    self.hydrau_description_list[0]["flow_type"] = "continuous flow"  # transient flow
+                    self.hydrau_description_list[0]["sub"] = hsr.sub
+
+                # CASE 3.a """
+                elif self.hydrau_case == "3.a":
+                    # get units name from file
+                    hsr = HydraulicSimulationResultsSelector(data_index_file[headers[0]][0],
+                                                             self.folder_path, self.model_type, self.path_prj)
+                    self.warning_list.extend(hsr.warning_list)
+                    if not hsr.valid_file:
+                        return
+                    # selected files same than indexHYDRAU file
+                    if not selectedfiles_textfiles_matching:
+                        self.hydrau_description_list = "Error: selected files are different from indexHYDRAU files"
+                        return
+
+                    if reach_presence:
+                        reach_name = [data_index_file[headers[reach_index]][0]]
+                    if not reach_presence:
+                        reach_name = ["unknown"]
+
+                    variable_name_unit_dict = hsr.hvum.software_detected_list
+
+                    if self.model_type == "basement2d":
+                        self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hyd"
+                    elif self.model_type == "lammi":
+                        self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hab"
+
+                    # self.hydrau_description_list
+                    self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
+                    self.hydrau_description_list[0]["unit_list"] = [list(hsr.timestep_name_list)] * hsr.reach_number
+                    self.hydrau_description_list[0]["unit_list_full"] = [list(hsr.timestep_name_list)] * hsr.reach_number
+                    self.hydrau_description_list[0]["unit_list_tf"] = [[True] * hsr.timestep_nb] * hsr.reach_number
+                    self.hydrau_description_list[0]["unit_number"] = str(hsr.timestep_nb)
                     self.hydrau_description_list[0]["unit_type"] = hsr.timestep_unit
-                    self.hydrau_description_list[0]["reach_list"] = reach_list
-                    self.hydrau_description_list[0]["reach_number"] = str(len(reach_list))
+                    self.hydrau_description_list[0]["reach_list"] = reach_name
+                    self.hydrau_description_list[0]["reach_number"] = str(1)
                     self.hydrau_description_list[0]["reach_type"] = "river"
                     self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
                     self.hydrau_description_list[0]["flow_type"] = "transient flow"  # continuous flow
                     self.hydrau_description_list[0]["sub"] = hsr.sub
 
-                # same reach
-                else:
+                # CASE 3.b """
+                elif self.hydrau_case == "3.b":
+                    # get units name from file
+                    hsr = HydraulicSimulationResultsSelector(data_index_file[headers[0]][0],
+                                                             self.folder_path, self.model_type, self.path_prj)
+                    self.warning_list.extend(hsr.warning_list)
+                    if not hsr.valid_file:
+                        return
+                    # get units name from indexHYDRAU.txt file
+                    unit_name_from_index_file = data_index_file[headers[time_index]][0]
+
+                    unit_name_from_index_file2 = []
+                    for element_unit in unit_name_from_index_file.split(";"):
+                        if "/" in element_unit:  # from to
+                            from_unit, to_unit = element_unit.split("/")
+                            try:
+                                from_unit_index = hsr.timestep_name_list.index(from_unit)
+                                to_unit_index = hsr.timestep_name_list.index(to_unit)
+                                unit_name_from_index_file2 = unit_name_from_index_file2 + \
+                                                             hsr.timestep_name_list[from_unit_index:to_unit_index + 1]
+                            except ValueError:
+                                self.hydrau_description_list = "Error: can't found time step : " + from_unit + " or " + to_unit + " in " + \
+                                       data_index_file[headers[0]][0]
+                                return
+                        else:
+                            unit_name_from_index_file2.append(element_unit)
+                    timestep_to_select = []
+                    for timestep_value in hsr.timestep_name_list:
+                        if timestep_value in unit_name_from_index_file2:
+                            timestep_to_select.append(True)
+                        else:
+                            timestep_to_select.append(False)
+
+                    # selected files same than indexHYDRAU file
+                    if not selectedfiles_textfiles_matching:
+                        self.hydrau_description_list = "Error: selected files are different from indexHYDRAU files"
+                        return
+
+                    if reach_presence:
+                        reach_name = [data_index_file[headers[reach_index]][0]]
+                    if not reach_presence:
+                        reach_name = ["unknown"]
+
+                    variable_name_unit_dict = hsr.hvum.software_detected_list
+
+                    if self.model_type == "basement2d":
+                        self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hyd"
+                    elif self.model_type == "lammi":
+                        self.hydrau_description_list[0]["hdf5_name"] = hsr.simulation_name + ".hab"
+
+                    # self.hydrau_description_list
+                    self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
+                    self.hydrau_description_list[0]["unit_list"] = [unit_name_from_index_file2] * hsr.reach_number
+                    self.hydrau_description_list[0]["unit_list_full"] = [hsr.timestep_name_list] * hsr.reach_number
+                    self.hydrau_description_list[0]["unit_list_tf"] = [timestep_to_select] * hsr.reach_number
+                    self.hydrau_description_list[0]["unit_number"] = str(len(unit_name_from_index_file2))
+                    self.hydrau_description_list[0]["unit_type"] = "time [" + time_unit + "]"
+                    self.hydrau_description_list[0]["reach_list"] = reach_name
+                    self.hydrau_description_list[0]["reach_number"] = str(1)
+                    self.hydrau_description_list[0]["reach_type"] = "river"
+                    self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
+                    self.hydrau_description_list[0]["flow_type"] = "transient flow"  # continuous flow
+                    self.hydrau_description_list[0]["sub"] = hsr.sub
+
+                # CASE 4.a """
+                elif self.hydrau_case == "4.a":
+                    # selected files same than indexHYDRAU file
+                    if not selectedfiles_textfiles_matching:
+                        self.hydrau_description_list = "Error: selected files are different from indexHYDRAU files"
+                        return
+
                     self.hydrau_description_list = []
                     for i, file in enumerate(data_index_file[headers[0]]):
                         # get units name from file
@@ -933,40 +821,15 @@ class HydraulicSimulationResultsAnalyzer:
                         self.warning_list.extend(hsr.warning_list)
                         if not hsr.valid_file:
                             continue
-                        # get units name from indexHYDRAU.txt file
-                        unit_name_from_index_file = data_index_file[headers[time_index]][i]
-                        unit_name_from_index_file2 = []
-                        for element_unit in unit_name_from_index_file.split(";"):
-                            if "/" in element_unit:  # from to
-                                from_unit, to_unit = element_unit.split("/")
-                                try:
-                                    from_unit_index = hsr.timestep_name_list.index(from_unit)
-                                    to_unit_index = hsr.timestep_name_list.index(to_unit)
-                                    unit_name_from_index_file2 = unit_name_from_index_file2 + \
-                                                                 hsr.timestep_name_list[
-                                                                 from_unit_index:to_unit_index + 1]
-                                except ValueError:
-
-                                    self.hydrau_description_list = "Error: can't found time step : " + from_unit + " or " + to_unit + " in " + \
-                                           data_index_file[headers[0]][i]
-                                    return
-                            else:
-                                unit_name_from_index_file2.append(element_unit)
-
-                        unit_index_from_file = []
-                        for item in hsr.timestep_name_list:
-                            if item in unit_name_from_index_file2:
-                                unit_index_from_file.append(True)
-                            else:
-                                unit_index_from_file.append(False)
 
                         # hdf5 filename
                         blob2, ext = os.path.splitext(file)
                         name_hdf5 = blob2 + ".hyd"
+
                         # reach name
                         if reach_presence:
                             reach_name = [data_index_file[headers[reach_index]][i]]
-                        else:
+                        if not reach_presence:
                             reach_name = ["unknown"]
 
                         variable_name_unit_dict = hsr.hvum.software_detected_list
@@ -981,11 +844,11 @@ class HydraulicSimulationResultsAnalyzer:
                                                                  model_type=self.model_type,
                                                                  model_dimension=str(self.nb_dim),
                                                                  epsg_code=epsg_code,
-                                                                 unit_list=[list(unit_name_from_index_file2)],
-                                                                 unit_list_full=[list(hsr.timestep_name_list)],
-                                                                 unit_list_tf=[unit_index_from_file] * hsr.reach_number,
-                                                                 unit_number=str(len(unit_name_from_index_file2)),
-                                                                 unit_type="time [" + time_unit + "]",
+                                                                 unit_list=[list(hsr.timestep_name_list)] * hsr.reach_number,
+                                                                 unit_list_full=[list(hsr.timestep_name_list)] * hsr.reach_number,
+                                                                 unit_list_tf=[[True] * hsr.timestep_nb] * hsr.reach_number,
+                                                                 unit_number=str(hsr.timestep_nb),
+                                                                 unit_type=hsr.timestep_unit,
                                                                  reach_list=reach_name,
                                                                  reach_number=str(1),
                                                                  reach_type="river",
@@ -994,79 +857,256 @@ class HydraulicSimulationResultsAnalyzer:
                                                                  sub=hsr.sub,
                                                                  index_hydrau=True))  # continuous flow
 
-            if self.model_type == "lammi":
-
-                if len(data_index_file["filename"]) == 1:
-                    self.hydrau_case = "LAMMI"
-                elif len(data_index_file["filename"]) > 1:
-                    self.hydrau_case = "5.LAMMI"
-                hdf5_name_list = []
-                unit_name_list = []
-                unit_name_full_list = []
-                unit_name_full_tf_list = []
-                # for each filename (as reach)
-                for lammi_ind, lammi_file in enumerate(data_index_file["filename"]):
-                    # get units name from file
-                    hsr = HydraulicSimulationResultsSelector(lammi_file,
-                                                             self.folder_path, self.model_type, self.path_prj)
-                    self.warning_list.extend(hsr.warning_list)
-                    if not hsr.valid_file:
-                        return
-                    # get units name from indexHYDRAU.txt file
-                    unit_name_from_index_file = data_index_file[headers[1]][lammi_ind]
-
-                    unit_name_from_index_file2 = []
-                    for element_unit in unit_name_from_index_file.split(";"):
-                        if "/" in element_unit:  # from to
-                            from_unit, to_unit = element_unit.split("/")
-                            try:
-                                from_unit_index = hsr.timestep_name_list.index(from_unit)
-                                to_unit_index = hsr.timestep_name_list.index(to_unit)
-                                unit_name_from_index_file2 = unit_name_from_index_file2 + \
-                                                             hsr.timestep_name_list[from_unit_index:to_unit_index + 1]
-                            except ValueError:
-                                self.hydrau_description_list = "Error: can't found time step : " + from_unit + " or " + to_unit + " in " + \
-                                                               data_index_file[headers[0]][0]
-                                return
-                        else:
-                            unit_name_from_index_file2.append(element_unit)
-                    timestep_to_select = []
-                    for timestep_value in hsr.timestep_name_list:
-                        if timestep_value in unit_name_from_index_file2:
-                            timestep_to_select.append(True)
-                        else:
-                            timestep_to_select.append(False)
-                    unit_name_list.append(unit_name_from_index_file2)
-                    unit_name_full_list.append(hsr.timestep_name_list)
-                    unit_name_full_tf_list.append(timestep_to_select)
-                    hdf5_name_list.append(hsr.simulation_name)
-
+                # CASE 4.b """
+                elif self.hydrau_case == "4.b":
                     # selected files same than indexHYDRAU file
                     if not selectedfiles_textfiles_matching:
                         self.hydrau_description_list = "Error: selected files are different from indexHYDRAU files"
                         return
 
-                reach_name = ["unknown"]
-                if reach_presence:
-                    reach_name = data_index_file[headers[reach_index]]
-                    hdf5_name = "_".join([os.path.splitext(el)[0] for el in data_index_file[headers[0]]]) + ".hab"
-                else:
-                    hdf5_name = hsr.simulation_name + ".hab"
+                    # multi_reach
+                    if multi_reach and reach_presence:
+                        # check if unit nb by reach is equal
+                        unit_list_all_reach = []
+                        unit_list_full_all_reach = []
+                        unit_list_tf_all_reach = []
+                        for i, file in enumerate(data_index_file[headers[0]]):
+                            # get units name from file
+                            hsr = HydraulicSimulationResultsSelector(file,
+                                                                     self.folder_path, self.model_type, self.path_prj)
+                            self.warning_list.extend(hsr.warning_list)
+                            if not hsr.valid_file:
+                                continue
+                            unit_list_full_all_reach.append(hsr.timestep_name_list)
+                            # get units name from indexHYDRAU.txt file
+                            unit_name_from_index_file = data_index_file[headers[time_index]][i]
+                            unit_name_from_index_file2 = []
+                            for element_unit in unit_name_from_index_file.split(";"):
+                                if "/" in element_unit:  # from to
+                                    from_unit, to_unit = element_unit.split("/")
+                                    try:
+                                        from_unit_index = hsr.timestep_name_list.index(from_unit)
+                                        to_unit_index = hsr.timestep_name_list.index(to_unit)
+                                        unit_name_from_index_file2 = unit_name_from_index_file2 + \
+                                                                     hsr.timestep_name_list[
+                                                                     from_unit_index:to_unit_index + 1]
+                                    except ValueError:
+
+                                        self.hydrau_description_list = "Error: can't found time step : " + from_unit + " or " + to_unit + " in " + \
+                                               data_index_file[headers[0]][i]
+                                        return
+                                else:
+                                    unit_name_from_index_file2.append(element_unit)
+
+                            unit_list_all_reach.append(unit_name_from_index_file2)
+
+                            unit_index_from_file = []
+                            for item in hsr.timestep_name_list:
+                                if item in unit_name_from_index_file2 or "all" in unit_name_from_index_file2:
+                                    unit_index_from_file.append(True)
+                                else:
+                                    unit_index_from_file.append(False)
+                            unit_list_tf_all_reach.append(unit_index_from_file)
+
+                            variable_name_unit_dict = hsr.hvum.software_detected_list
+
+                        # check if unit nb by reach is equal
+                        unit_nb_list = []
+                        for i, file in enumerate(data_index_file[headers[0]]):
+                            unit_nb_list.append(len(unit_list_all_reach[i]))
+                        if len(set(unit_nb_list)) > 1:
+                            self.hydrau_description_list = "Error: Timestep number are not equal for selected reachs."
+                            return
+
+                        # self.hydrau_description_list
+                        self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
+                        self.hydrau_description_list[0]["unit_list"] = list(unit_list_all_reach)
+                        self.hydrau_description_list[0]["unit_list_full"] = list(unit_list_full_all_reach)
+                        self.hydrau_description_list[0]["unit_list_tf"] = unit_list_tf_all_reach
+                        self.hydrau_description_list[0]["unit_number"] = str(unit_nb_list[0])
+                        self.hydrau_description_list[0]["unit_type"] = hsr.timestep_unit
+                        self.hydrau_description_list[0]["reach_list"] = reach_list
+                        self.hydrau_description_list[0]["reach_number"] = str(len(reach_list))
+                        self.hydrau_description_list[0]["reach_type"] = "river"
+                        self.hydrau_description_list[0]["variable_name_unit_dict"] = variable_name_unit_dict
+                        self.hydrau_description_list[0]["flow_type"] = "transient flow"  # continuous flow
+                        self.hydrau_description_list[0]["sub"] = hsr.sub
+
+                    # same reach
+                    else:
+                        self.hydrau_description_list = []
+                        for i, file in enumerate(data_index_file[headers[0]]):
+                            # get units name from file
+                            hsr = HydraulicSimulationResultsSelector(file,
+                                                                     self.folder_path, self.model_type, self.path_prj)
+                            self.warning_list.extend(hsr.warning_list)
+                            if not hsr.valid_file:
+                                continue
+                            # get units name from indexHYDRAU.txt file
+                            unit_name_from_index_file = data_index_file[headers[time_index]][i]
+                            unit_name_from_index_file2 = []
+                            for element_unit in unit_name_from_index_file.split(";"):
+                                if "/" in element_unit:  # from to
+                                    from_unit, to_unit = element_unit.split("/")
+                                    try:
+                                        from_unit_index = hsr.timestep_name_list.index(from_unit)
+                                        to_unit_index = hsr.timestep_name_list.index(to_unit)
+                                        unit_name_from_index_file2 = unit_name_from_index_file2 + \
+                                                                     hsr.timestep_name_list[
+                                                                     from_unit_index:to_unit_index + 1]
+                                    except ValueError:
+
+                                        self.hydrau_description_list = "Error: can't found time step : " + from_unit + " or " + to_unit + " in " + \
+                                               data_index_file[headers[0]][i]
+                                        return
+                                else:
+                                    unit_name_from_index_file2.append(element_unit)
+
+                            unit_index_from_file = []
+                            for item in hsr.timestep_name_list:
+                                if item in unit_name_from_index_file2:
+                                    unit_index_from_file.append(True)
+                                else:
+                                    unit_index_from_file.append(False)
+
+                            # hdf5 filename
+                            blob2, ext = os.path.splitext(file)
+                            name_hdf5 = blob2 + ".hyd"
+                            # reach name
+                            if reach_presence:
+                                reach_name = [data_index_file[headers[reach_index]][i]]
+                            else:
+                                reach_name = ["unknown"]
+
+                            variable_name_unit_dict = hsr.hvum.software_detected_list
+
+                            # multi description
+                            self.hydrau_description_list.append(dict(path_prj=self.path_prj,
+                                                                     name_prj=self.name_prj,
+                                                                     hydrau_case=self.hydrau_case,
+                                                                     filename_source=file,
+                                                                     path_filename_source=self.folder_path,
+                                                                     hdf5_name=name_hdf5,
+                                                                     model_type=self.model_type,
+                                                                     model_dimension=str(self.nb_dim),
+                                                                     epsg_code=epsg_code,
+                                                                     unit_list=[list(unit_name_from_index_file2)],
+                                                                     unit_list_full=[list(hsr.timestep_name_list)],
+                                                                     unit_list_tf=[unit_index_from_file] * hsr.reach_number,
+                                                                     unit_number=str(len(unit_name_from_index_file2)),
+                                                                     unit_type="time [" + time_unit + "]",
+                                                                     reach_list=reach_name,
+                                                                     reach_number=str(1),
+                                                                     reach_type="river",
+                                                                     variable_name_unit_dict=variable_name_unit_dict,
+                                                                     flow_type="transient flow",
+                                                                     sub=hsr.sub,
+                                                                     index_hydrau=True))  # continuous flow
+
+                if self.model_type == "lammi":
+
+                    if len(data_index_file["filename"]) == 1:
+                        self.hydrau_case = "LAMMI"
+                    elif len(data_index_file["filename"]) > 1:
+                        self.hydrau_case = "5.LAMMI"
+                    hdf5_name_list = []
+                    unit_name_list = []
+                    unit_name_full_list = []
+                    unit_name_full_tf_list = []
+                    # for each filename (as reach)
+                    for lammi_ind, lammi_file in enumerate(data_index_file["filename"]):
+                        # get units name from file
+                        hsr = HydraulicSimulationResultsSelector(lammi_file,
+                                                                 self.folder_path, self.model_type, self.path_prj)
+                        self.warning_list.extend(hsr.warning_list)
+                        if not hsr.valid_file:
+                            return
+                        # get units name from indexHYDRAU.txt file
+                        unit_name_from_index_file = data_index_file[headers[1]][lammi_ind]
+
+                        unit_name_from_index_file2 = []
+                        for element_unit in unit_name_from_index_file.split(";"):
+                            if "/" in element_unit:  # from to
+                                from_unit, to_unit = element_unit.split("/")
+                                try:
+                                    from_unit_index = hsr.timestep_name_list.index(from_unit)
+                                    to_unit_index = hsr.timestep_name_list.index(to_unit)
+                                    unit_name_from_index_file2 = unit_name_from_index_file2 + \
+                                                                 hsr.timestep_name_list[from_unit_index:to_unit_index + 1]
+                                except ValueError:
+                                    self.hydrau_description_list = "Error: can't found time step : " + from_unit + " or " + to_unit + " in " + \
+                                                                   data_index_file[headers[0]][0]
+                                    return
+                            else:
+                                unit_name_from_index_file2.append(element_unit)
+                        timestep_to_select = []
+                        for timestep_value in hsr.timestep_name_list:
+                            if timestep_value in unit_name_from_index_file2:
+                                timestep_to_select.append(True)
+                            else:
+                                timestep_to_select.append(False)
+                        unit_name_list.append(unit_name_from_index_file2)
+                        unit_name_full_list.append(hsr.timestep_name_list)
+                        unit_name_full_tf_list.append(timestep_to_select)
+                        hdf5_name_list.append(hsr.simulation_name)
+
+                        # selected files same than indexHYDRAU file
+                        if not selectedfiles_textfiles_matching:
+                            self.hydrau_description_list = "Error: selected files are different from indexHYDRAU files"
+                            return
+
+                    reach_name = ["unknown"]
+                    if reach_presence:
+                        reach_name = data_index_file[headers[reach_index]]
+                        hdf5_name = "_".join([os.path.splitext(el)[0] for el in data_index_file[headers[0]]]) + ".hab"
+                    else:
+                        hdf5_name = hsr.simulation_name + ".hab"
+
+                    # self.hydrau_description_list
+                    self.hydrau_description_list[0]["hdf5_name"] = hdf5_name
+                    self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
+                    self.hydrau_description_list[0]["unit_list"] = unit_name_list
+                    self.hydrau_description_list[0]["unit_list_full"] = unit_name_full_list
+                    self.hydrau_description_list[0]["unit_list_tf"] = unit_name_full_tf_list
+                    self.hydrau_description_list[0]["unit_number"] = str(len(unit_name_list[0]))
+                    self.hydrau_description_list[0]["unit_type"] = "discharge [m3/s]"
+                    self.hydrau_description_list[0]["reach_list"] = reach_name
+                    self.hydrau_description_list[0]["reach_number"] = str(len(data_index_file["filename"]))
+                    self.hydrau_description_list[0]["reach_type"] = "river"
+                    self.hydrau_description_list[0]["variable_name_unit_dict"] = hsr.hvum.software_detected_list
+                    self.hydrau_description_list[0]["flow_type"] = "transient flow"  # continuous flow
+                    self.hydrau_description_list[0]["sub"] = hsr.sub
+            else:
+                # lake
+                # get units name from file
+                hsr = HydraulicSimulationResultsSelector(self.filename_path_list[0],
+                                                         self.folder_path, self.model_type, self.path_prj)
+                self.warning_list.extend(hsr.warning_list)
+                if not hsr.valid_file:
+                    return
 
                 # self.hydrau_description_list
-                self.hydrau_description_list[0]["hdf5_name"] = hdf5_name
-                self.hydrau_description_list[0]["filename_source"] = ", ".join(data_index_file[headers[0]])
-                self.hydrau_description_list[0]["unit_list"] = unit_name_list
-                self.hydrau_description_list[0]["unit_list_full"] = unit_name_full_list
-                self.hydrau_description_list[0]["unit_list_tf"] = unit_name_full_tf_list
-                self.hydrau_description_list[0]["unit_number"] = str(len(unit_name_list[0]))
-                self.hydrau_description_list[0]["unit_type"] = "discharge [m3/s]"
-                self.hydrau_description_list[0]["reach_list"] = reach_name
-                self.hydrau_description_list[0]["reach_number"] = str(len(data_index_file["filename"]))
-                self.hydrau_description_list[0]["reach_type"] = "river"
-                self.hydrau_description_list[0]["variable_name_unit_dict"] = hsr.hvum.software_detected_list
-                self.hydrau_description_list[0]["flow_type"] = "transient flow"  # continuous flow
-                self.hydrau_description_list[0]["sub"] = hsr.sub
+                self.hydrau_description_list = [dict(path_prj=self.path_prj,
+                                                     name_prj=self.name_prj,
+                                                     hydrau_case=self.hydrau_case,
+                                                     filename_source=self.index_hydrau_file_path,
+                                                     path_filename_source=self.folder_path,
+                                                     hdf5_name=os.path.splitext(self.filename_list[0])[0] + ".hyd",
+                                                     model_type=self.model_type,
+                                                     model_dimension=str(self.nb_dim),
+                                                     epsg_code=hsr.epsg_code,
+                                                     variable_name_unit_dict=hsr.hvum.software_detected_list,
+                                                     unit_list=[data_index_file[headers[0]]] * hsr.reach_number,
+                                                     unit_list_full=[data_index_file[headers[0]]] * hsr.reach_number,
+                                                     unit_list_tf=[[True] * hsr.timestep_nb] * hsr.reach_number,
+                                                     unit_number=str(hsr.timestep_nb),
+                                                     unit_type="water_level [m]",
+                                                     reach_list=["Unknown"],
+                                                     reach_number=str(hsr.reach_number),
+                                                     reach_type="lake",
+                                                     flow_type="unknown",
+                                                     sub=hsr.sub,
+                                                     index_hydrau=True)]
 
         # if m3/s
         for hydrau_description_index in range(len(self.hydrau_description_list)):

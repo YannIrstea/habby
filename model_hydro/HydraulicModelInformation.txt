@@ -15,4 +15,4 @@ TXT 1D-2D	False	ascii	ASCII	AsciiResult	ascii_mod	2		n			FEM or FVM							double
 FullSWOF	False	fullswof	FullSWOF	FullSwof	fullswof_mod	2															https://sourcesup.renater.fr/projects/fullswof-2d/
 Flood Modeller	False	floodmodeller	Flood Modeller	FloodModeller	floodmodeller_mod	2															https://www.floodmodeller.com/
 Mike 21	False	mike21	Mike 21	Mike21	mike21_mod	2															https://www.mikepoweredbydhi.com/products/mike-21
-Lake	True	lake	Lake	Lake	lake_mod	2		1	False						xy, z	3			.txt, .shp, .gpkg		https://habby.wiki.inrae.fr
+lake	True	lake	Lake	Lake	lake_mod	2		1	False						xy, z	3			.txt, .shp, .gpkg		https://habby.wiki.inrae.fr
