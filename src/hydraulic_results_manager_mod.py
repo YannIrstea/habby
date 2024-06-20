@@ -403,7 +403,15 @@ class HydraulicSimulationResultsAnalyzer:
                             return
 
             elif self.index_hydrau_file_selected:  # from indexHYDRAU.txt
-                if self.model_type != "lake":
+                if self.model_type == "lake":
+                    # .txt of .shp exist in the same dir or indexHYDRAU ?
+                    list_of_file_input_dir = os.listdir(self.folder_path)
+                    list_of_file_input_dir.remove('indexHYDRAU.txt')
+                    for file_el in list_of_file_input_dir:
+                        if ".txt" in file_el or ".shp" in file_el:
+                            self.filename_list = [file_el]
+                            self.filename_path_list = [os.path.join(self.folder_path, file_el)]
+                else:
                     try:
                         # self.more_than_one_file_selected_by_user or more_than_one_file_in indexHYDRAU (if from .txt)
                         if len(list(set(data_index_file["filename"]))) > 1:
@@ -1089,7 +1097,7 @@ class HydraulicSimulationResultsAnalyzer:
                 self.hydrau_description_list = [dict(path_prj=self.path_prj,
                                                      name_prj=self.name_prj,
                                                      hydrau_case=self.hydrau_case,
-                                                     filename_source=self.index_hydrau_file_path,
+                                                     filename_source=self.filename_list[0],
                                                      path_filename_source=self.folder_path,
                                                      hdf5_name=os.path.splitext(self.filename_list[0])[0] + ".hyd",
                                                      model_type=self.model_type,
