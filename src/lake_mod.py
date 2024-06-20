@@ -17,6 +17,7 @@ https://github.com/YannIrstea/habby
 import os
 import numpy as np
 from osgeo import ogr
+import triangle
 
 import src.manage_grid_mod
 from src import manage_grid_mod
@@ -128,6 +129,13 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         elif "txt" in ext:
             tin, xyz = self.load_polygonz_from_txt()
 
+        # check if water_level values arer inside z range
+        z_min = xyz[:, 2].min()
+        for water_level_str  in self.timestep_name_wish_list:
+            water_level_float = float(water_level_str)
+            if water_level_float < z_min:
+                print("Warning: water level value (" + water_level_str + ") is under minimum elevation value (" + z_min + ").")
+
         # prepare original data for data_2d
         for reach_number in range(self.reach_number):  # for each reach
             for timestep_index in self.timestep_name_wish_list_index:  # for each timestep
@@ -184,9 +192,16 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         return tin, xyz
 
     def load_polygonz_from_txt(self):
-        xyz = []  # point
-        tin = []  # connectivity table
-        return tin, xyz
+        xyz_raw = np.genfromtxt(self.filename_path,
+                                delimiter='\t',
+                                dtype=np.float64,
+                                skip_header=True,
+                                encoding="utf-8",
+                                autostrip=True)
+
+        polygon_from_shp = dict(vertices=xyz_raw[:,(0, 1)])
+        polygon_triangle = triangle.triangulate(polygon_from_shp)  # 'pA' if we use regions key
+        return polygon_triangle["triangles"], xyz_raw
 
     def compute_mesh_from_water_level(self, z, water_level_value):
         try:
