@@ -1102,7 +1102,7 @@ class HydraulicSimulationResultsAnalyzer:
                                                      hdf5_name=os.path.splitext(self.filename_list[0])[0] + ".hyd",
                                                      model_type=self.model_type,
                                                      model_dimension=str(self.nb_dim),
-                                                     epsg_code=hsr.epsg_code,
+                                                     epsg_code=epsg_code,
                                                      variable_name_unit_dict=hsr.hvum.software_detected_list,
                                                      unit_list=[data_index_file[headers[0]]] * hsr.reach_number,
                                                      unit_list_full=[data_index_file[headers[0]]] * hsr.reach_number,
