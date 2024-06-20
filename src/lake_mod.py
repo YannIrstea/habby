@@ -192,15 +192,19 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         return tin, xyz
 
     def load_polygonz_from_txt(self):
-        xyz_raw = np.genfromtxt(self.filename_path,
-                                delimiter='\t',
-                                dtype=np.float64,
-                                skip_header=True,
-                                encoding="utf-8",
-                                autostrip=True)
+        try:
+            xyz_raw = np.genfromtxt(self.filename_path,
+                                    delimiter='\t',
+                                    dtype=np.float64,
+                                    skip_header=True,
+                                    encoding="utf-8",
+                                    autostrip=True)
+        except:
+            print("Error: xyz file reading crash.")
+            return False
 
-        polygon_from_shp = dict(vertices=xyz_raw[:,(0, 1)])
-        polygon_triangle = triangle.triangulate(polygon_from_shp)  # 'pA' if we use regions key
+        polygon_from_shp = dict(vertices=xyz_raw[:, (0, 1)])
+        polygon_triangle = triangle.triangulate(polygon_from_shp)
         return polygon_triangle["triangles"], xyz_raw
 
     def compute_mesh_from_water_level(self, z, water_level_value):
