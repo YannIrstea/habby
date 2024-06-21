@@ -184,6 +184,7 @@ class ComputingGroup(QGroupBoxCollapsible):
         if filename:
             self.pathfile = filename  # source file path
             self.save_xml("hrr_manager_file")
+            self.hrr_manager_file = self.read_attribute_xml("hrr_manager_file")
             self.hrr_manager_lineedit.setText(os.path.basename(self.hrr_manager_file))
             self.hrr_manager_lineedit.setToolTip(self.hrr_manager_file)
 
