@@ -937,7 +937,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
             datamesh3 = np.array(datamesh3)
             # ExportTextHRR
             if len(xy3)==0  or len(tin3)==0: # No mesh has been created
-                print( q1 + '-' + q2+ ' IMPOSSIBLE TO CALCULATE HRR : Numerical Reasons ?? CONTACT an administrator if you absolutely need it')
+                print('Error: ' + q1 + '-' + q2+ ' Impossible to calculate due to possible numerical issues. Please take out this couple of unit from your hrr description file')
                 # warnings
                 if not print_cmd:
                     sys.stdout = sys.__stdout__
