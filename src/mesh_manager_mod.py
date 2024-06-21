@@ -41,7 +41,7 @@ def mesh_manager_from_file(filename):
     strheader=''
     imesh_manager_description=-1
     for iline,line in enumerate(hvcstr):
-        line = line.rstrip("\n").split()
+        line = line.replace("#","").rstrip("\n").split()
         if len(line) !=0:
             if isinstance(line[0],str) and not line[0].isnumeric() :
                 mesh_manager_description["header"] = line[0].lower()

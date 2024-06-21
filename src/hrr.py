@@ -100,7 +100,7 @@ def check_hrr_description(list_reach, list_unit, fhrr_manager_file):
                             i] + ' has not been  found correctly in ' + fhrr_manager_file + '.\n'
                         return [-99,errormessage]
             else:
-                if line.split() != '':
+                if len(line.split()) != 0:
                     if len(col) < nbcol:
                         errormessage = Error = ' line ' + str(
                             iline + 1) + ' the number of informations is not correct ' + fhrr_manager_file + '.\n'
@@ -172,14 +172,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
     #         sleep(0.1)  # to wait q.put() ..
     # return
     #
-    #  SUUUPRIMER *************************************************************************************************
-    # TODO: change it with Quentin deltat seconds
-    print("hrr_manager_file", hrr_description["hrr_manager_file"])
-    # deltatlist = hrr_description["deltatlist"]
-    deltatlist = [0, 24017]  # T2b1-b3 deltat en s pour Qi : 9.2   35
-    # deltatlist = [0,13947,10070,7724,11058,10198,10549,5961,16689]  #T2 deltat en s pour Qi : 9.2	21.2	35	48.4	74.7	110	150	175	259
-    # deltatlist = [0,11557,9743,4037,4816,9938,9305,5485,15104]   # T345-OLD deltat en s pour Qi : 9.2	25.5	48.4	60	76	110	150	175	259
-    # deltatlist = [0,13183,11686,4800,5673,11622,10497,6209,16756]  # T345-2022deltat en s pour Qi : 9.2	25.5	48.4	60	76	110	150	175	259
+
 
     input_filename_1 = hrr_description["hdf5_name"]
     path_prj = project_properties["path_prj"]
@@ -189,14 +182,14 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
     # Todo check only one wholeprofile
     # Todo rajouter datamesh dans le cas d'un volume fini
     hdf5_1.load_hdf5(whole_profil=True)
-    unit_list = [["temp"] * (hdf5_1.data_2d[0].unit_number - 1)]  # TODO: multi reach not done
-    new_data_2d = Data2d(reach_number=hdf5_1.data_2d.reach_number,
-                         unit_list=unit_list)  # new
+    # unit_list = [["temp"] * (hdf5_1.data_2d[0].unit_number - 1)]  # TODO: multi reach not done
+
     # prepare log
     hrr_logfile_name = os.path.join(path_prj, 'output', 'text', hdf5_1.filename[:-4] + "_HRR.log")
     hrr_logfile = ''
     hrr_txtfile_name = os.path.join(path_prj, 'output', 'text', hdf5_1.filename[:-4] + "_HRR.txt")
     hrr_txtfile = ''
+    # print("hrr_manager_file", hrr_description["hrr_manager_file"])
 
     listhrr = check_hrr_description(hdf5_1.data_2d.reach_list, hdf5_1.data_2d.unit_list,  hrr_description["hrr_manager_file"])
     if listhrr[0] == -99:
@@ -209,16 +202,25 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                 sleep(0.1)  # to wait q.put() ..
         return
     reachnumberlist=[]
+    unit_list = []
     for ilk,lk in enumerate(listhrr):
         if len(lk)!=0:
             reachnumberlist.append(ilk)
+            unit_list.append(["temp"]*len(lk))
+
+
+
+    new_data_2d = Data2d(reach_number=len(reachnumberlist),
+                         unit_list=unit_list)  # new
     # get attr
     new_data_2d.__dict__.update(hdf5_1.data_2d.__dict__)  # copy all attr
     # loop
+    reach_number_3 = -1
     for reach_number in reachnumberlist:
         # progress
         delta_reach = 90 / new_data_2d.reach_number
 
+        reach_number_3 += 1
         xy_whole_profile = hdf5_1.data_2d_whole[reach_number][0]["node"]["xy"]
         z_whole_profile = hdf5_1.data_2d_whole[reach_number][0]["node"]["z"]
         tin_whole_profile = hdf5_1.data_2d_whole[reach_number][0]["mesh"]["tin"]
@@ -926,9 +928,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
             deltaz3 = np.array(deltaz3)
             with np.errstate(divide='ignore'):  # disable zero division warnings we can get infinite values
                 hrr3 = np.divide(deltaz3, max_slope_bottom3) / (deltat / 3600)  # unit="m/h"
-                # Todo change the values of hrr3 in order to get a constant scale for matplotlib and to cope with infinite values
-                # Todo , better do it in Habby/matplotlib !!!!
-                hrr3[hrr3 > 4] = 4
+
 
             vrr3 = deltaz3 / (deltat / 3600)  # unit="m/h"
             xy3 = np.array(xy3)
@@ -936,49 +936,62 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
             # TODO verifier datamesh3
             datamesh3 = np.array(datamesh3)
             # ExportTextHRR
-            # Todo ask Quentin
-            area3 = 0.5 * (np.abs(
-                (xy3[tin3[:, 1]][:, 0] - xy3[tin3[:, 0]][:, 0]) * (
-                        xy3[tin3[:, 2]][:, 1] - xy3[tin3[:, 0]][:, 1]) - (
-                        xy3[tin3[:, 2]][:, 0] - xy3[tin3[:, 0]][:, 0]) * (
-                        xy3[tin3[:, 1]][:, 1] - xy3[tin3[:, 0]][:, 1])))
-            max_slope_bottom3_mean = np.sum(max_slope_bottom3 * area3) / np.sum(area3)
-            vrr3_mean = deltaz_mean / deltat
-            if max_slope_bottom3_mean != 0:
-                deltab3_mean = deltaz_mean / max_slope_bottom3_mean
-                hrr3_mean = vrr3_mean / max_slope_bottom3_mean
+            if len(xy3)==0  or len(tin3)==0: # No mesh has been created
+                print('Error: ' + q1 + '-' + q2+ ' Impossible to calculate due to possible numerical issues. Please take out this couple of unit from your hrr description file')
+                # warnings
+                if not print_cmd:
+                    sys.stdout = sys.__stdout__
+                    if q:
+                        q.put(mystdout)
+                        sleep(0.1)  # to wait q.put() ..
+                return
+                # del unit_list[reach_number_3][unit_counter_3]
+                # unit_counter_3 -=1
             else:
-                deltab3_mean, hrr3_mean = 0, 0
-            # 'q1-q2\tdeltat\tmaxslopeBottom_mean\tdeltazsurf_mean\tdeltab3_mean\tVRR_MEAN\tHRR_MEAN\n'
-            # '[m3/s]\t[s]\t[%]\t[m]\t[m]\t[cm/h]\t[cm/h]\n'
-            hrr_txtfile += q1 + '-' + q2 + '\t' + str(deltat) + '\t' + str(max_slope_bottom3_mean * 100) + '\t' + str(
-                deltaz_mean) + '\t' + str(deltab3_mean) + '\t' + str(vrr3_mean * 3600 * 100) + '\t' + str(
-                hrr3_mean * 3600 * 100) + '\n'
+                area3 = 0.5 * (np.abs(
+                    (xy3[tin3[:, 1]][:, 0] - xy3[tin3[:, 0]][:, 0]) * (
+                            xy3[tin3[:, 2]][:, 1] - xy3[tin3[:, 0]][:, 1]) - (
+                            xy3[tin3[:, 2]][:, 0] - xy3[tin3[:, 0]][:, 0]) * (
+                            xy3[tin3[:, 1]][:, 1] - xy3[tin3[:, 0]][:, 1])))
+                sum_area3=np.sum(area3)
+                max_slope_bottom3_mean = np.sum(max_slope_bottom3 * area3) / sum_area3
+                vrr3_mean = deltaz_mean / deltat
+                if max_slope_bottom3_mean != 0:
+                    deltab3_mean = deltaz_mean / max_slope_bottom3_mean
+                    hrr3_mean = vrr3_mean / max_slope_bottom3_mean
+                else:
+                    deltab3_mean, hrr3_mean = 0, 0
+                # 'q1-q2\tdeltat\tmaxslopeBottom_mean\tdeltazsurf_mean\tdeltab3_mean\tVRR_MEAN\tHRR_MEAN\n'
+                # '[m3/s]\t[s]\t[%]\t[m]\t[m]\t[cm/h]\t[cm/h]\n'
+                hrr_txtfile += q1 + '-' + q2 + '\t' + str(deltat) + '\t' + str(max_slope_bottom3_mean * 100) + '\t' + str(
+                    deltaz_mean) + '\t' + str(deltab3_mean) + '\t' + str(vrr3_mean * 3600 * 100) + '\t' + str(
+                    hrr3_mean * 3600 * 100) + '\t' + str(deltaz_mean* 100)+ '\t' + str(sum_area3) + '\n'
 
-            # TODO remove null area
-            # TODO eliminate unusued points
+                # TODO remove null area
+                # TODO eliminate unusued points
 
-            # remove_duplicate_points
-            xy3b, indices3, indices2 = np.unique(xy3, axis=0, return_index=True, return_inverse=True)
-            if len(xy3b) < len(xy3):
-                tin3 = indices2[tin3]
-                datanode3 = datanode3[indices3]
+                # remove_duplicate_points
+                xy3b, indices3, indices2 = np.unique(xy3, axis=0, return_index=True, return_inverse=True)
+                if len(xy3b) < len(xy3):
+                    tin3 = indices2[tin3]
+                    datanode3 = datanode3[indices3]
 
-            unit_list[reach_number][unit_counter_3] = q1 + '-' + q2
-            new_data_2d[reach_number][unit_counter_3].unit_name = q1 + '-' + q2
-            new_data_2d[reach_number][unit_counter_3]["mesh"]["tin"] = tin3
-            # TODO: verifier datamesh3 (à l'origine iwhole,isplikt et peut être des choses en volume fini) il faut refaire un pandas data mesh with pandas_array.iloc
-            new_data_2d[reach_number][unit_counter_3]["mesh"]["data"] = pd.DataFrame(datamesh3, columns=
-            hdf5_1.data_2d[reach_number][unit_number1]["mesh"]["data"].columns)
-            new_data_2d[reach_number][unit_counter_3]["mesh"]["i_whole_profile"] = i_whole_profile3
-            new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["i_split"] = i_split3
-            new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["max_slope_bottom"] = max_slope_bottom3
-            new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["delta_level"] = deltaz3
-            new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["hrr"] = hrr3
-            new_data_2d[reach_number][unit_counter_3]["mesh"]["data"]["vrr"] = vrr3
-            new_data_2d[reach_number][unit_counter_3]["node"]["xy"] = xy3b
-            new_data_2d[reach_number][unit_counter_3]["node"]["data"] = pd.DataFrame(datanode3, columns=
-            hdf5_1.data_2d[reach_number][unit_number1]["node"]["data"].columns)
+                unit_list[reach_number_3][unit_counter_3] = q1 + '-' + q2
+                new_data_2d[reach_number_3][unit_counter_3].unit_name = q1 + '-' + q2
+                new_data_2d[reach_number_3].reach_name=hdf5_1.data_2d[reach_number].reach_name
+                new_data_2d[reach_number_3][unit_counter_3]["mesh"]["tin"] = tin3
+                # TODO: verifier datamesh3 (à l'origine iwhole,isplikt et peut être des choses en volume fini) il faut refaire un pandas data mesh with pandas_array.iloc
+                new_data_2d[reach_number_3][unit_counter_3]["mesh"]["data"] = pd.DataFrame(datamesh3, columns=
+                hdf5_1.data_2d[reach_number][unit_number1]["mesh"]["data"].columns)
+                new_data_2d[reach_number_3][unit_counter_3]["mesh"]["i_whole_profile"] = i_whole_profile3
+                new_data_2d[reach_number_3][unit_counter_3]["mesh"]["data"]["i_split"] = i_split3
+                new_data_2d[reach_number_3][unit_counter_3]["mesh"]["data"]["max_slope_bottom"] = max_slope_bottom3
+                new_data_2d[reach_number_3][unit_counter_3]["mesh"]["data"]["delta_level"] = deltaz3
+                new_data_2d[reach_number_3][unit_counter_3]["mesh"]["data"]["hrr"] = hrr3
+                new_data_2d[reach_number_3][unit_counter_3]["mesh"]["data"]["vrr"] = vrr3
+                new_data_2d[reach_number_3][unit_counter_3]["node"]["xy"] = xy3b
+                new_data_2d[reach_number_3][unit_counter_3]["node"]["data"] = pd.DataFrame(datanode3, columns=
+                hdf5_1.data_2d[reach_number][unit_number1]["node"]["data"].columns)
 
     # hvum copy
     new_data_2d.hvum = hdf5_1.data_2d.hvum
@@ -1017,8 +1030,8 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
     # hrr_txtfile
     if len(hrr_txtfile) != 0:
         with open(hrr_txtfile_name, "w") as f:
-            f.write('q1-q2\tdeltat\tmaxslopeBottom_mean\tdeltazsurf_mean\tdeltab3_mean\tVRR_MEAN[m/h]\tHRR_MEAN[m/h]\n')
-            f.write('[m3/s]\t[s]\t[%]\t[m]\t[m]\t[cm/h]\t[cm/h]\n')
+            f.write('q1-q2\tdeltat\tmaxslopeBottom_mean\tdeltazsurf_mean\tdeltab3_mean\tVRR_MEAN\tHRR_MEAN\tdeltzsurf\tArea\n')
+            f.write('[m3/s]\t[s]\t[%]\t[m]\t[m]\t[cm/h]\t[cm/h]\t[cm]\t[m2]\n')
             f.write(hrr_txtfile)
 
     # warnings
