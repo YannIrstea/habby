@@ -953,8 +953,11 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                             xy3[tin3[:, 2]][:, 1] - xy3[tin3[:, 0]][:, 1]) - (
                             xy3[tin3[:, 2]][:, 0] - xy3[tin3[:, 0]][:, 0]) * (
                             xy3[tin3[:, 1]][:, 1] - xy3[tin3[:, 0]][:, 1])))
-                sum_area3=np.sum(area3)
-                max_slope_bottom3_mean = np.sum(max_slope_bottom3 * area3) / sum_area3
+                t_nonan= np.logical_not(np.isnan(max_slope_bottom3)) #to avoid nan/infinite values in max_slope_bottom3
+                area3b=area3[t_nonan]
+                sum_area3b=np.sum(area3b)
+                max_slope_bottom3_mean = np.sum(max_slope_bottom3[t_nonan] * area3b) / sum_area3b
+
                 vrr3_mean = deltaz_mean / deltat
                 if max_slope_bottom3_mean != 0:
                     deltab3_mean = deltaz_mean / max_slope_bottom3_mean
@@ -965,7 +968,7 @@ def hrr(hrr_description, progress_value, q=[], print_cmd=False, project_properti
                 # '[m3/s]\t[s]\t[%]\t[m]\t[m]\t[cm/h]\t[cm/h]\n'
                 hrr_txtfile += q1 + '-' + q2 + '\t' + str(deltat) + '\t' + str(max_slope_bottom3_mean * 100) + '\t' + str(
                     deltaz_mean) + '\t' + str(deltab3_mean) + '\t' + str(vrr3_mean * 3600 * 100) + '\t' + str(
-                    hrr3_mean * 3600 * 100) + '\t' + str(deltaz_mean* 100)+ '\t' + str(sum_area3) + '\n'
+                    hrr3_mean * 3600 * 100) + '\t' + str(deltaz_mean* 100)+ '\t' + str(sum_area3b) + '\n'
 
                 # TODO remove null area
                 # TODO eliminate unusued points
