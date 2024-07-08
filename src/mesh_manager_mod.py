@@ -194,7 +194,7 @@ def mesh_manager(mesh_manager_description, progress_value, q=[], print_cmd=False
         # TODO: improve check
         nb_cells=len(hdf5_original.data_2d[reach_number][unit_number]["mesh"]["tin"])
         for cell_index_el in cell_index:
-            if cell_index_el<0 or  not cell_index_el<nb_cells or not(is_int(cell_index_el)):
+            if cell_index_el<0 or  not(cell_index_el<nb_cells) or not(is_int(cell_index_el)):
                 print("Error: specified cell index " + str(cell_index_el) +
                       " not exist in mesh of unit " + str(unit_number) + " of reach " + str(reach_number) + " of " +hdf5_original.filename)
                 # warnings
