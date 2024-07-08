@@ -10,7 +10,7 @@ from src.hdf5_mod import Hdf5Management
 from src.manage_grid_mod import connectivity_mesh_table
 from src.data_2d_mod import Data2d
 from src.project_properties_mod import load_project_properties, save_project_properties
-
+from src.dev_tools_mod import is_number
 
 def analyse_whole_profile(i_whole_profile1, i_whole_profile2):
     iwpmax = max(max(i_whole_profile1), max(i_whole_profile2))
@@ -34,15 +34,7 @@ def analyse_whole_profile(i_whole_profile1, i_whole_profile2):
     return iwpmax, sortwp1, sortwp2, iwholedone, rwp1, rwp2
 
 
-# TODO factoriser from stathab
-def is_number(n):
-    try:
-        float(n)  # Type-casting the string to `float`.
-        # If string is not a valid `float`,
-        # it'll raise `ValueError` exception
-    except ValueError:
-        return False
-    return True
+
 
 
 def check_hrr_description(list_reach, list_unit, fhrr_manager_file):
