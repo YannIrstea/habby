@@ -23,6 +23,7 @@ import sys
 
 from src.hdf5_mod import Hdf5Management
 from src.data_2d_mod import Data2d
+from src.dev_tools_mod import is_int
 
 
 mesh_manager_available_headers = {"eliminate_hydraulic_class", "keep_cell_index",
@@ -191,9 +192,9 @@ def mesh_manager(mesh_manager_description, progress_value, q=[], print_cmd=False
             cell_index = mesh_manager_description["mesh_manager_data"][mm_row_index]
 
         # TODO: improve check
-        tin_flattened = hdf5_original.data_2d[reach_number][unit_number]["mesh"]["tin"]
+        nb_cells=len(hdf5_original.data_2d[reach_number][unit_number]["mesh"]["tin"])
         for cell_index_el in cell_index:
-            if cell_index_el not in tin_flattened:
+            if cell_index_el<0 or  not cell_index_el<nb_cells or not(is_int(cell_index_el)):
                 print("Error: specified cell index " + str(cell_index_el) +
                       " not exist in mesh of unit " + str(unit_number) + " of reach " + str(reach_number) + " of " +hdf5_original.filename)
                 # warnings
