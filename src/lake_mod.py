@@ -131,7 +131,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
         # check if water_level values arer inside z range
         z_min = xyz[:, 2].min()
-        for water_level_str  in self.timestep_name_wish_list:
+        for water_level_str in self.timestep_name_wish_list:
             water_level_float = float(water_level_str)
             if water_level_float < z_min:
                 print("Warning: water level value (" + water_level_str + ") is under minimum elevation value (" + z_min + ").")
@@ -139,7 +139,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         # prepare original data for data_2d
         for reach_number in range(self.reach_number):  # for each reach
             for timestep_index in self.timestep_name_wish_list_index:  # for each timestep
-                hv_value = self.compute_mesh_from_water_level(xyz[:, 2], timestep_name_wish_list[timestep_index])
+                hv_value = compute_mesh_from_water_level(xyz[:, 2], timestep_name_wish_list[timestep_index])
                 for variables_wish in self.hvum.software_detected_list:  # .varunits
                     if not variables_wish.precomputable_tohdf5:
                         if variables_wish.name == "z":
@@ -164,7 +164,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
             driver = ogr.GetDriverByName('GPKG')
         else:
             print("Error: Extension file not recognized :", ext)
-            return False
+            return False, False
 
         ds = driver.Open(self.filename_path, 0)  # 0 means read-only. 1 means writeable.
 
@@ -201,23 +201,24 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                                     autostrip=True)
         except:
             print("Error: xyz file reading crash.")
-            return False
+            return False, False
 
         polygon_from_shp = dict(vertices=xyz_raw[:, (0, 1)])
         polygon_triangle = triangle.triangulate(polygon_from_shp)
         return polygon_triangle["triangles"], xyz_raw
 
-    def compute_mesh_from_water_level(self, z, water_level_value):
-        try:
-            water_level_float = float(water_level_value)
-        except SyntaxError:
-            print("Error: Water level floating conversion not possible :", water_level_value)
-            return False
 
-        h_data = water_level_float - z
-        v_data = [0.0] * len(z)
+def compute_mesh_from_water_level(z, water_level_value):
+    try:
+        water_level_float = float(water_level_value)
+    except SyntaxError:
+        print("Error: Water level floating conversion not possible :", water_level_value)
+        return False
 
-        hv_data = np.array([h_data, v_data], np.float64)
+    h_data = water_level_float - z
+    v_data = [0.0] * len(z)
 
-        return hv_data
+    hv_data = np.array([h_data, v_data], np.float64)
+
+    return hv_data
 
