@@ -631,7 +631,7 @@ class MainWindows(QMainWindow):
         habby_version_tuple = tuple(map(int, self.version.split('.')))  # version tuple
         if project_version_tuple[:-1] < habby_version_tuple[:-1]:  # Only if X.Y version level
             self.central_widget.write_log(self.tr('Warning: Current project is an old HABBY project produced by '
-                                                  'HABBY v' + project_properties["version_habby"] + '. '
+                                                  'HABBY ' + project_properties["version_habby"] + '. '
                                                   'Working with this can lead to software crashes. '
                                                   'It is advisable to recreate a new project. '
                                                   'Actual HABBY version : v' + self.version))
