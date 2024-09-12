@@ -30,7 +30,7 @@ from src.bio_info_mod import read_pref, copy_or_not_user_pref_curve_to_input_fol
 from src.plot_mod import plot_stat_data
 from src.user_preferences_mod import user_preferences
 from src.variable_unit_mod import HydraulicVariableUnitManagement
-
+from src.dev_tools_mod import is_number
 
 class Stathab:
     """
@@ -1340,14 +1340,6 @@ def check_stahab_files(filename,check_neg,lchkcolhead,lchklines,check_sumone):
     return myfloatdata2
 
 
-def is_number(n):
-    try:
-        float(n)  # Type-casting the string to `float`.
-        # If string is not a valid `float`,
-        # it'll raise `ValueError` exception
-    except ValueError:
-        return False
-    return True
 
 
 def load_namereach(path):

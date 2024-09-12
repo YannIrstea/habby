@@ -182,6 +182,24 @@ def get_all_filename(dirname, ext):
             filenames.append(file)
     return filenames
 
+def is_int(val):
+    if type(val) == int:
+        return True
+    else:
+        if val.is_integer():
+            return True
+        else:
+            return False
+
+def is_number(n):
+    try:
+        float(n)  # Type-casting the string to `float`.
+        # If string is not a valid `float`,
+        # it'll raise `ValueError` exception
+    except ValueError:
+        return False
+    return True
+
 
 polygon_type_values = (3, 2003, 3003, 0x80000003, -2147483645)  # wkbPolygon, wkbPolygonM, wkbPolygonZM, wkbPolygon25D, wkbPolygon25D
 point_type_values = (1, 2001, 3001, 0x80000001, -2147483647)  # wkbPoint, wkbPointM, wkbPointZM, wkbPoint25D, wkbPoint25D

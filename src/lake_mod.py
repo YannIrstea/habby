@@ -134,7 +134,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         for water_level_str in self.timestep_name_wish_list:
             water_level_float = float(water_level_str)
             if water_level_float < z_min:
-                print("Warning: water level value (" + water_level_str + ") is under minimum elevation value (" + z_min + ").")
+                print("Warning: water level value (" + water_level_str + ") is under minimum elevation value (" + str(z_min) + ").")
 
         # prepare original data for data_2d
         for reach_number in range(self.reach_number):  # for each reach
