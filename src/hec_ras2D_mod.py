@@ -170,7 +170,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                 water_depth = reach_name_result_group['Depth'][self.timestep_name_wish_list_index, :]
             else:
                 water_surface = reach_name_result_group['Water Surface'][self.timestep_name_wish_list_index, :]
-                water_depth =water_surface-elev_c.reshape(water_surface.shape)
+                water_depth = water_surface - elev_c.reshape(water_surface.shape)
             water_depth_c_all.append(water_depth)
 
             # velocity is given on the side of the cells.
