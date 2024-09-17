@@ -19,11 +19,7 @@ import numpy as np
 from osgeo import ogr
 import triangle
 
-import src.manage_grid_mod
-from src import manage_grid_mod
-from src.dev_tools_mod import isstranumber
 from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
-from src.user_preferences_mod import user_preferences
 
 
 class HydraulicSimulationResults(HydraulicSimulationResultsBase):
@@ -170,26 +166,23 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
         layer_num = 0
         layer = ds.GetLayer(layer_num)
-        xyz = []  # point
-        tin = []  # connectivity table
+        xyz = np.empty(shape=(len(layer) * 3, 3))  # point
+        point_cnt = -1
+        tin = np.empty(shape=(len(layer), 3), dtype=int)  # connectivity table
         for feature_ind, feature in enumerate(layer):
-            # progress_value.value = progress_value.value + delta_poly
             shape_geom = feature.geometry()
-            shape_geom.SetCoordinateDimension(3)  # never z values
             geom_part = shape_geom.GetGeometryRef(0)  # only one if triangular mesh
             p_all = geom_part.GetPoints()
-            tin_i = []
             for j in range(0, len(p_all) - 1):  # last point of shapefile is the first point
-                try:
-                    tin_i.append(int(xyz.index(p_all[j])))
-                except ValueError:
-                    tin_i.append(int(len(xyz)))
-                    xyz.append(p_all[j])
-            tin.append(tin_i)
-        xyz = np.array(xyz)
-        tin = np.array(tin)
+                point_cnt += 1
+                xyz[point_cnt] = p_all[j]
+                tin[feature_ind, j] = point_cnt
 
-        return tin, xyz
+        # remove_duplicate_points
+        xyz2, _, indices2 = np.unique(xyz, axis=0, return_index=True, return_inverse=True)
+        if len(xyz2) < len(xyz):
+            tin = indices2[tin]
+        return tin, xyz2
 
     def load_polygonz_from_txt(self):
         try:
