@@ -49,6 +49,23 @@ class HydraulicVariable:
     def __repr__(self):
         return self.name
 
+    def get_copy(self):
+        hydraulic_variable = HydraulicVariable(name=self.name,
+                                                name_gui=self.name_gui,
+                                                descr=self.descr,
+                                                dtype=self.dtype,
+                                                unit=self.unit,
+                                                position=self.position,
+                                                value=self.value,
+                                                hdf5=self.hdf5,
+                                                sub=self.sub,
+                                                index_gui=self.index_gui,
+                                                depend_on_h=self.depend_on_h)
+
+        hydraulic_variable.__dict__ = self.__dict__.copy()
+
+        return hydraulic_variable
+
 
 class SuitabilityIndexVariable(HydraulicVariable):
     """
@@ -91,7 +108,8 @@ class HydraulicVariableUnitList(list):
         with copy
         """
         if hydraulic_variable:
-            hydraulic_variable2 = deepcopy(hydraulic_variable)
+            hydraulic_variable2 = hydraulic_variable.get_copy()
+
             # set manually attr
             if type(hydraulic_variable) == HabitatSuitabilityIndexVariable:
                 hydraulic_variable2.wua = hydraulic_variable.wua
