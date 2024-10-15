@@ -1427,8 +1427,8 @@ def plot_map_substrate(state, data_xy, data_tin, data_plot, plot_string_dict, li
     # color_bar
     color_bar = fig.colorbar(data_ploted, cax=ax_legend,
                              format=ticker.FuncFormatter(lambda x_val, tick_pos: '%.*f' % (decimal_nb, x_val)))
-    listcathegories_stick = [x + 0.5 for x in range(1, color_bar.vmax)]
-    listcathegories_stick_label = [x for x in range(1, color_bar.vmax)]
+    listcathegories_stick = [x + 0.5 for x in range(1, int(color_bar.vmax))]
+    listcathegories_stick_label = [x for x in range(1, int(color_bar.vmax))]
     color_bar.set_ticks(listcathegories_stick)
     color_bar.set_ticklabels(listcathegories_stick_label)
     color_bar.set_label(colorbar_label)
