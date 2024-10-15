@@ -239,10 +239,15 @@ class HydraulicSimulationResultsAnalyzer:
 
         # indexHYDRAU.txt absence
         if not self.index_hydrau_file_exist:
-            self.warning_list.append("Warning: " + qt_tr.translate("hydro_input_file_mod",
+
+            if self.model_type == 'lake':  #
+                self.warning_list.append("Error: " + qt_tr.translate("hydro_input_file_mod",
+                                                                       "indexHYDRAU.txt doesn't exist. For lake input, this file is required."))
+                return
+            else:
+                self.warning_list.append("Warning: " + qt_tr.translate("hydro_input_file_mod",
                                                                        "indexHYDRAU.txt doesn't exist. It will be created in the 'input' directory after the creation "
                                                                        "of the .hyd file. The latter will be filled in according to your choices."))
-
             # more_than_one_file_selected_by_user
             if self.more_than_one_file_selected_by_user:
                 if self.model_type == 'rubar2d':  # change mode and remove one of them
