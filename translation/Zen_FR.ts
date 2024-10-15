@@ -5659,7 +5659,7 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
     <message>
         <location filename="../src_GUI/main_window_GUI.py" line="633"/>
         <source>Warning: Current project is an old HABBY project produced by HABBY v</source>
-        <translation>Attention : Le projet actuel est un ancien projet HABBY produit par HABBY</translation>
+        <translation type="obsolete">Attention : Le projet actuel est un ancien projet HABBY produit par HABBY</translation>
     </message>
     <message>
         <location filename="../src_GUI/main_window_GUI.py" line="1146"/>
@@ -5685,6 +5685,11 @@ SHIFT+clic = Ouvrir le répertoire d&apos;installation de HABBY</translation>
         <location filename="../src_GUI/main_window_GUI.py" line="1711"/>
         <source>Could not rename </source>
         <translation>Impossible de renommer </translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/main_window_GUI.py" line="633"/>
+        <source>Warning: Current project is an old HABBY project produced by HABBY </source>
+        <translation>Attention : Le projet actuel est un ancien projet HABBY produit par HABBY </translation>
     </message>
 </context>
 <context>
@@ -10007,7 +10012,7 @@ https://habby.wiki.inrae.fr/en:manuel_reference:methode_micro:verif_habby</trans
 <context>
     <name>hydro_input_file_mod</name>
     <message>
-        <location filename="../src/hydraulic_results_manager_mod.py" line="242"/>
+        <location filename="../src/hydraulic_results_manager_mod.py" line="248"/>
         <source>indexHYDRAU.txt doesn&apos;t exist. It will be created in the &apos;input&apos; directory after the creation of the .hyd file. The latter will be filled in according to your choices.</source>
         <translation>indexHYDRAU.txt n&apos;existe pas. Il sera créé dans le répertoire &apos;input&apos; après la création du fichier .hyd. Ce dernier sera rempli en fonction de vos choix.</translation>
     </message>
@@ -10085,6 +10090,11 @@ https://habby.wiki.inrae.fr/en:manuel_reference:methode_micro:verif_habby</trans
         <location filename="../src/substrate_mod.py" line="1706"/>
         <source>Can&apos;t read content file.</source>
         <translation>Impossibilité de lire le contenu du fichier.</translation>
+    </message>
+    <message>
+        <location filename="../src/hydraulic_results_manager_mod.py" line="244"/>
+        <source>indexHYDRAU.txt doesn&apos;t exist. For lake input, this file is required.</source>
+        <translation>indexHYDRAU.txt n&apos;existe pas. Ce fichier est nécessaire pour la lecture des lacs.</translation>
     </message>
 </context>
 <context>

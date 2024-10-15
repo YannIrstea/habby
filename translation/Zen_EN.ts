@@ -2126,11 +2126,6 @@ SHIFT+clic = See HABBY installation files</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src_GUI/main_window_GUI.py" line="633"/>
-        <source>Warning: Current project is an old HABBY project produced by HABBY v</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../src_GUI/main_window_GUI.py" line="1146"/>
         <source>&amp;Italian</source>
         <translation type="unfinished"></translation>
@@ -2153,6 +2148,11 @@ SHIFT+clic = See HABBY installation files</source>
     <message>
         <location filename="../src_GUI/main_window_GUI.py" line="1711"/>
         <source>Could not rename </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src_GUI/main_window_GUI.py" line="633"/>
+        <source>Warning: Current project is an old HABBY project produced by HABBY </source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -3570,7 +3570,7 @@ https://habby.wiki.inrae.fr/en:manuel_reference:methode_micro:verif_habby</sourc
 <context>
     <name>hydro_input_file_mod</name>
     <message>
-        <location filename="../src/hydraulic_results_manager_mod.py" line="242"/>
+        <location filename="../src/hydraulic_results_manager_mod.py" line="248"/>
         <source>indexHYDRAU.txt doesn&apos;t exist. It will be created in the &apos;input&apos; directory after the creation of the .hyd file. The latter will be filled in according to your choices.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3642,6 +3642,11 @@ https://habby.wiki.inrae.fr/en:manuel_reference:methode_micro:verif_habby</sourc
     <message>
         <location filename="../src/substrate_mod.py" line="1706"/>
         <source>Can&apos;t read content file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../src/hydraulic_results_manager_mod.py" line="244"/>
+        <source>indexHYDRAU.txt doesn&apos;t exist. For lake input, this file is required.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
