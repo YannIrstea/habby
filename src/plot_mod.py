@@ -286,6 +286,8 @@ def plot_suitability_curve_bivariate(state, information_model_dict, selected_fis
     mpl.rcParams['lines.linewidth'] = project_properties['line_width']
     mpl.rcParams['axes.grid'] = project_properties['grid']
     cmap = copy(plt.get_cmap(project_properties['color_map']))  # get color map
+    if project_properties['color_map_rev']:
+        cmap = cmap.reversed()
 
     if selected_fish_stage is not None:
         print("Error: No figure for all stages.")
@@ -1085,6 +1087,8 @@ def plot_map_node(state, data_xy, data_tin, data_plot, plot_string_dict, light_d
 
     # colors
     cmap = copy(plt.get_cmap(project_properties['color_map']))
+    if project_properties['color_map_rev']:
+        cmap = cmap.reversed()
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1137,6 +1141,8 @@ def plot_map_mesh(state, data_xy, data_tin, data_plot, plot_string_dict, light_d
 
     # colors
     cmap = copy(plt.get_cmap(project_properties['color_map']))
+    if project_properties['color_map_rev']:
+        cmap = cmap.reversed()
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1329,6 +1335,8 @@ def plot_map_onlymesh(state, data_xy, data_tin, plot_string_dict, data_descripti
 
     # colors
     cmap = copy(plt.get_cmap(project_properties['color_map']))  # get color map
+    if project_properties['color_map_rev']:
+        cmap = cmap.reversed()
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map
@@ -1399,6 +1407,8 @@ def plot_map_substrate(state, data_xy, data_tin, data_plot, plot_string_dict, li
 
     # colors
     cmap = plt.get_cmap(project_properties['color_map'])
+    if project_properties['color_map_rev']:
+        cmap = cmap.reversed()
     if light_data_2d.sub_classification_code == "Cemagref":
         max_class = 8
         listcathegories = list(range(1, max_class + 2))
@@ -1457,6 +1467,8 @@ def plot_map_fish_habitat(state, data_xy, data_tin, data_plot, plot_string_dict,
 
     # colors
     cmap = copy(plt.get_cmap(project_properties['color_map']))
+    if project_properties['color_map_rev']:
+        cmap = cmap.reversed()
     cmap.set_bad(color='black', alpha=1.0)
 
     # pre_plot_map

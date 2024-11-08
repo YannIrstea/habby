@@ -182,6 +182,12 @@ class ProjectPropertiesDialog(QDialog):
         color_map_label = QLabel(self.tr('Color map'), self)
         self.color_map_combobox = QComboBox()
         self.color_map_combobox.addItems(self.namecmap)
+        self.color_map_rev_check_box = QCheckBox("reverse")
+        self.color_map_rev_check_box.setToolTip(self.tr("reverse the color order of given colormap"))
+
+        color_map_layout = QHBoxLayout()
+        color_map_layout.addWidget(self.color_map_combobox)
+        color_map_layout.addWidget(self.color_map_rev_check_box)
 
         # font_size
         font_size_label = QLabel(self.tr('Font size'), self)
@@ -327,7 +333,7 @@ class ProjectPropertiesDialog(QDialog):
         #figures_group.setStyleSheet('QGroupBox {font-weight: bold;}')
         figures_group.setLayout(layout_figures)
         layout_figures.addRow(fig_size_label, self.fig_size_lineedit)
-        layout_figures.addRow(color_map_label, self.color_map_combobox)
+        layout_figures.addRow(color_map_label, color_map_layout)
         layout_figures.addRow(font_size_label, self.font_size_lineedit)
         layout_figures.addRow(font_family_label, self.font_family_combobox)
         layout_figures.addRow(line_width_label, self.line_width_lineedit)
@@ -466,6 +472,7 @@ class ProjectPropertiesDialog(QDialog):
 
         # color_map
         self.color_map_combobox.setCurrentIndex(self.color_map_combobox.findText(project_properties['color_map']))
+        self.color_map_rev_check_box.setChecked(project_properties['color_map_rev'])
 
         # fig_size
         self.fig_size_lineedit.setText(str(project_properties['width']) + ',' + str(project_properties['height']))
@@ -549,6 +556,12 @@ class ProjectPropertiesDialog(QDialog):
         c1 = str(self.color_map_combobox.currentText())
         if c1:
             project_properties['color_map'] = c1
+
+        if self.color_map_rev_check_box.isChecked():
+            project_properties['color_map_rev'] = True
+        else:
+            project_properties['color_map_rev'] = False
+
         # font size
         font_size = self.font_size_lineedit.text()
         if font_size:

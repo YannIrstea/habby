@@ -101,6 +101,7 @@ def create_default_project_properties_dict(all_export_enabled=False):
     project_properties['height'] = 11.2  # cm
     project_properties['width'] = 16  # cm
     project_properties['color_map'] = 'jet'
+    project_properties['color_map_rev'] = False
     if operatingsystem_str == "Linux":
         project_properties["font_family"] = "DejaVu Sans"
     else:
