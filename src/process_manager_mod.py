@@ -26,7 +26,7 @@ from time import sleep
 from src import plot_mod
 from src.calcul_hab_mod import calc_hab_and_output
 from src.hdf5_mod import Hdf5Management
-from src.hydraulic_process_mod import load_hydraulic_cut_to_hdf5, merge_grid_and_save, load_data_and_compute_hs
+from src.hydraulic_process_mod import load_hydraulic_cut_to_hdf5, load_and_export_raw_to_gpkg, merge_grid_and_save, load_data_and_compute_hs
 from src.substrate_mod import load_sub
 from src.bio_info_mod import read_pref, get_hydrosignature
 from src.project_properties_mod import available_export_list
@@ -99,6 +99,34 @@ class MyProcessManager(QThread):
                                                False,
                                                self.project_properties),
                                              name=self.hydrau_description_multiple[hdf5_file_index]["hdf5_name"] + self.tr(" creation")),
+                               progress_value=progress_value,
+                               q=q)
+            self.process_list.append(my_process)
+
+    def set_hyd_gpkg_mode(self, path_prj, hydrau_description_multiple, project_properties):
+        # check_all_process_closed
+        if self.check_all_process_closed():
+            self.__init__("hyd_gpkg")
+        else:
+            self.add_plots(1)
+        self.path_prj = path_prj
+        self.hydrau_description_multiple = hydrau_description_multiple
+        self.names_hdf5 = [hydrau_description["hdf5_name"] for hydrau_description in self.hydrau_description_multiple]
+        self.project_properties = project_properties
+
+    def hyd_gpkg_process(self):
+        # for each .hyd (or .hab) to create
+        for hdf5_file_index in range(0, len(self.hydrau_description_multiple)):
+            # class MyProcess
+            progress_value = Value("d", 0.0)
+            q = Queue()
+            my_process = MyProcess(p=Process(target=load_and_export_raw_to_gpkg,
+                                             args=(self.hydrau_description_multiple[hdf5_file_index],
+                                               progress_value,
+                                               q,
+                                               False,
+                                               self.project_properties),
+                                             name=os.path.splitext(self.hydrau_description_multiple[hdf5_file_index]["hdf5_name"])[0] + " raw data gpkg" + self.tr(" creation")),
                                progress_value=progress_value,
                                q=q)
             self.process_list.append(my_process)
@@ -846,6 +874,8 @@ class MyProcessManager(QThread):
         self.plot_production_stopped = False
         if self.process_type == "hyd":
             self.hyd_process()
+        elif self.process_type == "hyd_gpkg":
+            self.hyd_gpkg_process()
         elif self.process_type == "sub":
             self.sub_process()
         elif self.process_type == "merge":

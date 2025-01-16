@@ -24,6 +24,7 @@ import pandas as pd
 
 from src import manage_grid_mod
 from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
+from src.export_manager_mod import export_raw_mesh_layer_to_gpkg, merge_gpkg_to_one
 
 
 class HydraulicSimulationResults(HydraulicSimulationResultsBase):
@@ -355,6 +356,139 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
         return self.get_data_2d()
 
+    def export_original_to_gpkg(self, timestep_name_wish_list, progress_value):
+        """export raw gpkg. Only mesh for finit volume.
+
+        Keyword arguments:
+        timestep_name_wish_list -- list of targeted timestep to be load, type: list of str
+        """
+        gpkg_list = []
+        layername_list = []
+
+        # load specific timestep
+        self.load_specific_timestep(timestep_name_wish_list[0])
+
+        # get group
+        geometry_flow_areas_group = self.results_data_file["Geometry/2D Flow Areas"]
+        result_flow_areas_group = self.results_data_file[
+            "Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series/2D Flow Areas"]  # TODO : steadyflow case
+
+        # initialization
+        coord_p_all = []
+        coord_p_xyz_all = []
+        coord_c_all = []
+        elev_p_all = []
+        elev_c_all = []
+        ikle_all = []
+
+        delta_file = (80 - progress_value.value) / len(timestep_name_wish_list[0])
+
+        # for each reach
+        for reach_index, reach_name in enumerate(self.reach_name_list):
+            for timestep_name_wish_index, timestep_name_wish_value in enumerate(timestep_name_wish_list[reach_index]):
+                # get group
+                reach_name_geometry_group = geometry_flow_areas_group[reach_name]
+                reach_name_result_group = result_flow_areas_group[reach_name]
+
+                # basic geometry
+                coord_p = reach_name_geometry_group["FacePoints Coordinate"][:]
+                coord_c = reach_name_geometry_group["Cells Center Coordinate"][:]
+                ikle = np.array(reach_name_geometry_group["Cells FacePoint Indexes"], dtype=np.int64)
+                elev_c = reach_name_geometry_group[self.hvum.z.software_attributes_list[0]][:]
+                coord_p_all.append(coord_p)
+                coord_c_all.append(coord_c)
+                ikle_all.append(ikle)
+                elev_c_all.append(elev_c)
+                # water depth by mesh
+                if "Depth" in reach_name_geometry_group:  # seems that this group no longer exist in HEC-RAS 2D version 6.2 at least ???
+                    water_depth = reach_name_result_group['Depth'][timestep_name_wish_index, :]
+                else:
+                    water_surface = reach_name_result_group['Water Surface'][timestep_name_wish_index, :]
+                    water_depth = water_surface - elev_c.reshape(water_surface.shape)
+
+                # velocity is given on the side of the cells.
+                # It is to be averaged to find the norm of speed in the middle of the cells.
+                cells_face_all = reach_name_geometry_group["Cells Face and Orientation Values"][:]
+                cells_face = cells_face_all[:, 0]
+                where_is_cells_face = reach_name_geometry_group["Cells Face and Orientation Info"][:]
+                where_is_cells_face1 = where_is_cells_face[:, 1]
+                face_unit_vec = reach_name_geometry_group["Faces NormalUnitVector and Length"][:]
+                face_unit_vec = face_unit_vec[:, :2]
+                # face_variables
+                velocity = reach_name_result_group[self.hvum.v.software_attributes_list[0]][
+                           self.timestep_name_wish_list_index, :].T  # timestep_name_wish_list_index
+                # TODO seems that this group 'Face Shear Stress' no longer exist in HEC-RAS 2D version 6.2 at least ???
+                if self.hvum.shear_stress.software_attributes_list[0] in reach_name_result_group:
+                    shear_stress = reach_name_result_group[self.hvum.shear_stress.software_attributes_list[0]][
+                                   self.timestep_name_wish_list_index, :].T  # timestep_name_wish_list_index
+                else:
+                    shear_stress = np.zeros(velocity.shape)
+                new_shear_stress = np.hstack((face_unit_vec, shear_stress))  # for optimization (looking for face is slow)
+                new_vel = np.hstack((face_unit_vec, velocity))  # for optimization (looking for face is slow)
+                # new_elev = np.hstack((face_unit_vec, elevation.reshape(elevation.shape[0], 1)))
+                lim_b = 0
+                vel_c = np.zeros((len(coord_c_all[reach_index]), self.timestep_wish_nb))
+                shear_stress_c = np.zeros((len(coord_c_all[reach_index]), self.timestep_wish_nb))
+                # for each mesh
+                for c in range(len(coord_c_all[reach_index])):
+                    # find face
+                    nb_face = where_is_cells_face1[c]
+                    lim_a = lim_b
+                    lim_b = lim_a + nb_face
+                    face = cells_face[lim_a:lim_b]
+                    # vel
+                    data_face = new_vel[face, :]
+                    data_face_t = data_face[:, 2:].T
+                    add_vec_x = np.sum(data_face_t * data_face[:, 0], axis=1)
+                    add_vec_y = np.sum(data_face_t * data_face[:, 1], axis=1)
+                    vel_c[c, :] = np.sqrt(add_vec_x ** 2 + add_vec_y ** 2) / nb_face
+                    # shear_stress
+                    data2_face = new_shear_stress[face, :]
+                    data2_face_t = data2_face[:, 2:].T
+                    add_vec_x2 = np.sum(data2_face_t * data2_face[:, 0], axis=1)
+                    add_vec_y2 = np.sum(data2_face_t * data2_face[:, 1], axis=1)
+                    shear_stress_c[c, :] = np.sqrt(add_vec_x2 ** 2 + add_vec_y2 ** 2) / nb_face
+
+                elev_p = interpolator_test(coord_c_all[reach_index],
+                                           elev_c_all[reach_index],
+                                           coord_p_all[reach_index])
+                if np.isnan(elev_p).any():
+                    # elevation FacePoints
+                    faces_facepoint_indexes = reach_name_geometry_group["Faces FacePoint Indexes"][:]
+                    elev_f = reach_name_geometry_group["Faces Minimum Elevation"][:]
+                    for point_index in np.where(np.isnan(elev_p))[
+                        0]:  # for point_index in range(len(coord_p_all[reach_index]))
+                        first_bool = faces_facepoint_indexes[:, 0] == point_index
+                        second_bool = faces_facepoint_indexes[:, 1] == point_index
+                        elev_p[point_index] = (np.sum(elev_f[first_bool]) + np.sum(elev_f[second_bool])) / \
+                                              (np.sum(first_bool) + np.sum(second_bool))
+                if np.isnan(elev_p).any():
+                    print('Warning: there are points/nodes where the elevation is unknown not calculated by HABBY')
+
+                elev_p_all.append(elev_p)
+                # xyz
+                coord_p_xyz_all.append(np.column_stack([coord_p_all[reach_index], elev_p_all[reach_index]]))
+
+                # export
+                export_raw_mesh_layer_to_gpkg(os.path.join(self.path_prj, "output", "GIS", os.path.splitext(os.path.basename(self.filename_path))[0].replace(".", "_").replace(":", "_")),
+                                              layer_name=timestep_name_wish_value.replace(":", "_"),
+                                              epsg_code="unknown",
+                                              unit_data=[ikle_all[reach_index],
+                                                         coord_p_xyz_all[reach_index],
+                                                         water_depth,
+                                                         vel_c.T[timestep_name_wish_index],
+                                                         shear_stress_c.T[timestep_name_wish_index]],
+                                              hvum=self.hvum,
+                                              progress_value=progress_value,
+                                              delta_file=delta_file)
+                # for merge
+                gpkg_list.append(os.path.join(self.path_prj, "output", "GIS", os.path.splitext(os.path.basename(self.filename_path))[0].replace(".", "_").replace(":", "_")))
+                layername_list.append(timestep_name_wish_value.replace(":", "_"))
+
+        # merge
+        merge_gpkg_to_one(gpkg_list,
+                          layername_list,
+                          os.path.join(self.path_prj, "output", "GIS", os.path.splitext(os.path.basename(self.filename_path))[0].replace(".", "_") + ".gpkg"))
 
 #@profileit
 def interpolator_test(coord_c_all, elev_c_all, coord_p_all):

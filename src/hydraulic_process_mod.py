@@ -39,16 +39,8 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
     """
     This function calls the function load_hydraulic and call the function cut_2d_grid()
 
-    :param name_hdf5: the base name of the created hdf5 (string)
-    :param namefilet: the name of the selafin file (string)
-    :param pathfilet: the path to this file (string)
-    :param name_prj: the name of the project (string)
-    :param path_prj: the path of the project
-    :param model_type: the name of the model such as Rubar, hec-ras, etc. (string)
-    :param nb_dim: the number of dimension (model, 1D, 1,5D, 2D) in a float
-    :param path_hdf5: A string which gives the adress to the folder in which to save the hdf5
-    :param units_index : List of integer values representing index of units (timestep or discharge). If not specify,
-            all timestep are selected (from cmd command).
+    :param hydrau_description: description of instruction
+    :param progress_value: progress bar value
     :param q: used by the second thread to get the error back to the GUI at the end of the thread
     :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
     :param project_properties: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
@@ -328,6 +320,76 @@ def load_hydraulic_cut_to_hdf5(hydrau_description, progress_value, q, print_cmd=
             sleep(0.1)  # to wait q.put() ..
 
     progress_value.value = 100.0
+
+
+def load_and_export_raw_to_gpkg(hydrau_description, progress_value, q, print_cmd=False, project_properties={}):
+    """
+    This function read original mesh/node data and create a copy to gpkg file.
+
+    :param hydrau_description: description of instruction
+    :param progress_value: progress bar value
+    :param q: used by the second thread to get the error back to the GUI at the end of the thread
+    :param print_cmd: if True the print command is directed in the cmd, False if directed to the GUI
+    :param project_properties: the figure option, used here to get the minimum water height to have a wet node (can be > 0)
+    """
+    if not print_cmd:
+        sys.stdout = mystdout = StringIO()
+
+    # minimum water height
+    if not project_properties:
+        project_properties = create_default_project_properties_dict()
+
+    # progress
+    progress_value.value = 10
+
+    filename_source = hydrau_description["filename_source"].split(", ")
+
+    delta_file = 80 / len(filename_source)
+
+    data_2d = Data2d()  # data_2d
+    hydrau_description["hyd_unit_correspondence"] = []  # always one reach by file ?
+    # for each filename source
+    for i, file in enumerate(filename_source):
+        # get file informations
+        hsr = HydraulicSimulationResultsSelector(file,
+                                                 hydrau_description["path_filename_source"],
+                                                 hydrau_description["model_type"],
+                                                 hydrau_description["path_prj"])
+        # get timestep_name_list
+        if hydrau_description["hydrau_case"] in {"1.a", "2.a"}:
+            timestep_wish_list = [hsr.timestep_name_list]
+        elif hydrau_description["hydrau_case"] in {"1.b"}:
+            timestep_wish_list = [hydrau_description["timestep_list"]]
+        elif hydrau_description["hydrau_case"] in {"2.b"}:
+            timestep_wish_list = [[hydrau_description["timestep_list"][i]]]
+        else:  # {"4.a", "4.b", "3.b", "3.a", "unknown"}:
+            timestep_wish_list = hydrau_description["unit_list"]
+
+        # multi_reach from several files
+        if len(hydrau_description["reach_list"]) > 1 and len(filename_source) > 1:
+            # load first reach
+            hsr.export_original_to_gpkg(timestep_wish_list[i],
+                                        progress_value)
+        # multi_reach from one files (HEC-RAS 2d, ASCII, .. ?)
+        elif len(hydrau_description["reach_list"]) > 1 and len(filename_source) == 1:
+            # load data
+            hsr.export_original_to_gpkg(timestep_wish_list[i],
+                                        progress_value)
+        # one_reach
+        else:
+            # load data
+            hsr.export_original_to_gpkg(timestep_wish_list,
+                                        progress_value)
+
+    # warnings
+    if not print_cmd:
+        sys.stdout = sys.__stdout__
+        if q:
+            q.put(mystdout)
+            sleep(0.1)  # to wait q.put() ..
+
+    progress_value.value = 100.0
+
 
 
 def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, progress_value, q=[], print_cmd=False,

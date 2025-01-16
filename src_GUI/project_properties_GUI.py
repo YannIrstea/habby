@@ -176,6 +176,7 @@ class ProjectPropertiesDialog(QDialog):
         fig_size_label = QLabel(self.tr('Figure size (w,h) [cm]'), self)
         self.fig_size_lineedit = QLineEdit("")
         self.fig_size_lineedit.setToolTip(self.tr("width, height"))
+
         fig_size_label.setToolTip(self.tr("width, height"))
 
         # color_map

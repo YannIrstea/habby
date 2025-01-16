@@ -183,7 +183,14 @@ class HydrauTab(QScrollArea):
                 self.model_group.update_for_lammi(on=True)
             else:
                 self.model_group.update_for_lammi(on=False)
-
+            if self.model_group.model_type in ("hecras2d"): # ,  "telemac"
+                self.model_group.gpkg_export_lineedit.setVisible(True)
+                self.model_group.gpkg_export_label.setVisible(True)
+                self.model_group.gpkg_export_pushbutton.setVisible(True)
+            else:
+                self.model_group.gpkg_export_lineedit.setVisible(False)
+                self.model_group.gpkg_export_label.setVisible(False)
+                self.model_group.gpkg_export_pushbutton.setVisible(False)
             self.model_group.result_file_title_label.setText(self.tr('Result file (') + self.model_group.extension + ')')
             self.model_group.name_last_hdf5(self.model_group.model_type)
             self.model_group.show()
@@ -835,33 +842,33 @@ class ModelInfoGroup(QGroupBox):
             if self.name_hdf5 == "":
                 self.send_log.emit('Error: ' + self.tr('.hyd output filename is empty. Please specify it.'))
                 return
-            #
-            # # check if extension is set by user (multi hdf5 case)
-            # hydrau_description_multiple = deepcopy(
-            #     self.hydrau_description_list)  # create copy to not erase inital choices
-            # for hdf5_num in range(len(hydrau_description_multiple)):
-            #     if not os.path.splitext(hydrau_description_multiple[hdf5_num]["hdf5_name"])[1]:
-            #         hydrau_description_multiple[hdf5_num]["hdf5_name"] = hydrau_description_multiple[hdf5_num][
-            #                                                                  "hdf5_name"] + ".hyd"
-            #     # refresh filename_source
-            #     if self.hydrau_case == '2.a' or self.hydrau_case == '2.b':
-            #         filename_source_list = hydrau_description_multiple[hdf5_num]["filename_source"].split(", ")
-            #         new_filename_source_list = []
-            #         for reach_number in range(len(hydrau_description_multiple[hdf5_num]["unit_list_tf"])):
-            #             for file_num, file in enumerate(filename_source_list):
-            #                 if hydrau_description_multiple[hdf5_num]["unit_list_tf"][reach_number][file_num]:
-            #                     new_filename_source_list.append(filename_source_list[file_num])
-            #         hydrau_description_multiple[hdf5_num]["filename_source"] = ", ".join(new_filename_source_list)
-            #
-            # # process_manager
-            # self.progress_layout.process_manager.set_hyd_mode(self.path_prj, hydrau_description_multiple,
-            #                                                   self.project_properties)
-            #
-            # # process_prog_show
-            # self.progress_layout.start_process()
-            #
-            # # script
-            # self.create_script(hydrau_description_multiple)
+
+            # check if extension is set by user (multi hdf5 case)
+            hydrau_description_multiple = deepcopy(
+                self.hydrau_description_list)  # create copy to not erase inital choices
+            for hdf5_num in range(len(hydrau_description_multiple)):
+                if not os.path.splitext(hydrau_description_multiple[hdf5_num]["hdf5_name"])[1]:
+                    hydrau_description_multiple[hdf5_num]["hdf5_name"] = hydrau_description_multiple[hdf5_num][
+                                                                             "hdf5_name"] + ".hyd"
+                # refresh filename_source
+                if self.hydrau_case == '2.a' or self.hydrau_case == '2.b':
+                    filename_source_list = hydrau_description_multiple[hdf5_num]["filename_source"].split(", ")
+                    new_filename_source_list = []
+                    for reach_number in range(len(hydrau_description_multiple[hdf5_num]["unit_list_tf"])):
+                        for file_num, file in enumerate(filename_source_list):
+                            if hydrau_description_multiple[hdf5_num]["unit_list_tf"][reach_number][file_num]:
+                                new_filename_source_list.append(filename_source_list[file_num])
+                    hydrau_description_multiple[hdf5_num]["filename_source"] = ", ".join(new_filename_source_list)
+
+            # process_manager
+            self.progress_layout.process_manager.set_hyd_gpkg_mode(self.path_prj, hydrau_description_multiple,
+                                                              self.project_properties)
+
+            # process_prog_show
+            self.progress_layout.start_process()
+
+            # script
+            self.create_script(hydrau_description_multiple)
 
     def load_hydraulic_create_hdf5(self):
         """
