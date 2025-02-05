@@ -427,7 +427,7 @@ def export_raw_mesh_layer_to_gpkg(filename_path, layer_name, epsg_code, unit_dat
     else:  # crs known
         layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPolygon25D, options=['OVERWRITE=YES'])
 
-    ikle, xyz, water_depth, vel, velx, vely, shear_stress = unit_data
+    ikle, xyz, elev, water_depth, vel, velx, vely, shear_stress = unit_data
 
     # remove data == 0
     shear_stress_null = False
@@ -435,7 +435,6 @@ def export_raw_mesh_layer_to_gpkg(filename_path, layer_name, epsg_code, unit_dat
         shear_stress_null = True
 
     # create fields (no width no precision to be specified with GPKG)
-    layer.CreateField(ogr.FieldDefn('ID', ogr.OFTInteger))  # Add one attribute
     for mesh_variable in hvum.software_target_list.meshs():
         if mesh_variable.name == hvum.shear_stress.name:
             if not shear_stress_null:
@@ -472,8 +471,8 @@ def export_raw_mesh_layer_to_gpkg(filename_path, layer_name, epsg_code, unit_dat
         poly.AddGeometry(ring)
         # Create a new feature
         feat = ogr.Feature(defn)
-        feat.SetField('ID', polygon_num)
         # variables
+        feat.SetField("z", elev[polygon_num].item())
         feat.SetField("h", water_depth[polygon_num].item())
         feat.SetField("v", vel[polygon_num].item())
         feat.SetField("v_x", velx[polygon_num].item())

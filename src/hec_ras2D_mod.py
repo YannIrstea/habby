@@ -479,6 +479,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                                               epsg_code="unknown",
                                               unit_data=[ikle_all[reach_index],
                                                          coord_p_xyz_all[reach_index],
+                                                         elev_c,
                                                          water_depth,
                                                          vel_c.T[timestep_name_wish_index],
                                                          velx_c.T[timestep_name_wish_index],
