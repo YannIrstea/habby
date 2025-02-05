@@ -427,6 +427,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                 new_vel = np.hstack((face_unit_vec, velocity))  # for optimization (looking for face is slow)
                 # new_elev = np.hstack((face_unit_vec, elevation.reshape(elevation.shape[0], 1)))
                 lim_b = 0
+                velx_c = np.zeros((len(coord_c_all[reach_index]), self.timestep_wish_nb))
+                vely_c = np.zeros((len(coord_c_all[reach_index]), self.timestep_wish_nb))
                 vel_c = np.zeros((len(coord_c_all[reach_index]), self.timestep_wish_nb))
                 shear_stress_c = np.zeros((len(coord_c_all[reach_index]), self.timestep_wish_nb))
                 # for each mesh
@@ -441,6 +443,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                     data_face_t = data_face[:, 2:].T
                     add_vec_x = np.sum(data_face_t * data_face[:, 0], axis=1)
                     add_vec_y = np.sum(data_face_t * data_face[:, 1], axis=1)
+                    velx_c[c, :] = add_vec_x / nb_face
+                    vely_c[c, :] = add_vec_y / nb_face
                     vel_c[c, :] = np.sqrt(add_vec_x ** 2 + add_vec_y ** 2) / nb_face
                     # shear_stress
                     data2_face = new_shear_stress[face, :]
@@ -477,6 +481,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                                                          coord_p_xyz_all[reach_index],
                                                          water_depth,
                                                          vel_c.T[timestep_name_wish_index],
+                                                         velx_c.T[timestep_name_wish_index],
+                                                         vely_c.T[timestep_name_wish_index],
                                                          shear_stress_c.T[timestep_name_wish_index]],
                                               hvum=self.hvum,
                                               progress_value=progress_value,
@@ -489,6 +495,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         merge_gpkg_to_one(gpkg_list,
                           layername_list,
                           os.path.join(self.path_prj, "output", "GIS", os.path.splitext(os.path.basename(self.filename_path))[0].replace(".", "_") + ".gpkg"))
+
 
 #@profileit
 def interpolator_test(coord_c_all, elev_c_all, coord_p_all):

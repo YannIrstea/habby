@@ -427,33 +427,44 @@ def export_raw_mesh_layer_to_gpkg(filename_path, layer_name, epsg_code, unit_dat
     else:  # crs known
         layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPolygon25D, options=['OVERWRITE=YES'])
 
+    ikle, xyz, water_depth, vel, velx, vely, shear_stress = unit_data
+
+    # remove data == 0
+    shear_stress_null = False
+    if any(shear_stress == 0):
+        shear_stress_null = True
+
     # create fields (no width no precision to be specified with GPKG)
     layer.CreateField(ogr.FieldDefn('ID', ogr.OFTInteger))  # Add one attribute
-    for node_variable in hvum.software_target_list.meshs():
-        layer.CreateField(ogr.FieldDefn(node_variable.name, OGRTypes_dict[node_variable.dtype]))
+    for mesh_variable in hvum.software_target_list.meshs():
+        if mesh_variable.name == hvum.shear_stress.name:
+            if not shear_stress_null:
+                layer.CreateField(ogr.FieldDefn(mesh_variable.name, OGRTypes_dict[mesh_variable.dtype]))
+        else:
+            layer.CreateField(ogr.FieldDefn(mesh_variable.name, OGRTypes_dict[mesh_variable.dtype]))
+    layer.CreateField(ogr.FieldDefn("v_x", OGRTypes_dict[np.float64]))
+    layer.CreateField(ogr.FieldDefn("v_y", OGRTypes_dict[np.float64]))
 
     defn = layer.GetLayerDefn()
     layer.StartTransaction()  # faster
 
-    ikle_all, coord_p_xyz_all, water_depth_t_all, vel_t_all, shear_stress_t_all = unit_data
-
-    delta_polygon = delta_file / len(ikle_all)
+    delta_polygon = delta_file / len(ikle)
 
     # for each mesh
-    for polygon_num in range(0, len(ikle_all)):
+    for polygon_num in range(0, len(ikle)):
         # Create line
         ring = ogr.Geometry(ogr.wkbLinearRing)
-        for node_i in range(0, len(ikle_all[polygon_num])):
-            node_index = ikle_all[polygon_num][node_i]
+        for node_i in range(0, len(ikle[polygon_num])):
+            node_index = ikle[polygon_num][node_i]
             if node_index != -1:
-                ring.AddPoint(*coord_p_xyz_all[node_index].tolist())
+                ring.AddPoint(*xyz[node_index].tolist())
             else:
                 # append first to close
-                ring.AddPoint(*coord_p_xyz_all[ikle_all[polygon_num][0]].tolist())
+                ring.AddPoint(*xyz[ikle[polygon_num][0]].tolist())
                 break
-            if node_i == len(ikle_all[polygon_num]) - 1:
+            if node_i == len(ikle[polygon_num]) - 1:
                 # append first to close
-                ring.AddPoint(*coord_p_xyz_all[ikle_all[polygon_num][0]].tolist())
+                ring.AddPoint(*xyz[ikle[polygon_num][0]].tolist())
                 break
 
         # Create polygon
@@ -463,13 +474,12 @@ def export_raw_mesh_layer_to_gpkg(filename_path, layer_name, epsg_code, unit_dat
         feat = ogr.Feature(defn)
         feat.SetField('ID', polygon_num)
         # variables
-        # convert NumPy values to a native Python type
-        data_field = water_depth_t_all[polygon_num].item()
-        feat.SetField("h", data_field)
-        data_field = vel_t_all[polygon_num].item()
-        feat.SetField("v", data_field)
-        data_field = shear_stress_t_all[polygon_num].item()
-        feat.SetField("shear_stress", data_field)
+        feat.SetField("h", water_depth[polygon_num].item())
+        feat.SetField("v", vel[polygon_num].item())
+        feat.SetField("v_x", velx[polygon_num].item())
+        feat.SetField("v_y", vely[polygon_num].item())
+        if not shear_stress_null:
+            feat.SetField("shear_stress", shear_stress[polygon_num].item())
         # set geometry
         feat.SetGeometry(poly)
         # create
@@ -482,7 +492,6 @@ def export_raw_mesh_layer_to_gpkg(filename_path, layer_name, epsg_code, unit_dat
 
     # close file
     ds.Destroy()
-
 
 
 def merge_gpkg_to_one(filename_path_list, layer_name_list, output_filename_path):
