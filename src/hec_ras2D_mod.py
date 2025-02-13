@@ -24,7 +24,7 @@ import pandas as pd
 
 from src import manage_grid_mod
 from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
-from src.export_manager_mod import export_raw_mesh_layer_to_gpkg, merge_gpkg_to_one
+from src.export_manager_mod import export_raw_mesh_layer_to_gpkg, merge_gpkg_to_one, export_raw_node_layer_to_gpkg
 
 
 class HydraulicSimulationResults(HydraulicSimulationResultsBase):
@@ -492,10 +492,25 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                 gpkg_list.append(os.path.join(self.path_prj, "output", "GIS", os.path.splitext(os.path.basename(self.filename_path))[0].replace(".", "_").replace(":", "_")))
                 layername_list.append(timestep_name_wish_value.replace(":", "_"))
 
+                # # nodes
+                # export_raw_node_layer_to_gpkg(os.path.join(self.path_prj, "output", "GIS", os.path.splitext(os.path.basename(self.filename_path))[0].replace(".", "_").replace(":", "_")),
+                #                               layer_name=timestep_name_wish_value.replace(":", "_"),
+                #                               epsg_code="unknown",
+                #                               unit_data=[coord_p_xyz_all[reach_index],
+                #                                          elev_c,
+                #                                          water_depth,
+                #                                          vel_c.T[timestep_name_wish_index],
+                #                                          velx_c.T[timestep_name_wish_index],
+                #                                          vely_c.T[timestep_name_wish_index],
+                #                                          shear_stress_c.T[timestep_name_wish_index]],
+                #                               hvum=self.hvum,
+                #                               progress_value=progress_value,
+                #                               delta_file=delta_file)
+
         # merge
         merge_gpkg_to_one(gpkg_list,
                           layername_list,
-                          os.path.join(self.path_prj, "output", "GIS", os.path.splitext(os.path.basename(self.filename_path))[0].replace(".", "_") + ".gpkg"))
+                          os.path.join(self.path_prj, "output", "GIS", os.path.splitext(self.raw_gpkg_name)[0].replace(".", "_") + ".gpkg"))
 
 
 #@profileit

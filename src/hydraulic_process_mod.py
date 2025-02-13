@@ -346,7 +346,6 @@ def load_and_export_raw_to_gpkg(hydrau_description, progress_value, q, print_cmd
 
     delta_file = 80 / len(filename_source)
 
-    data_2d = Data2d()  # data_2d
     hydrau_description["hyd_unit_correspondence"] = []  # always one reach by file ?
     # for each filename source
     for i, file in enumerate(filename_source):
@@ -355,6 +354,7 @@ def load_and_export_raw_to_gpkg(hydrau_description, progress_value, q, print_cmd
                                                  hydrau_description["path_filename_source"],
                                                  hydrau_description["model_type"],
                                                  hydrau_description["path_prj"])
+        hsr.raw_gpkg_name = hydrau_description["hdf5_name"]
         # get timestep_name_list
         if hydrau_description["hydrau_case"] in {"1.a", "2.a"}:
             timestep_wish_list = [hsr.timestep_name_list]

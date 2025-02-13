@@ -65,6 +65,7 @@ class HydraulicSimulationResultsBase:
         self.hydrau_case = "unknown"
         self.filename_path = os.path.join(self.folder_path, self.filename)
         self.blob, self.ext = os.path.splitext(self.filename)
+        self.raw_gpkg_name = ""
         self.extensions_list = self.hmi.extensions[self.hmi.attribute_models_list.index(self.model_type)].split(", ")
         self.project_properties = load_project_properties(self.path_prj)
         # index_hydrau

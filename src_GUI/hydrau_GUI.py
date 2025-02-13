@@ -738,7 +738,7 @@ class ModelInfoGroup(QGroupBox):
         self.update_unit_from_reach()
         self.epsg_label.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["epsg_code"])
 
-        self.gpkg_export_lineedit.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"][:-4] + ".gpkg")
+        self.gpkg_export_lineedit.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"][:-4] + "_raw" + ".gpkg")
 
         self.hdf5_name_lineedit.setText(self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"])  # hdf5 name
         extension = "hyd"
@@ -837,10 +837,10 @@ class ModelInfoGroup(QGroupBox):
                         return
 
             # check if extension is set by user (one hdf5 case)
-            self.name_hdf5 = self.hdf5_name_lineedit.text()
+            self.name_hdf5 = self.gpkg_export_lineedit.text()
             self.hydrau_description_list[self.input_file_combobox.currentIndex()]["hdf5_name"] = self.name_hdf5
             if self.name_hdf5 == "":
-                self.send_log.emit('Error: ' + self.tr('.hyd output filename is empty. Please specify it.'))
+                self.send_log.emit('Error: ' + self.tr('.gpkg output filename is empty. Please specify it.'))
                 return
 
             # check if extension is set by user (multi hdf5 case)
