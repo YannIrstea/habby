@@ -381,7 +381,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         elev_c_all = []
         ikle_all = []
 
-        delta_file = (80 - progress_value.value) / len(timestep_name_wish_list[0])
+        delta_file = ((90 - progress_value.value) / len(timestep_name_wish_list[0]) ) / 2
 
         # for each reach
         for reach_index, reach_name in enumerate(self.reach_name_list):
@@ -475,7 +475,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
                 # export
                 export_raw_mesh_layer_to_gpkg(os.path.join(self.path_prj, "output", "GIS", os.path.splitext(os.path.basename(self.filename_path))[0].replace(".", "_").replace(":", "_")),
-                                              layer_name=timestep_name_wish_value.replace(":", "_"),
+                                              layer_name="mesh_" + timestep_name_wish_value.replace(":", "_"),
                                               epsg_code="unknown",
                                               unit_data=[ikle_all[reach_index],
                                                          coord_p_xyz_all[reach_index],
@@ -490,22 +490,24 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                                               delta_file=delta_file)
                 # for merge
                 gpkg_list.append(os.path.join(self.path_prj, "output", "GIS", os.path.splitext(os.path.basename(self.filename_path))[0].replace(".", "_").replace(":", "_")))
-                layername_list.append(timestep_name_wish_value.replace(":", "_"))
+                layername_list.append("mesh_" + timestep_name_wish_value.replace(":", "_"))
 
-                # # nodes
-                # export_raw_node_layer_to_gpkg(os.path.join(self.path_prj, "output", "GIS", os.path.splitext(os.path.basename(self.filename_path))[0].replace(".", "_").replace(":", "_")),
-                #                               layer_name=timestep_name_wish_value.replace(":", "_"),
-                #                               epsg_code="unknown",
-                #                               unit_data=[coord_p_xyz_all[reach_index],
-                #                                          elev_c,
-                #                                          water_depth,
-                #                                          vel_c.T[timestep_name_wish_index],
-                #                                          velx_c.T[timestep_name_wish_index],
-                #                                          vely_c.T[timestep_name_wish_index],
-                #                                          shear_stress_c.T[timestep_name_wish_index]],
-                #                               hvum=self.hvum,
-                #                               progress_value=progress_value,
-                #                               delta_file=delta_file)
+                # nodes
+                export_raw_node_layer_to_gpkg(os.path.join(self.path_prj, "output", "GIS", os.path.splitext(os.path.basename(self.filename_path))[0].replace(".", "_").replace(":", "_")),
+                                              layer_name="node_" + timestep_name_wish_value.replace(":", "_"),
+                                              epsg_code="unknown",
+                                              unit_data=[np.column_stack([coord_c, elev_c]),
+                                                         water_depth,
+                                                         vel_c.T[timestep_name_wish_index],
+                                                         velx_c.T[timestep_name_wish_index],
+                                                         vely_c.T[timestep_name_wish_index],
+                                                         shear_stress_c.T[timestep_name_wish_index]],
+                                              hvum=self.hvum,
+                                              progress_value=progress_value,
+                                              delta_file=delta_file)
+
+                gpkg_list.append(os.path.join(self.path_prj, "output", "GIS", os.path.splitext(os.path.basename(self.filename_path))[0].replace(".", "_").replace(":", "_")))
+                layername_list.append("node_" + timestep_name_wish_value.replace(":", "_"))
 
         # merge
         merge_gpkg_to_one(gpkg_list,

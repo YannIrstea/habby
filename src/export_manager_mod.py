@@ -493,6 +493,82 @@ def export_raw_mesh_layer_to_gpkg(filename_path, layer_name, epsg_code, unit_dat
     ds.Destroy()
 
 
+def export_raw_node_layer_to_gpkg(filename_path, layer_name, epsg_code, unit_data, hvum, progress_value, delta_file):
+    # Mapping between OGR and Python data types
+    OGRTypes_dict = {np.int64: ogr.OFTInteger64,
+                     np.float64: ogr.OFTReal}
+
+    # CRS
+    crs = osr.SpatialReference()
+    if epsg_code != "unknown":
+        try:
+            crs.ImportFromEPSG(int(epsg_code))
+        except:
+            print("Warning: Can't write .prj from EPSG code : " + epsg_code)
+
+    driver = ogr.GetDriverByName('GPKG')  # GPKG
+    ds = driver.CreateDataSource(filename_path + "_" + layer_name + ".gpkg")
+
+    # create new layer
+    if epsg_code == "unknown":
+        layer = ds.CreateLayer(name=layer_name, geom_type=ogr.wkbPoint25D, options=['OVERWRITE=YES'])
+    else:  # crs known
+        layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPoint25D, options=['OVERWRITE=YES'])
+
+    xyz, water_depth, vel, velx, vely, shear_stress = unit_data
+
+    # remove data == 0
+    shear_stress_null = False
+    if any(shear_stress == 0):
+        shear_stress_null = True
+
+    # create fields (no width no precision to be specified with GPKG)
+    for node_variable in hvum.software_target_list.meshs():
+        if node_variable.name == hvum.shear_stress.name:
+            if not shear_stress_null:
+                layer.CreateField(ogr.FieldDefn(node_variable.name, OGRTypes_dict[node_variable.dtype]))
+        else:
+            layer.CreateField(ogr.FieldDefn(node_variable.name, OGRTypes_dict[node_variable.dtype]))
+    layer.CreateField(ogr.FieldDefn("v_x", OGRTypes_dict[np.float64]))
+    layer.CreateField(ogr.FieldDefn("v_y", OGRTypes_dict[np.float64]))
+
+    defn = layer.GetLayerDefn()
+    layer.StartTransaction()  # faster
+
+    delta_point = delta_file / xyz.shape[0]
+
+    # for each mesh
+    for point_num in range(0, xyz.shape[0]):
+        # Create polygon
+        point = ogr.Geometry(ogr.wkbPoint25D)
+        point.AddPoint(xyz[point_num, 0].item(),
+                       xyz[point_num, 1].item(),
+                       xyz[point_num, 2].item())
+        # Create a new feature
+        feat = ogr.Feature(defn)
+        # variables
+        feat.SetField("z", xyz[point_num, 2].item())
+        feat.SetField("h", water_depth[point_num].item())
+        feat.SetField("v", vel[point_num].item())
+        feat.SetField("v_x", velx[point_num].item())
+        feat.SetField("v_y", vely[point_num].item())
+        if not shear_stress_null:
+            feat.SetField("shear_stress", shear_stress[point_num].item())
+        # set geometry
+        feat.SetGeometry(point)
+        # create
+        layer.CreateFeature(feat)
+        # progress
+        progress_value.value = progress_value.value + delta_point
+
+    # Save and close everything
+    layer.CommitTransaction()  # faster
+
+    # close file
+    ds.Destroy()
+
+
+
 def merge_gpkg_to_one(filename_path_list, layer_name_list, output_filename_path):
     # merge gpkg to one
     driver = ogr.GetDriverByName('GPKG')  # GPKG
