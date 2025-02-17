@@ -780,6 +780,8 @@ class HydraulicSimulationResultsAnalyzer:
                         unit_name_from_index_file = ""
                         for element_unit in data_index_file[headers[time_index]]:
                             unit_name_from_index_file += ";" + element_unit
+                        unit_name_from_index_file = unit_name_from_index_file[1:]
+                        self.warning_list.append("Warning: Duplicate input filename. It better to select specific file timesteps by line as : " + unit_name_from_index_file)
                     else:
                         unit_name_from_index_file = data_index_file[headers[time_index]][0]
 
