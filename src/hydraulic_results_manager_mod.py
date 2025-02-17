@@ -447,6 +447,14 @@ class HydraulicSimulationResultsAnalyzer:
                     end = headers[discharge_index].find(']', start)
                     discharge_unit = headers[discharge_index][start:end]
                     # sort by discharge if not done
+                    if any("T[" in s for s in headers):
+                        for q_value in data_index_file[headers[discharge_index]]:
+                            if "/" in q_value:
+                                self.hydrau_description_list = "Error: Selection unit with '/' is possible only with indexHYDRAU.txt case n°3.b et 4b."
+                                return
+                            if ";" in q_value:
+                                self.hydrau_description_list = "Error: Selection unit with ';' is possible only with indexHYDRAU.txt case n°3.b et 4b."
+                                return
                     data_index_file = sort_homogoeneous_dict_list_by_on_key(data_index_file,
                                                                             headers[discharge_index], data_type=float)
                 if any("T[" in s for s in headers):
@@ -758,14 +766,22 @@ class HydraulicSimulationResultsAnalyzer:
 
                 # CASE 3.b """
                 elif self.hydrau_case == "3.b":
+                    # duplicate filename
+                    if len(list(set(data_index_file["filename"]))) == 1 and len(data_index_file["filename"]) > 1:
+                        data_index_file["filename"] = [data_index_file["filename"][0]]
                     # get units name from file
-                    hsr = HydraulicSimulationResultsSelector(data_index_file[headers[0]][0],
+                    hsr = HydraulicSimulationResultsSelector(data_index_file["filename"][0],
                                                              self.folder_path, self.model_type, self.path_prj)
                     self.warning_list.extend(hsr.warning_list)
                     if not hsr.valid_file:
                         return
                     # get units name from indexHYDRAU.txt file
-                    unit_name_from_index_file = data_index_file[headers[time_index]][0]
+                    if len(data_index_file[headers[time_index]]) > 1:
+                        unit_name_from_index_file = ""
+                        for element_unit in data_index_file[headers[time_index]]:
+                            unit_name_from_index_file += ";" + element_unit
+                    else:
+                        unit_name_from_index_file = data_index_file[headers[time_index]][0]
 
                     unit_name_from_index_file2 = []
                     for element_unit in unit_name_from_index_file.split(";"):
