@@ -134,8 +134,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
         # prepare original data for data_2d
         for reach_number in range(self.reach_number):  # for each reach
-            for timestep_index in self.timestep_name_wish_list_index:  # for each timestep
-                hv_value = compute_mesh_from_water_level(xyz[:, 2], timestep_name_wish_list[timestep_index])
+            for timestep_value in self.timestep_name_wish_list:  # for each timestep
+                hv_value = compute_mesh_from_water_level(xyz[:, 2], timestep_value)
                 for variables_wish in self.hvum.software_detected_list:  # .varunits
                     if not variables_wish.precomputable_tohdf5:
                         if variables_wish.name == "z":
