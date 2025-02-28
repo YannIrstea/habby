@@ -276,12 +276,13 @@ class InterpolationTab(QScrollArea):
                         reach_names = [""] + hdf5.data_2d.reach_list
 
                     unit_type = hdf5.data_2d.unit_type
-                    if "Date" not in unit_type:
+                    if "Date" not in unit_type and unit_type !="time [h:m:s]":
                         self.hab_reach_qcombobox.addItems(reach_names)
                     else:
                         if self.sender().hasFocus():
                             self.send_log.emit(self.tr("Warning: This file contain date unit. "
-                                                       "To be interpolated, file must contain discharge or timestep unit."))
+                                                       "To be interpolated, file must contain discharge or timestep "
+                                                       "unit."))
 
     def reach_hab_change(self):
         hdf5name = self.hab_filenames_qcombobox.currentText()
