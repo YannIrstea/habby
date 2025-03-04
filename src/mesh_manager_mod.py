@@ -27,7 +27,8 @@ from src.dev_tools_mod import is_int
 
 
 mesh_manager_available_headers = {"eliminate_hydraulic_class", "keep_cell_index",
-                                  "eliminate_cell_index", "keep_hydraulic_class"}
+                                  "eliminate_cell_index", "keep_hydraulic_class",
+                                  "eliminate_cell_i_whole_profile", "keep_cell_i_whole_profile"}
 
 
 def mesh_manager_from_file(filename):
@@ -49,6 +50,8 @@ def mesh_manager_from_file(filename):
                 if strheader=='':
                     strheader=mesh_manager_description["header"]
                 else:
+                    if "i_whole_profile" in  mesh_manager_description["header"]+strheader:
+                        return None, 'the mesh_manager_description header must ahve only one i_whole_profile instruction keep on ' + strheader
                     if strheader!=mesh_manager_description["header"]:
                         return None, 'the mesh_manager_description header is not constant keep on '+strheader
                 if "cell_index" in mesh_manager_description["header"]:
@@ -58,7 +61,7 @@ def mesh_manager_from_file(filename):
 
                 if reach_unit_index: #eliminate or keep cell_index
                     start_index = 2
-                else: #eliminate or keep hydraulic_class
+                else: #eliminate or keep hydraulic_class or i_whole_profile
                     start_index = 1
             else:
                 if strheader == '':
@@ -127,12 +130,9 @@ def mesh_manager(mesh_manager_description, progress_value, q=[], print_cmd=False
     unit_index = []
 
     hydraulic_class = False
+    bi_whole_profile = False
     if "hydraulic_class" in mesh_manager_description["header"]:
         hydraulic_class = True
-        for reach_number in range(len(hdf5_original.data_2d)):
-            for unit_number in range(len(hdf5_original.data_2d[reach_number])):
-                reach_index.append(reach_number)
-                unit_index.append(unit_number)
         # check if hs_mesh (hydrosginature mesh)
         if not hdf5_original.hs_mesh:
             print("Error: " + mesh_manager_description["header"] + " is not possible on " + hdf5_original.filename + ". The latter is not a 2d mesh from hydrosignature.")
@@ -143,6 +143,8 @@ def mesh_manager(mesh_manager_description, progress_value, q=[], print_cmd=False
                     q.put(mystdout)
                     sleep(0.1)  # to wait q.put() ..
             return
+    elif "i_whole_profile" in mesh_manager_description["header"]:
+        bi_whole_profile = True
 
     elif "cell_index" in mesh_manager_description["header"]:
         hydraulic_class = False
@@ -175,7 +177,11 @@ def mesh_manager(mesh_manager_description, progress_value, q=[], print_cmd=False
                 return
         reach_index = mesh_manager_description["reach_index"]
         unit_index = mesh_manager_description["unit_index"]
-
+    if hydraulic_class  or bi_whole_profile :
+        for reach_number in range(len(hdf5_original.data_2d)):
+            for unit_number in range(len(hdf5_original.data_2d[reach_number])):
+                reach_index.append(reach_number)
+                unit_index.append(unit_number)
     # progress
     delta_row = 80 / len(reach_index)
 
@@ -186,7 +192,11 @@ def mesh_manager(mesh_manager_description, progress_value, q=[], print_cmd=False
         unit_number = unit_index[mm_row_index]
         # get cell_index
         if hydraulic_class:
-            cell_array_bool = np.in1d(hdf5_original.data_2d[reach_number][unit_number]["mesh"]["data"][hdf5_original.data_2d.hvum.hydraulic_class.name], mesh_manager_description["mesh_manager_data"])
+            cell_array_bool = np.in1d(hdf5_original.data_2d[reach_number][unit_number]["mesh"]["data"][hdf5_original.data_2d.hvum.hydraulic_class.name], mesh_manager_description["mesh_manager_data"][0])
+            cell_index = np.argwhere(cell_array_bool).flatten().tolist()
+        elif bi_whole_profile:
+            cell_array_bool = np.in1d(hdf5_original.data_2d[reach_number][unit_number]["mesh"]["i_whole_profile"],
+                                      mesh_manager_description["mesh_manager_data"][0])
             cell_index = np.argwhere(cell_array_bool).flatten().tolist()
         else:
             cell_index = mesh_manager_description["mesh_manager_data"][mm_row_index]
