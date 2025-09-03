@@ -931,8 +931,8 @@ class MainWindows(QMainWindow):
             self.central_widget.stathab_tab.fill_selected_models_listwidgets(item_dict["selected_aquatic_animal_list"])
         elif item_dict["source_str"] == "Stathab_steep":
             self.central_widget.stathab_steep_tab.fill_selected_models_listwidgets(item_dict["selected_aquatic_animal_list"])
-        elif item_dict["source_str"] == "fstress":
-            self.central_widget.fstress_tab.fill_selected_models_listwidgets(item_dict)
+        elif item_dict["source_str"] == "FStress":
+            self.central_widget.fstress_tab.fill_selected_models_listwidgets(item_dict["selected_aquatic_animal_list"])
 
     def setlangue(self, nb_lang):
         """

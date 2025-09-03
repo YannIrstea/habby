@@ -18,6 +18,7 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QPushButton, QLabel, QGridLayout, QFileDialog, \
     QAbstractItemView, QMessageBox, QFrame, QListWidget, QListWidgetItem
 import sys
+import copy
 import os
 from io import StringIO
 
@@ -181,10 +182,6 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.setFrameShape(QFrame.NoFrame)
         self.setWidget(content_widget)
 
-        if self.dir_name and self.typeload == 'txt':
-            if os.path.isdir(self.dir_name):
-                self.change_riv_type()
-
     def select_dir(self):
         """
         This function is used to select the directory and find the files to laod FStress from txt files. It calls
@@ -244,8 +241,7 @@ class FstressW(estimhab_GUI.StatModUseful):
                     user_preferences.biological_models_dict["path_xml"][index_fish])
                 hydraulic_type_available = model_dict["hydraulic_type_available"][
                     model_dict["stage_and_size"].index(stage)]
-                if ("HV" in hydraulic_type_available) or ("V" in hydraulic_type_available) or (
-                        "H" in hydraulic_type_available):
+                if "HEM" in hydraulic_type_available:
                     # add it to selected
                     self.selected_aquatic_animal_qtablewidget.addItem(item_str)
                     self.fish_selected.append(item_str)
@@ -257,9 +253,6 @@ class FstressW(estimhab_GUI.StatModUseful):
 
     def load_from_txt_gui(self):
         """
-        The main roles of load_from_text_gui() are to call the load_function of the FStress class (which is in
-        stathab_mod.py in the folder src) and to call the function which create an hdf5 file. However, it does some
-        modifications to the GUI before.
         """
         # update the labels
         if len(self.dir_name) > 30:
@@ -272,10 +265,7 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         # read the reaches name
         sys.stdout = self.mystdout = StringIO()
-        self.myfstress.load_stathab_from_txt(end_file_reach_here,
-                                             file_name_all_reach_here,
-                                             self.dir_name)
-        # name_reach = stathab_mod.load_namereach(self.dir_name)
+        name_reach = fstress_mod.load_namereach(self.dir_name)
         sys.stdout = sys.__stdout__
         self.send_err_log()
         if name_reach == [-99]:
@@ -293,16 +283,8 @@ class FstressW(estimhab_GUI.StatModUseful):
         end_file_reach_here = []
         for r in range(0, len(name_reach)):
             # see which files are need based on the current river type
-            if self.riverint == 0:  # temperate rivers
-                end_file_reach_here = copy.deepcopy(self.end_file_reach)
-                file_name_all_reach_here = copy.deepcopy(self.name_file_allreach)
-            # tropical rivers
-            elif self.riverint == 1 or self.riverint == 2:
-                end_file_reach_here = copy.deepcopy(self.end_file_reach_trop)
-                file_name_all_reach_here = copy.deepcopy(self.name_file_allreach_trop)
-            else:
-                end_file_reach_here = copy.deepcopy(self.end_file_reach)
-                file_name_all_reach_here = copy.deepcopy(self.name_file_allreach)
+            end_file_reach_here = copy.deepcopy(self.end_file_reach)
+            file_name_all_reach_here = copy.deepcopy(self.name_file_allreach)
 
             for i in range(0, len(end_file_reach_here)):
                 file = os.path.join(self.dir_name, name_reach[r] + end_file_reach_here[i] + '.txt')
@@ -338,30 +320,21 @@ class FstressW(estimhab_GUI.StatModUseful):
                 file_name_all_reach_here[i] += '.txt'
                 self.list_file.addItem(itemf)
                 itemf.setBackground(Qt.lightGray)
-                # if a custom Pref.txt is present (for FStress temperate)
-                if i == len(self.name_file_allreach) and self.riverint == 0:
+                # if a custom Pref.txt is present (for stathab temperate)
+                if i == len(self.name_file_allreach):
                     self.path_bio_stathab = self.dir_name
             elif os.path.isfile(file2):
                 itemf = QListWidgetItem(file_name_all_reach_here[i] + '.csv')
                 file_name_all_reach_here[i] += '.csv'
                 self.list_file.addItem(itemf)
                 itemf.setBackground(Qt.lightGray)
-                # if a custom Pref.txt is present (for FStress temperate)
-                if i == len(self.name_file_allreach) and self.riverint == 0:
+                # if a custom Pref.txt is present (for stathab temperate)
+                if i == len(self.name_file_allreach):
                     self.path_bio_stathab = self.dir_name
             else:
                 # case 1: a file is missing
                 if i != len(file_name_all_reach_here) - 1:
                     self.list_needed.addItem(file_name_all_reach_here[i])
-                # Or: if Pref.txt is missing, let's use the default file (temperate river)
-                elif self.riverint == 0:
-                    file = os.path.join(self.path_bio_stathab, self.name_file_allreach[i])
-                    if os.path.join(file):
-                        itemf = QListWidgetItem(self.name_file_allreach[i] + ' (default)')
-                        self.list_file.addItem(itemf)
-                        itemf.setBackground(Qt.lightGray)
-                    else:
-                        self.list_needed.addItem(self.name_file_allreach[i])
 
         # # read the name of the available fish
         # name_fish = []
@@ -389,26 +362,19 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         # load now the text data, create the hdf5 and write in the project file
         if self.list_needed.count() > 0:
-            if self.riverint == 0:
-                if not file_name_all_reach_here or not end_file_reach_here:
-                    self.send_log.emit('Error: Found only a part of the needed FStress files. '
-                                       'Need to re-load before execution\n')
-                    self.myfstress.save_xml_stathab(True)
-                    return
-            elif self.riverint == 1:
-                if not file_name_all_reach_here:
-                    self.send_log.emit(
-                        'Error: Found only a part of the needed FStress Steep files. '                                       'Need to re-load before execution\n')
-                    self.myfstress.save_xml_stathab(True)
-                    return
+            if not file_name_all_reach_here or not end_file_reach_here:
+                self.send_log.emit('Error: Found only a part of the needed STATHAB files. '
+                                   'Need to re-load before execution\n')
+                # self.mystathab.save_xml_stathab(True)
+                return
         else:
             self.list_needed.addItem('All files found')
-            self.send_log.emit('# Found all FStress files. Run Now.')
+            self.send_log.emit('# Found all STATHAB files. Run Now.')
             sys.stdout = self.mystdout = StringIO()
-            self.myfstress.load_stathab_from_txt(end_file_reach_here, file_name_all_reach_here,
+            self.mystathab.load_stathab_from_txt(end_file_reach_here, file_name_all_reach_here,
                                                  self.dir_name)
-            self.myfstress.create_hdf5()
-            self.myfstress.save_xml_stathab()
+            # self.mystathab.create_hdf5()
+            # self.mystathab.save_xml_stathab()
             sys.stdout = sys.__stdout__
             self.send_err_log()
 
@@ -422,156 +388,31 @@ class FstressW(estimhab_GUI.StatModUseful):
             src.dev_tools_mod.copy_files(all_files, paths, new_dir)
 
             # log info
-            if not self.myfstress.load_ok:
-                self.send_log.emit('Error: Could not load FStress data.\n')
+            if not self.mystathab.load_ok:
+                self.send_log.emit('Error: Could not load stathab data.\n')
                 return
             var1 = 'py    var1 = ['
-            if self.riverint == 0:
-                for i in range(0, len(self.end_file_reach) - 1):  # Pref by default
-                    if '.txt' in self.end_file_reach[i]:
-                        var1 += "'" + self.end_file_reach[i] + "',"
-                    else:
-                        var1 += "'" + self.end_file_reach[i] + ".txt',"
-            else:
-                for i in range(0, len(self.end_file_reach_trop)):
-                    var1 += "'" + self.end_file_reach_trop[i] + ".csv',"
+            for i in range(0, len(self.end_file_reach) - 1):  # Pref by default
+                if '.txt' in self.end_file_reach[i]:
+                    var1 += "'" + self.end_file_reach[i] + "',"
+                else:
+                    var1 += "'" + self.end_file_reach[i] + ".txt',"
             var1 = var1[:-1] + "]"
             self.send_log.emit(var1)
-            if self.riverint == 0:
-                var2 = 'py    var2 = ['
-                for i in range(0, len(self.name_file_allreach)):
-                    if '.txt' in self.name_file_allreach[i]:
-                        var2 += "'" + self.name_file_allreach[i] + "',"
-                    else:
-                        var2 += "'" + self.name_file_allreach[i] + ".txt',"
-                var2 = var2[:-1] + "]"
-            else:
-                var2 = 'py    var2 = []'
+            var2 = 'py    var2 = ['
+            for i in range(0, len(self.name_file_allreach)):
+                if '.txt' in self.name_file_allreach[i]:
+                    var2 += "'" + self.name_file_allreach[i] + "',"
+                else:
+                    var2 += "'" + self.name_file_allreach[i] + ".txt',"
+            var2 = var2[:-1] + "]"
             self.send_log.emit(var2)
-            self.send_log.emit("py    dir_name = '" + self.dir_name + "'")
-            self.send_log.emit('py    mystathab = stathab_c.FStress(name_prj, path_prj)')
-            self.send_log.emit("py    mystathab.riverint = " + str(self.riverint))
-            self.send_log.emit("py    mystathab.load_stathab_from_txt( var1, var2, dir_name)")
-            self.send_log.emit("py    mystathab.create_hdf5()")
-            self.send_log.emit("py    mystathab.save_xml_stathab()")
-
-    def load_from_hdf5_gui(self):
-        """
-        This function calls from the GUI the load_stathab_from_hdf5 function. In addition to call the function to load
-        the hdf5, it also updates the GUI according to the info contained in the hdf5.
-        """
-        # update QLabel
-        self.l1.setText(self.tr('FStress Input Files (.hdf5)'))
-        if len(self.dir_name) > 30:
-            self.l0.setText(self.hdf5_name[-30:])
-        else:
-            self.l0.setText(self.hdf5_name)
-        self.l3.setText(self.tr("Data found"))
-        self.l4.setText(self.tr("Data still needed"))
-
-        # load data
-        self.send_log.emit('# Loading FStress from hdf5...')
-        sys.stdout = self.mystdout = StringIO()
-        self.myfstress.load_stathab_from_hdf5()
-
-        # log info
-        sys.stdout = sys.__stdout__
-        self.send_err_log()
-        if self.riverint != self.myfstress.riverint:
-            self.send_log.emit('Warning: This river type could not be selected with the current hdf5.')
-            self.riverint = self.myfstress.riverint
-            self.change_riv_type()
-        if not self.myfstress.load_ok:
-            self.send_log.emit('Error: Data from  hdf5 not loaded.\n')
-            return
-        self.send_log.emit('py    mystathab = stathab_c.FStress(name_prj, path_prj)')
-        self.send_log.emit('py    mystathab.load_stathab_from_hdf5()')
-        self.send_log.emit('restart LOAD_STATHAB_FROM_HDF5')
-
-        # update list with name reach
-        if len(self.myfstress.name_reach) == 0:
-            self.send_log.emit('Error: No name of reach found. \n')
-            return
-        for r in range(0, len(self.myfstress.name_reach)):
-            itemr = QListWidgetItem(self.myfstress.name_reach[r])
-            self.list_re.addItem(itemr)
-
-        # update list with name of data
-        if self.riverint == 0:
-            data_reach = [self.myfstress.qlist, self.myfstress.qwh, self.myfstress.disthmes,
-                          self.myfstress.qhmoy, self.myfstress.dist_gran]
-            data_reach_str = ['qlist', 'qwh', 'dishhmes', 'qhmoy', 'dist_granulo']
-        else:
-            data_reach = [self.myfstress.qlist, self.myfstress.qwh, self.myfstress.data_ii]
-            data_reach_str = ['qlist', 'qwh', 'data_ii']
-        c = -1
-        for r in range(0, len(self.myfstress.name_reach)):
-            for i in range(0, len(data_reach)):
-                if data_reach[i]:
-                    itemr = QListWidgetItem(data_reach_str[i])
-                    self.list_file.addItem(itemr)
-                    c += 1
-                else:
-                    self.list_needed.addItem(data_reach_str[i])
-                if i == 0:  # note the first item to be able to highlight it afterwards
-                    self.firstitemreach.append([itemr, c])
-            c += 1
-            self.list_file.addItem('----------------')
-
-        # update list with bornes of velocity, height and granola
-        if self.riverint == 0:
-            lim_str = ['limits height', 'limits velocity', 'limits granulometry']
-            for i in range(0, 3):
-                if len(self.myfstress.lim_all[i]) > 1:
-                    itemr = QListWidgetItem(lim_str[i])
-                    self.list_file.addItem(itemr)
-                    itemr.setBackground(Qt.lightGray)
-                else:
-                    self.list_needed.addItem(lim_str[i])
-
-            # # see if a preference file is available in the same folder than the hdf5 file
-            # preffile = os.path.join(self.dir_hdf5, self.name_file_allreach[3])
-            # if os.path.isfile(preffile):
-            #     self.path_bio_stathab = self.dir_hdf5
-            #     itemp = QListWidgetItem(self.name_file_allreach[3])
-            #     self.list_file.addItem(itemp)
-            #     itemp.setBackground(Qt.lightGray)
-            # else:
-            #     itemp = QListWidgetItem(self.name_file_allreach[3] + '(default)')
-            #     self.list_file.addItem(itemp)
-            #     itemp.setBackground(Qt.lightGray)
-
-        # read the available fish
-        name_fish = []
-        # if self.riverint == 0:
-        #     sys.stdout = self.mystdout = StringIO()
-        #     [name_fish, blob] = stathab_mod.load_pref(self.name_file_allreach[-1], self.path_bio_stathab)
-        #     sys.stdout = sys.__stdout__
-        #     self.send_err_log()
-        if self.riverint == 1:  # univariate
-            filenames = src.dev_tools_mod.get_all_filename(self.path_bio_stathab, '.csv')
-            for f in filenames:
-                if 'uni' in f and f[-7:-4] not in name_fish:
-                    name_fish.append(f[-7:-4])
-        if self.riverint == 2:
-            filenames = src.dev_tools_mod.get_all_filename(self.path_bio_stathab, '.csv')
-            for f in filenames:
-                if 'biv' in f:
-                    name_fish.append(f[-7:-4])
-
-        if name_fish == [-99]:
-            return
-        self.list_f.clear()
-        for r in range(0, len(name_fish)):
-            self.list_f.addItem(name_fish[r])
-
-        # final check
-        if self.list_needed.count() == 1 and self.list_needed.item(0).text() == 'All files found':
-            self.list_needed.addItem('All hdf5 data found')
-            self.send_log.emit('# Found all FStress files.')
-        else:
-            self.send_log.emit('# Warning: Could not read all the hdf5 data from FStress.\n')
-            return
+            # self.send_log.emit("py    dir_name = '" + self.dir_name + "'")
+            # self.send_log.emit('py    mystathab = stathab_c.Stathab(name_prj, path_prj)')
+            # self.send_log.emit("py    mystathab.riverint = " + str(self.riverint))
+            # self.send_log.emit("py    mystathab.load_stathab_from_txt( var1, var2, dir_name)")
+            # self.send_log.emit("py    mystathab.create_hdf5()")
+            # self.send_log.emit("py    mystathab.save_xml_stathab()")
 
     def reach_selected(self):
         """
@@ -647,36 +488,20 @@ class FstressW(estimhab_GUI.StatModUseful):
                                    'Results might be unrealisitc. \n')
             if self.myfstress.qwh[r][1, 0] > 50 or self.myfstress.qwh[r][0, 0] > 50:
                 self.send_log.emit('Warning: Discharge is higher then 50m3/s. Results might be unrealisitc \n')
-            if self.riverint == 1 or self.riverint == 2:
-                if self.myfstress.data_ii[r][0] < 1:
-                    self.send_log.emit('Warning: Slope is lower than 1%. Results might be unrealisitc \n')
-                if self.myfstress.data_ii[r][0] > 24:
-                    self.send_log.emit('Warning: Slope is higher than 24%. Results might be unrealisitc \n')
 
         # run FStress
-        if self.riverint == 0:
-            sys.stdout = self.mystdout = StringIO()
-            self.myfstress.stathab_calc()
-            sys.stdout = sys.__stdout__
-            self.send_err_log()
-        else:
-            self.send_log.emit("The river type is not recognized. " + self.model_type + " could not be run.")
-            return
+        sys.stdout = self.mystdout = StringIO()
+        self.myfstress.calc_fstress()
+        sys.stdout = sys.__stdout__
+        self.send_err_log()
 
         # caught some errors, special cases.
-        if self.riverint == 0:
-            if len(self.myfstress.disthmes) == 0:  # you cannot use seld.list_needed.count()
-                self.send_log.emit("Error: " + self.model_type + " could not be run. Are all files available?")
-                return
-            if len(self.myfstress.disthmes[0]) == 1:
-                if self.myfstress.disthmes[0] == -99:
-                    return
-        else:
-            if len(self.myfstress.data_ii) == 0:
-                self.send_log.emit('Error: ' + self.model_type + ' could not be run. Are all files available?')
-        if not self.myfstress.load_ok:
-            self.send_log.emit('Error: ' + self.model_type + ' could not be run. \n')
+        if len(self.myfstress.disthmes) == 0:  # you cannot use seld.list_needed.count()
+            self.send_log.emit("Error: " + self.model_type + " could not be run. Are all files available?")
             return
+        if len(self.myfstress.disthmes[0]) == 1:
+            if self.myfstress.disthmes[0] == -99:
+                return
 
         # save data and fig
         self.myfstress.savetxt_stathab()

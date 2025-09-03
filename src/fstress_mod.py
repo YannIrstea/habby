@@ -25,8 +25,12 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import copy
 
-from src.project_properties_mod import create_default_project_properties_dict
-from src.stathab_mod import check_stahab_files, load_namereach, power_law
+from src.project_properties_mod import create_default_project_properties_dict, load_project_properties
+from src.bio_info_mod import read_pref, copy_or_not_user_pref_curve_to_input_folder
+from src.stathab_mod import load_namereach, power_law
+from src.variable_unit_mod import HydraulicVariableUnitManagement
+from src.user_preferences_mod import user_preferences
+from src.dev_tools_mod import is_number
 
 
 class FStress:
@@ -116,7 +120,7 @@ class FStress:
 
                 # open rivself.qwh.txt
                 if ef[-7:-4] == 'qhw':
-                    qwh_r = check_stahab_files(filename, True, ['Q[m3/s]', 'H[m]', 'W[m]'], [],False)
+                    qwh_r = check_fstress_files(filename, True, ['Q[m3/s]', 'H[m]', 'W[m]'], [],False)
                     if np.array_equal(qwh_r, [-99]):  # if failed
                         return
                     if np.any(qwh_r[:,0]==0):
@@ -126,7 +130,7 @@ class FStress:
 
                 # open rivdeb.txt
                 elif ef[-7:-4] == 'deb':
-                    qlist_r = check_stahab_files(filename, True, ['Q[m3/s]'], [],False)
+                    qlist_r = check_fstress_files(filename, True, ['Q[m3/s]'], [],False)
                     if np.array_equal(qlist_r, [-99]):
                         return
                     if np.any(qlist_r ==0):
@@ -142,7 +146,7 @@ class FStress:
                     ldisl = ['Q[m3/s]', 'H[m]']
                     for i in range(20):
                         ldisl.append('frequency(' + str(i) + '*H/4<h<' + str(i + 1) + '*H/4)')
-                    dis_r = check_stahab_files(filename, True, [], ldisl,True)
+                    dis_r = check_fstress_files(filename, True, [], ldisl,True)
                     if np.array_equal(dis_r, [-99]):  # if failed
                         return
                     self.disthmes.append(dis_r[2:])
@@ -154,7 +158,7 @@ class FStress:
                              'fine-gravel:<8[mm]', 'coarse-gravel:<16[mm]', 'fine-pebbles:<32[mm]',
                              'coarse-pebbles:<64[mm]', 'fine-cobbles:<128[mm]', 'coarse-cobbles:<256[mm]',
                              'boulders:<1024[mm]', 'rocks:>=1024[mm]']
-                    dist_granulo_r = check_stahab_files(filename, True,
+                    dist_granulo_r = check_fstress_files(filename, True,
                                                         ['substrate_classification_code', 'frequency[]'],
                                                         lgral,True)
                     if np.array_equal(dist_granulo_r, [-99]):  # if failed
@@ -163,7 +167,7 @@ class FStress:
 
                 # open data_ii.txt (only for tropical rivers; stahb_steep)
                 elif ef[-6:-4] == 'ii':
-                    data_ii_r = check_stahab_files(filename, False, [],
+                    data_ii_r = check_fstress_files(filename, False, [],
                                                    ['reach_slope[%]', 'total_waterfalls_height[m]', 'reach_length[m]'],False)
                     if np.array_equal(data_ii_r, [-99]):  # if failed
                         return
@@ -180,7 +184,7 @@ class FStress:
                 bok = 2
             if bok != 0:
                 filename = os.path.join(path, name_file_allreach[b])
-                born = check_stahab_files(filename, True, lbornl[bok - 1], [],False)
+                born = check_fstress_files(filename, True, lbornl[bok - 1], [],False)
                 if np.array_equal(born, [-99]):
                     return
                 if len(born) < 2:
@@ -267,151 +271,7 @@ class FStress:
                 child.text = fname_no_path
             tree.write(fnamep)
 
-    def read_fstress_hdf5(self, hdf5_name, hdf5_path):
-        """
-        This functions reads an hdf5 file related to FStress and extract the relevant information.
-
-        :param hdf5_name: the name of the hdf5 file with the information realted to FStress
-        :param hdf5_path: the path to this file
-
-        :return:[[q,w,h], [q,w,h]] for each river, [qmin,qmax] for each river, the river names, and the selected fish
-
-        """
-        river_name = []
-        qhw = []
-        qrange = []
-        fish_name = []
-
-        # open hdf5 with check
-        h5file, failload = hdf5_mod.open_hdf5_(hdf5_name, hdf5_path, "read")
-        if failload:
-            print('Error: hdf5 file could not be open. \n')
-            return failload
-        else:
-            failload = [-99], [-99], ['-99'], ['-99']
-
-        # read the number of rivers
-        try:
-            gen_dataset = h5file["/Nb_river"]
-        except KeyError:
-            print('Error: the number of river is missing from the hdf5 file. Is ' + hdf5_name + ' an FStress input? \n')
-            return failload
-        try:
-            nb_riv = list(gen_dataset.values())[0]
-            nb_riv = int(np.array(nb_riv))  # you do need the np.array()
-        except ValueError:
-            print('Error: the number of river is missing from the hdf5 file. Is ' + hdf5_name + ' an FStress input? (2) \n')
-            return failload
-
-        # read the hydrological data
-        for i in range(0, nb_riv):
-            # qhw
-            qhw1 = []
-            qhw2 = []
-            basename = 'River_' + str(i)
-            try:
-                gen_dataset = h5file[basename + "/River_name"]
-            except KeyError:
-                print('Error: the river name is missing from the FStress hdf5 file. \n')
-                return failload
-            try:
-                r = list(gen_dataset.values())[0]
-                r = str(np.array(r))[2:-1]
-                river_name.append(r)
-            except IndexError:
-                print('Error: the river name is missing from the FStress hdf5 file. (2) \n')
-                return failload
-            try:
-                gen_dataset = h5file[basename + '/' + r + '_qmes']
-            except KeyError:
-                print('Error: the discharge is missing from the FStress hdf5 file. \n')
-                return failload
-            qmes = list(gen_dataset.values())[0]
-            qhw1.append(float(qmes[0]))
-            qhw2.append(float(qmes[1]))
-            try:
-                gen_dataset = h5file[basename + '/' + r + '_hmes']
-            except KeyError:
-                print('Error: the height is missing from the FStress hdf5 file. \n')
-                return failload
-            hmes = list(gen_dataset.values())[0]
-            qhw1.append(float(hmes[0]))
-            qhw2.append(float(hmes[1]))
-            try:
-                gen_dataset = h5file[basename + '/' + r + '_wmes']
-            except KeyError:
-                print('Error: the width is missing from the FStress hdf5 file. \n')
-                return failload
-            wmes = list(gen_dataset.values())[0]
-            qhw1.append(float(wmes[0]))
-            qhw2.append(float(wmes[1]))
-            qhw.append([qhw1, qhw2])
-            # discharge range
-            try:
-                gen_dataset = h5file[basename + '/' + r + '_qrange']
-            except KeyError:
-                print('Error: the discharge range is missing from the FStress hdf5 file. \n')
-                return failload
-            qr = list(gen_dataset.values())[0]
-            qrange.append([float(qr[0]), float(qr[1])])
-
-        # read the fish name
-        dataset = h5file['fish_type']
-        dataset = list(dataset.values())[0]
-        for i in range(0, len(dataset)):
-            dataset_i = str(dataset[i])
-            fish_name.append(dataset_i[3:-2])  # because hdf5 give the string b'sdfsd', no it is not a binary!
-
-        return qhw, qrange, river_name, fish_name
-
-    def read_pref(self, path_bio, name_bio):
-        """
-        This function loads and read the preference file for FStress.
-
-        :param path_bio: the path to the preference file
-        :param name_bio: the name of the preference file
-        :return: the name invertebrate and their preference coefficient
-        """
-        failload = [-99], [-99]
-        pref_inver = []
-        all_inv_name = []
-        # open file
-        filenamebio = os.path.join(path_bio, name_bio)
-        if os.path.isfile(filenamebio):
-            with open(filenamebio, 'rt') as f:
-                data_inv = f.read()
-        else:
-            print('Error: No preference file for FStress. To use FStress, add a preference file and restart '
-                  'HABBY.')
-            return failload
-        data_inv = data_inv.split('\n')
-
-        # get the data by invertebrate species
-        if len(data_inv) == 0:
-            print('Error: No invertebrate found in the preference file for FStress. To use FStress, add a '
-                  'correct preference file and restart HABBY.')
-            return failload
-        for i in range(0, len(data_inv)):
-            data_this_inv = data_inv[i]
-            if len(data_this_inv) > 0:
-                data_this_inv = data_this_inv.split()
-                if len(data_this_inv) != 21:  # number of FStress point + name
-                    print('Warning: A preference curve for FStress is not composed of 20 data')
-                # get the invertebrate name
-                all_inv_name.append(data_this_inv[0].strip())
-                # get the pref
-                try:
-                    data_this_inv = list(map(float, data_this_inv[1:]))
-                except ValueError:
-                    print(
-                        'Error: The preference file for FStress could not be read. To use FStress, add a correct '
-                        'preference file and restart HABBY.')
-                    return failload
-                pref_inver.append(data_this_inv)
-
-        return pref_inver, all_inv_name
-
-    def run_fstress(self, data_hydro, qrange, riv_name, inv_select, pref_all, name_all, name_prj, path_prj):
+    def calc_fstress(self):
         """
         This function run the model FStress for HABBY. FStress is based on the model of Nicolas Lamouroux. This model
         estimates suitability indices for invertebrate in relation with shear stress distributions. However, shear stress
@@ -426,6 +286,8 @@ class FStress:
         :param path_prj: the path to the project-> string
         :param name_prj: the name of the project-> string
         """
+        self.fstress_get_pref()
+        data_hydro, qrange, riv_name, inv_select, pref_all, name_all, name_prj, path_prj = (0,0,0,0,0,0,0,0)
         # initalisation
         nbclaq = 50  # number of discharge point where the data have to be calculate
         data_hydro = np.array(data_hydro)  # qhw
@@ -500,6 +362,37 @@ class FStress:
             qmod_all.append(qmod)
 
         return vh, qmod_all, inv_select
+
+    def fstress_get_pref(self):
+        hvum = HydraulicVariableUnitManagement()
+        # each animal model
+        dict_pref_fstress = {'code_bio_model': [], 'stage': [], 'pref_shearstress': [], 'pref_number': [],
+                             'pref_values': []}
+        project_properties = load_project_properties(self.path_prj)  # load_project_properties
+        for hab_string_var in self.fish_chosen:
+            # get gui informations
+            stage = hab_string_var.split(" - ")[-2]
+            code_bio_model = hab_string_var.split(" - ")[-1]
+            index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
+            # get the preference info based on the files known
+            information_model_dict = read_pref(user_preferences.biological_models_dict["path_xml"][index_fish])
+            stage_index = information_model_dict["stage_and_size"].index(stage)
+            hab_var = information_model_dict["hab_variable_list"][stage_index]
+            dict_pref_fstress['code_bio_model'].append(code_bio_model)
+            dict_pref_fstress['stage'].append(stage)
+            hydraulic_type_available = information_model_dict["hydraulic_type_available"][stage_index]
+            # copy_or_not_user_pref_curve_to_input_folder
+            copy_or_not_user_pref_curve_to_input_folder(hab_var, project_properties)
+            # get data
+            if hab_var.model_type == "univariate suitability index curves":
+                if "HEM" in hydraulic_type_available:
+                    dict_pref_fstress['pref_shearstress'].append(
+                        hab_var.variable_list[hab_var.variable_list.names().index(hvum.shear_stress.name)].data[0])
+                    dict_pref_fstress['pref_number'].append(
+                        hab_var.variable_list[hab_var.variable_list.names().index(hvum.shear_stress.name)].data[1])
+                    dict_pref_fstress['pref_values'].append(
+                        hab_var.variable_list[hab_var.variable_list.names().index(hvum.shear_stress.name)].data[2])
+        return dict_pref_fstress
 
     def write_txt(self, qmod_all, vh_all, name_inv, path_txt, name_river, timestamp=True):
         """
@@ -649,6 +542,99 @@ def fstress_test(qmod_all, vh_all, name_inv, name_river, path_rre, project_prope
         ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
         lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
         i += 1
+
+def check_fstress_files(filename,check_neg,lchkcolhead,lchklines,check_sumone):
+    '''
+    A function to load and check stahab and stahab_steep files and extract list of floats
+    :param filename:  the file to load with the path
+    :param check_neg: if true negatives values are not allowed in the data
+    :param lchkcolhead: a list of string for column names
+    :param lchklines: a list of string for lines names
+    :param check_sumone: if true the sum of the values must be one at tolerance_check_sumone
+
+    :return: data in a list of np.array if ok, [-99] if failed
+    '''
+    tolerance_check_sumone = 0.0011
+    filemantisse, file_extension = os.path.splitext(filename)
+    nbcol, nblines = len(lchkcolhead), len(lchklines)
+    myfloatdata = []
+    inblines = 0
+    with open(filename, 'rt') as fi:
+        lines = fi.readlines()
+        for iline, line in enumerate(lines):
+            if '\n' in line:
+                line = line[:-1]
+            if file_extension.lower() == '.csv' or ';' in line:
+                col = line.split(';')
+            else:
+                col = line.split()
+            if iline == 0 and nbcol != 0:
+                if len(col) != nbcol:
+                    print('Error: the first line information ' + ' '.join(
+                        lchkcolhead) + ' has not been  found correctly in ' + filename + '.\n')
+                    return [-99]
+                for i in range(nbcol):
+                    if lchkcolhead[i].lower() != col[i].lower():
+                        print('Error: the first line information ' + lchkcolhead[
+                            i] + ' has not been  found correctly in ' + filename + '.\n')
+                        return [-99]
+            else:
+                if line.split() != '':
+                    if nblines != 0:
+                        if inblines > nblines - 1:
+                            print('Error: Too much lines and values found in ' + filename + ' ' + line + '.\n')
+                            return [-99]
+                        if col[0].lower().replace(" ", "") != lchklines[
+                            inblines].lower():  # to accept for csv the string with spaces frequency(0*H/4 < h < 1*H/4)
+                            print('Error: the line information ' + lchklines[
+                                inblines] + ' has not been  found in ' + filename + '.\n')
+                            return [-99]
+                        inblines += 1
+                        if len(col) != 2:
+                            print('Error: the line ' + lchklines[
+                                inblines] + ' has not 2 informations in ' + filename + '.\n')
+                            return [-99]
+                        if is_number(col[1]):
+                            myfloatdata.append(float(col[1]))
+                        else:
+                            print('Error: the line ' + lchklines[
+                                inblines] + ' the second information is not numeric ' + filename + '.\n')
+                            return [-99]
+                    else:
+                        if nbcol != 0:
+                            if len(col) != nbcol:
+                                print('Error: the line ' + str(
+                                    iline + 1) + ' the number of informations is not correct ' + filename + '.\n')
+                                return [-99]
+                        for i, icol in enumerate(col):
+                            if is_number(col[i]):
+                                col[i] = float(col[i])
+                            else:
+                                print('Error: the line ' + str(
+                                    iline + 1) + ' at least one information is not numeric ' + filename + '.\n')
+                                return [-99]
+                            if check_neg and col[i] < 0:  # if there is negative value
+                                print('Error: the line ' + str(
+                                    iline + 1) + ' negative values found in ' + filename + '.\n')
+                                return [-99]
+                        myfloatdata.append(col)
+        myfloatdata2 = np.array(myfloatdata)
+        try:
+            if myfloatdata2.shape[1] == 1:
+                myfloatdata2 = myfloatdata2.reshape((myfloatdata2.shape[0],))
+        except:
+            pass
+    if check_sumone:
+
+        if filename[-7:-3].lower() == "dis.":
+            sumdata = np.sum(myfloatdata[2:])
+        else:
+            sumdata = np.sum(myfloatdata)
+        if np.abs(sumdata - 1) > tolerance_check_sumone:
+            print('Error: the sum of the values are not one withe a ' + str(
+                tolerance_check_sumone) + ' tolerance ' + filename + '.\n')
+            return [-99]
+    return myfloatdata2
 
 def func_stress(vm, h, tau):
     """

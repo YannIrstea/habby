@@ -1319,7 +1319,6 @@ def check_stahab_files(filename,check_neg,lchkcolhead,lchklines,check_sumone):
             return [-99]
     return myfloatdata2
 
-
 def power_law(qwh_r):
     """
     The function to calculate power law for discharge and width
