@@ -26,6 +26,7 @@ import matplotlib as mpl
 import copy
 
 from src.project_properties_mod import create_default_project_properties_dict
+from src.stathab_mod import check_stahab_files, load_namereach, power_law
 
 
 class FStress:
@@ -69,6 +70,126 @@ class FStress:
         # get the option for the figure in a dict
         self.project_properties = []
         self.path_txt = path_prj  # path where to save the text
+
+    def load_fstress_from_txt(self, end_file_reach, name_file_allreach, path):
+        """
+        A function to read and check the input from stathab based on the text files.
+        All files should be in the same folder.
+        The file Pref.txt is read in run_stathab.
+        If self.fish_chosen is not present, all fish in the preference file are read.
+
+        :param end_file_reach: the ending of the files whose names depends on the reach (with .txt or .csv)
+        :param name_file_allreach: the name of the file common to all reaches
+        :param path: the path to the file
+        :return: the inputs needed for run_stathab
+        """
+        self.load_ok = False
+        # self.name_reach
+        self.name_reach = load_namereach(path)
+        if self.name_reach == [-99]:
+            return
+        nb_reach = len(self.name_reach)
+
+        # prep
+        self.qwh = []
+        self.qlist = []
+        self.disthmes = []
+        self.qhmoy = []
+        self.dist_gran = []
+        self.data_ii = []
+
+        # read the txt files reach by reach
+        # when loading file, python is always case-sensitive because Windows is.
+        # so let's insist on this.
+        all_file = os.listdir(path)
+        for r in range(0, nb_reach):
+            for ef in end_file_reach:
+                file_found = False
+                filename = os.path.join(path, self.name_reach[r] + ef)
+                for f in range(0, len(all_file)):
+                    if os.path.basename(filename.lower()) == all_file[f].lower():
+                        file_found = True
+                        filename = os.path.join(path, all_file[f])
+                if not file_found:
+                    print('Error: The file called ' + filename + ' was not found.\n')
+                    return
+
+                # open rivself.qwh.txt
+                if ef[-7:-4] == 'qhw':
+                    qwh_r = check_stahab_files(filename, True, ['Q[m3/s]', 'H[m]', 'W[m]'], [],False)
+                    if np.array_equal(qwh_r, [-99]):  # if failed
+                        return
+                    if np.any(qwh_r[:,0]==0):
+                        print('Error: The file called ' + filename + ' a 0 value for Q[m3/s] has been found\n')
+                        return
+                    self.qwh.append(qwh_r)
+
+                # open rivdeb.txt
+                elif ef[-7:-4] == 'deb':
+                    qlist_r = check_stahab_files(filename, True, ['Q[m3/s]'], [],False)
+                    if np.array_equal(qlist_r, [-99]):
+                        return
+                    if np.any(qlist_r ==0):
+                        print('Error: The file called ' + filename + ' a 0 value for Q[m3/s] has been found\n')
+                        return
+                    if len(qlist_r) < 2:
+                        print('Error: two discharges minimum are needed in ' + filename + '\n')
+                        return
+                    self.qlist.append(qlist_r)
+
+                # open riv dis
+                elif ef[-7:-4] == 'dis':
+                    ldisl = ['Q[m3/s]', 'H[m]']
+                    for i in range(20):
+                        ldisl.append('frequency(' + str(i) + '*H/4<h<' + str(i + 1) + '*H/4)')
+                    dis_r = check_stahab_files(filename, True, [], ldisl,True)
+                    if np.array_equal(dis_r, [-99]):  # if failed
+                        return
+                    self.disthmes.append(dis_r[2:])
+                    self.qhmoy.append(dis_r[:2])
+
+                # open rivgra.txt
+                elif ef[-7:-4] == 'gra':
+                    lgral = ['organic-matter', 'silt:<0,0625[mm]', 'fine-sand:<0,5[mm]', 'coarse-sand:<2[mm]',
+                             'fine-gravel:<8[mm]', 'coarse-gravel:<16[mm]', 'fine-pebbles:<32[mm]',
+                             'coarse-pebbles:<64[mm]', 'fine-cobbles:<128[mm]', 'coarse-cobbles:<256[mm]',
+                             'boulders:<1024[mm]', 'rocks:>=1024[mm]']
+                    dist_granulo_r = check_stahab_files(filename, True,
+                                                        ['substrate_classification_code', 'frequency[]'],
+                                                        lgral,True)
+                    if np.array_equal(dist_granulo_r, [-99]):  # if failed
+                        return
+                    self.dist_gran.append(dist_granulo_r)
+
+                # open data_ii.txt (only for tropical rivers; stahb_steep)
+                elif ef[-6:-4] == 'ii':
+                    data_ii_r = check_stahab_files(filename, False, [],
+                                                   ['reach_slope[%]', 'total_waterfalls_height[m]', 'reach_length[m]'],False)
+                    if np.array_equal(data_ii_r, [-99]):  # if failed
+                        return
+                    self.data_ii.append(data_ii_r)
+
+        # open the files with the limits of class
+        self.lim_all = [[], []]
+        lbornl = [['H[m]'], ['V[m/s]']]
+        bok = 0
+        for b in range(0, len(name_file_allreach)):
+            if name_file_allreach[b].lower() in ('bornh.txt', 'bornh.csv'):
+                bok = 1
+            if name_file_allreach[b].lower() in ('bornv.txt', 'bornv.csv'):
+                bok = 2
+            if bok != 0:
+                filename = os.path.join(path, name_file_allreach[b])
+                born = check_stahab_files(filename, True, lbornl[bok - 1], [],False)
+                if np.array_equal(born, [-99]):
+                    return
+                if len(born) < 2:
+                    print('Error: The file called ' + filename + ' is not in the right format.  '
+                                                                 'At least two values needed. \n')
+                    return
+                self.lim_all[bok - 1] = born
+                bok = 0
+        self.load_ok = True
 
     def save_fstress(self, path_hab, path_prj, name_prj, name_bio, path_bio, riv_name, data_hydro, qrange, fish_list):
         """
@@ -380,44 +501,6 @@ class FStress:
 
         return vh, qmod_all, inv_select
 
-    def func_stress(self, vm, h, tau):
-        """
-        This functions calculates the distrbution of stress on the bottom of the river based of height and velocity
-        at one discharge. In other word, it calculate the distrbution of the "hemispheres".
-        This function is mainly a copy of stress function contains in the vitess2.c of the C source of FStress.
-
-        :param vm: the velocity for this diacharge value
-        :param h: the height for this discharge value
-        :param tau: the constraint values
-        :return: the stress distribution for this discharge
-
-        """
-        # froude and other parameters
-        fr2 = vm ** 2. / (9.81 * h)
-        k = -0.123 * np.log(fr2) - 0.132  # the first parameter of the stress distribution
-        if k > 1:
-            k = 1
-        if k < 0:
-            k = 0
-        lntaum = 2.61 + 0.319 * np.log(fr2)
-        nbst = len(tau)
-
-        # estimate the m parameter by dichotomy m is between 2 and 18 (why?)
-        # m is the seconc parameter fo the stress distribution
-        mmin = 2.
-        msup = 18.
-        for p in range(1, 20):
-            m = (mmin + msup) / 2.0
-            diststress = denstress(k, m, nbst)
-            fit = np.sum(tau * diststress)
-            if np.log(fit) > lntaum:
-                msup = m
-            else:
-                mmin = m
-        diststress = denstress(k, m, nbst)
-
-        return diststress
-
     def write_txt(self, qmod_all, vh_all, name_inv, path_txt, name_river, timestamp=True):
         """
         This function writes the txt outputs for FStress
@@ -567,6 +650,43 @@ def fstress_test(qmod_all, vh_all, name_inv, name_river, path_rre, project_prope
         lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
         i += 1
 
+def func_stress(vm, h, tau):
+    """
+    This functions calculates the distrbution of stress on the bottom of the river based of height and velocity
+    at one discharge. In other word, it calculate the distrbution of the "hemispheres".
+    This function is mainly a copy of stress function contains in the vitess2.c of the C source of FStress.
+
+    :param vm: the velocity for this diacharge value
+    :param h: the height for this discharge value
+    :param tau: the constraint values
+    :return: the stress distribution for this discharge
+
+    """
+    # froude and other parameters
+    fr2 = vm ** 2. / (9.81 * h)
+    k = -0.123 * np.log(fr2) - 0.132  # the first parameter of the stress distribution
+    if k > 1:
+        k = 1
+    if k < 0:
+        k = 0
+    lntaum = 2.61 + 0.319 * np.log(fr2)
+    nbst = len(tau)
+
+    # estimate the m parameter by dichotomy m is between 2 and 18 (why?)
+    # m is the seconc parameter fo the stress distribution
+    mmin = 2.
+    msup = 18.
+    for p in range(1, 20):
+        m = (mmin + msup) / 2.0
+        diststress = denstress(k, m, nbst)
+        fit = np.sum(tau * diststress)
+        if np.log(fit) > lntaum:
+            msup = m
+        else:
+            mmin = m
+    diststress = denstress(k, m, nbst)
+
+    return diststress
 
 def denstress(k, m, nbst):
     """
@@ -591,7 +711,6 @@ def denstress(k, m, nbst):
 
     return diststress
 
-
 def main():
     """
     This is not the main() of HABBY. This local function is used to test the Fstress model.
@@ -607,14 +726,14 @@ def main():
     hdf5_path = r'D:\Diane_work\dummy_folder\DefaultProj'
     path_rre = r'D:\Diane_work\model_stat\FSTRESSandtathab\fstress_stathab_C\FSTRESSDiane'
 
-    [qhw, qrange, riv_name, name_inv] = read_fstress_hdf5(hdf5_name, hdf5_path)
-
-    [pref_all, name_all] = read_pref(path_bio, name_bio)
-    # all inv selected -> name_allx2
-    [vh, qmod, inv_select] = run_fstress(qhw, qrange, riv_name, name_all, pref_all, name_all, name_prj, path_prj)
-    # figure_fstress(qmod, vh, inv_select, path_im, riv_name)
-    fstress_test(qmod, vh, inv_select, riv_name, path_rre)
-    plt.show()
+    # [qhw, qrange, riv_name, name_inv] = read_fstress_hdf5(hdf5_name, hdf5_path)
+    #
+    # [pref_all, name_all] = read_pref(path_bio, name_bio)
+    # # all inv selected -> name_allx2
+    # [vh, qmod, inv_select] = run_fstress(qhw, qrange, riv_name, name_all, pref_all, name_all, name_prj, path_prj)
+    # # figure_fstress(qmod, vh, inv_select, path_im, riv_name)
+    # fstress_test(qmod, vh, inv_select, riv_name, path_rre)
+    # plt.show()
 
 
 if __name__ == '__main__':

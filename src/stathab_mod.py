@@ -504,7 +504,7 @@ class Stathab:
             self.granulo_mean_all.append(granulo_mean)
 
             # get the distributions and power law ready
-            [h_coeff, w_coeff] = self.power_law(qwh_r)
+            [h_coeff, w_coeff] = power_law(qwh_r)
             sh0 = self.find_sh0_maxvrais(disthmes_r, h0)
 
             # check if discharge are coherent
@@ -669,7 +669,7 @@ class Stathab:
                 return
 
             # get the power law
-            [h_coeff, w_coeff] = self.power_law(qwh_r)
+            [h_coeff, w_coeff] = power_law(qwh_r)
 
             dist_hs_reach = []
             dist_vs_reach = []
@@ -845,26 +845,6 @@ class Stathab:
                 dict_pref_stahab['h_pref_data'].append([])
                 dict_pref_stahab['v_pref_data'].append([])
         return dict_pref_stahab
-
-    def power_law(self, qwh_r):
-        """
-        The function to calculate power law for discharge and width
-        ln(h) = a1 + a2 ln(Q)=h_coeff[1] +h_coeff[0]*ln(Q)
-        ln(w) = w_coeff[1] +w_coeff[0]*ln(Q)
-
-        :param qwh_r: an array where each line in one observatino of Q, width and height
-        :return: the coeff of the regression
-        """
-        # input
-        q = qwh_r[:, 0]
-        h = qwh_r[:, 1]
-        w = qwh_r[:, 2]
-
-        # fit power-law
-        h_coeff = np.polyfit(np.log(q), np.log(h), 1)  # h_coeff[1] + ln(Q) *h_coeff[0]
-        w_coeff = np.polyfit(np.log(q), np.log(w), 1)
-
-        return h_coeff, w_coeff
 
     def find_sh0(self, disthmesr, h0):
         """
@@ -1340,7 +1320,25 @@ def check_stahab_files(filename,check_neg,lchkcolhead,lchklines,check_sumone):
     return myfloatdata2
 
 
+def power_law(qwh_r):
+    """
+    The function to calculate power law for discharge and width
+    ln(h) = a1 + a2 ln(Q)=h_coeff[1] +h_coeff[0]*ln(Q)
+    ln(w) = w_coeff[1] +w_coeff[0]*ln(Q)
 
+    :param qwh_r: an array where each line in one observatino of Q, width and height
+    :return: the coeff of the regression
+    """
+    # input
+    q = qwh_r[:, 0]
+    h = qwh_r[:, 1]
+    w = qwh_r[:, 2]
+
+    # fit power-law
+    h_coeff = np.polyfit(np.log(q), np.log(h), 1)  # h_coeff[1] + ln(Q) *h_coeff[0]
+    w_coeff = np.polyfit(np.log(q), np.log(w), 1)
+
+    return h_coeff, w_coeff
 
 def load_namereach(path):
     """

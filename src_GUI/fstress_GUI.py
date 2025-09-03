@@ -272,6 +272,9 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         # read the reaches name
         sys.stdout = self.mystdout = StringIO()
+        self.myfstress.load_stathab_from_txt(end_file_reach_here,
+                                             file_name_all_reach_here,
+                                             self.dir_name)
         # name_reach = stathab_mod.load_namereach(self.dir_name)
         sys.stdout = sys.__stdout__
         self.send_err_log()
