@@ -592,6 +592,37 @@ def denstress(k, m, nbst):
     return diststress
 
 
+def fstress_get_pref(self):
+    hvum = HydraulicVariableUnitManagement()
+    # each animal model
+    dict_pref_fstress = {'code_bio_model': [], 'stage': [], 'pref_shearstress': [], 'pref_number': [],
+                        'pref_values': []}
+    project_properties = load_project_properties(self.path_prj)  # load_project_properties
+    for hab_string_var in self.fish_chosen:
+        # get gui informations
+        stage = hab_string_var.split(" - ")[-2]
+        code_bio_model = hab_string_var.split(" - ")[-1]
+        index_fish = user_preferences.biological_models_dict["code_biological_model"].index(code_bio_model)
+        # get the preference info based on the files known
+        information_model_dict = read_pref(user_preferences.biological_models_dict["path_xml"][index_fish])
+        stage_index = information_model_dict["stage_and_size"].index(stage)
+        hab_var = information_model_dict["hab_variable_list"][stage_index]
+        dict_pref_fstress['code_bio_model'].append(code_bio_model)
+        dict_pref_fstress['stage'].append(stage)
+        hydraulic_type_available=information_model_dict["hydraulic_type_available"][stage_index]
+        # copy_or_not_user_pref_curve_to_input_folder
+        copy_or_not_user_pref_curve_to_input_folder(hab_var, project_properties)
+        # get data
+        if hab_var.model_type == "univariate suitability index curves":
+            if "HEM"  in hydraulic_type_available :
+                pref_shearstress = pref_hem_data[0]
+                pref_values = pref_hem_data[2]
+                dict_pref_fstress['pref_shearstress'].append(
+                    hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data[0])
+                dict_pref_stahab['h_pref_data'].append(
+                    hab_var.variable_list[hab_var.variable_list.names().index(hvum.h.name)].data[1])
+     return dict_pref_stahab
+
 def main():
     """
     This is not the main() of HABBY. This local function is used to test the Fstress model.
