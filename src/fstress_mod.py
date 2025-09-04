@@ -42,6 +42,7 @@ class FStress:
 
         self.qhw = []  # the discharge, the heigh and width at least at two different dicharges (rivqvh.txt) a list of np.array
         self.qrange = [] #qrange: the qmin and qmax for each river [qmin,qmax] -> list of list
+        self.qmod_all=[] # the list of dicharge for each reach
 
         #TODO supprimer
         self.qlist = []  # the list of dicharge for each reach, usually in rivdis.txt
@@ -53,8 +54,14 @@ class FStress:
         self.lim_all = []  # the limits or bornes of h,q and granulio (born*.txt)
 
         self.name_reach = []  # the list with the name of the reaches
+
+        # TODO supprimer
         self.j_all = dict()  # habitat values
+
+
         self.data_list = list()  # list by reach of dict of all reach data values
+
+        # TODO supprimer
         self.granulo_mean_all = []  # average granuloa
         self.vclass_all = []  # volume of each velocity classes
         self.hclass_all = []  # surface height for all classes
@@ -67,8 +74,12 @@ class FStress:
         self.dist_vs_all = []  # frequency distribution for velocity per reach X discharge
         self.fish_chosen = []  # the name of the fish
         self.riverint = 0  # the river type (0 stahab, 1 stahtab steep)
+
         self.path_im = os.path.join(path_prj, "output", "figures")  # path where to save the image
+
+        # TODO supprimer
         self.path_hdf5 = os.path.join(path_prj, "hdf5")
+
         self.load_ok = False  # a boolean to manage the errors
         #  during the load of the files and the hdf5 creation and calculation
         self.path_prj = path_prj
@@ -236,66 +247,45 @@ class FStress:
         :param path_prj: the path to the project-> string
         :param name_prj: the name of the project-> string
         """
-        self.fstress_get_pref()
+        dict_pref_fstress=self.fstress_get_pref()
+        qrange=self.qrange
+        qhw=self.qhw
 
         #data_hydro, qrange, riv_name, inv_select, pref_all, name_all, name_prj, path_prj = (0,0,0,0,0,0,0,0)
 
         # initalisation
         nbclaq = 50  # number of discharge point where the data have to be calculate
 
-        data_hydro = np.array(data_hydro)  # qhw
+        # TODO supprimer
+        #data_hydro = np.array(data_hydro)  # qhw
 
-        pref_all = np.array(pref_all)
-
+        #TODO supprimer
         # this is the constraint value on dyn/cm2, empirical data probably
-        tau = [0.771, 0.828, 0.945, 1.18, 1.41, 1.66, 2.18, 2.72, 3.93, 5.29, 6.82, 8.26, 10.9, 15.9, 22.7, 31.7, 44.8, 63.4
-            , 89.5, 127.]
+        #tau = [0.771, 0.828, 0.945, 1.18, 1.41, 1.66, 2.18, 2.72, 3.93, 5.29, 6.82, 8.26, 10.9, 15.9, 22.7, 31.7, 44.8, 63.4
+        #    , 89.5, 127.]
 
 
-        qmod_all = []
+        self.qmod_all = []
+
         nb_inv = len(dict_pref_fstress ['code_bio_model'])
+
         vh = []
-        pref_select = np.zeros((nb_inv, len(tau)))  # preference coeff for the selected invertebrate
-        find_one_inv = False
 
-        # there are some functions from FStress which have already be done by Stathab.
-        # so we create a 'dummy" instance of Stathab to be able to use the methods of Stathab when useful
-        # Stathab(name_prj, path_prj)
+        # TODO supprimer
+        #pref_select = np.zeros((nb_inv, len(tau)))  # preference coeff for the selected invertebrate
 
-        # get the fish name
-        for f in range(0, nb_inv):
-            # if invertebrate exist
-            if inv_select[f] in name_all:
-                ind_fish = name_all.index(inv_select[f])
-                pref_select[f, :] = pref_all[ind_fish, :]
-                find_one_inv = True
-            # if not found
-            else:
-                if len(vh) == 0:
-                    print('Error: No fish species have been given or the fish species could not be found.\n')
-                    return -99, -99, -99
-                nb_inv -= 1
-                vh = np.delete(vh, (f), axis=1)
-                pref_select = np.delete(pref_select, (f), axis=0)
-                del inv_select[f]
-                print('Warning: One fish species was not found in the '
-                      'Preference file. Fish name: ' + inv_select[f] + '\n')
-        if not find_one_inv:
-            print('Error: No fish species have been given or the fish species could not be found.\n')
-            return -99, -99, -99
 
         # for each river
-        for i in range(0, len(riv_name)):
-            vh_riv = np.zeros((nbclaq, nb_inv))
-            qmod = np.zeros(nbclaq, )
-            hmod = np.zeros(nbclaq, )
-            wmod = np.zeros(nbclaq, )
+        for i in range(0, len(self.name_reach)):
+            vh_riv = np.zeros((nbclaq, nb_inv)) # nbclaq habitat values for each of the invertabrate selected
+            qmod = np.zeros(nbclaq, ) # nbclaq discharge values
+            hmod = np.zeros(nbclaq, ) # nbclaq mean water depth values
+            wmod = np.zeros(nbclaq, ) # nbclaq width values
 
             # calculate the rating curve
-            # CAREFUL, we exchange here between h and w
-            [w_coeff, h_coeff] = power_law(data_hydro[i])
+            [h_coeff, w_coeff] = power_law(qhw[i])
 
-            if qrange[i][0] == 0:
+            if self.qrange[i][0] == 0:
                 qrange[i][0] = 1e-2
             if qrange[i][1] == 0:
                 qrange[i][0] = 1e-2
@@ -305,25 +295,26 @@ class FStress:
                 lnqs = np.log(min(qrange[i])) + (qind + 0.5) * (np.log(max(qrange[i])) - np.log(min(qrange[i]))) / nbclaq
                 qmod[qind] = np.exp(lnqs)
                 # height and width and vm
-                hs = np.exp(h_coeff[1] + lnqs * h_coeff[0])
+                hs = np.exp(h_coeff[1] + lnqs * h_coeff[0]) # possible aussi hs= h_coeff[1]*(qmod[qind] ** h_coeff[0])
                 hmod[qind] = hs
                 ws = np.exp(w_coeff[1] + lnqs * w_coeff[0])
                 wmod[qind] = ws
-                vm = np.exp(lnqs) / (hs * ws)
+                vm = qmod[qind] / (hs * ws) #mean velocity for the discharge value
                 # stress distribution
-                diststress = func_stress(vm, hs, tau)
+
                 # habitat value
                 for ii in range(0, nb_inv):
-                    vh_riv[qind, ii] = np.sum(diststress * pref_select[ii, :])
+                    diststress = func_stress(vm, hs,[x * 10 for x in dict_pref_fstress ['shearstress'][ii]])
+                    vh_riv[qind, ii] = np.sum(diststress * dict_pref_fstress ['pref_values'][ii]) # np.sum(diststress * pref_select[ii, :])
             vh.append(vh_riv)
-            qmod_all.append(qmod)
+            self.qmod_all.append(qmod)
 
-        return vh, qmod_all, inv_select
+        return vh, dict_pref_fstress ['code_bio_model'] #return vh, qmod_all, dict_pref_fstress ['code_bio_model']
 
     def fstress_get_pref(self):
         hvum = HydraulicVariableUnitManagement()
         # each animal model
-        dict_pref_fstress = {'code_bio_model': [], 'stage': [], 'pref_shearstress': [], 'pref_numbers': [],
+        dict_pref_fstress = {'code_bio_model': [], 'stage': [], 'shearstress': [], 'pref_numbers': [],
                              'pref_values': []}
         project_properties = load_project_properties(self.path_prj)  # load_project_properties
         for hab_string_var in self.fish_chosen:
@@ -343,7 +334,7 @@ class FStress:
             # get data
             if hab_var.model_type == "univariate suitability index curves":
                 if "HEM" in hydraulic_type_available:
-                    dict_pref_fstress['pref_shearstress'].append(
+                    dict_pref_fstress['shearstress'].append(
                         hab_var.variable_list[hab_var.variable_list.names().index(hvum.shear_stress.name)].data[0])
                     dict_pref_fstress['pref_numbers'].append(
                         hab_var.variable_list[hab_var.variable_list.names().index(hvum.shear_stress.name)].data[1])
@@ -451,6 +442,92 @@ class FStress:
                         dpi=project_properties['resolution'], transparent=True)
             i += 1
 
+    def savetxt_fstress(self):
+        """
+        A function to save the stathab results in .txt form
+        """
+        # dict_pref_stahab = self.stahab_get_pref()
+        # nb_models = len(dict_pref_stahab['code_bio_model'])
+        # mode_name = "Stathab_steep" if self.riverint == 1 else "Stathab"
+        #
+        # z0header_txt = '\t'.join(['site', 'esp', 'Q', 'W', 'H', 'V', 'vh_v', 'spu_v', 'vh_h', 'spu_h', 'vh_hv',
+        #                           'spu_hv']) + '\n' + '\t'.join(
+        #     [' ', ' ', '[m3/s]', '[m]', '[m]', '[m/s]', '[-]', '[m2/100m]', '[-]', '[m2/100m]', '[-]', '[m2/100m]'])
+        #
+        # # save in txt hydraulic information and habitat results for each reach X biological models selected
+        for r in range(0, len(self.name_reach)):
+            z0namefile = os.path.join(self.path_txt, 'z' + 'Fstress_Q_' + self.name_reach[r] + '.txt')
+        #     qmod = self.q_all[r]
+        #     hmod = self.h_all[r]
+        #     vmod = self.v_all[r]
+        #     wmod = self.w_all[r]
+        #     header0_list = ['Q', 'W', 'H', 'V']
+        #     header1_list = ['[m3/s]', '[m]', '[m]', '[m/s]']
+        #     jj0 = np.concatenate((qmod, wmod, hmod, vmod), axis=1)
+        #     jj = np.copy(jj0)
+        #     z0a = np.array([self.name_reach[r] for _ in range(len(qmod))], dtype=object)
+        #     for index_habmodel in range(nb_models):
+        #         codefish = dict_pref_stahab['code_bio_model'][index_habmodel] + '-' + dict_pref_stahab['stage'][
+        #             index_habmodel]
+        #         header0_list.extend(['osi_hv-' + codefish, 'wua_hv-' + codefish])
+        #         header1_list.extend(['[-]', '[m2/100m]'])
+        #         jj = np.concatenate((jj, np.stack(
+        #             (self.j_all['hv_hv'][r, index_habmodel, :], self.j_all['wua_hv'][r, index_habmodel, :]),
+        #             axis=1)), axis=1)
+        #         z0b = np.array([codefish for _ in range(len(qmod))], dtype=object)
+        #         z0c = np.concatenate((np.column_stack((z0a, z0b)), jj0, np.stack(
+        #             (self.j_all['hv_v'][r, index_habmodel, :], self.j_all['wua_v'][r, index_habmodel, :],
+        #              self.j_all['hv_h'][r, index_habmodel, :], self.j_all['wua_h'][r, index_habmodel, :],
+        #              self.j_all['hv_hv'][r, index_habmodel, :], self.j_all['wua_hv'][r, index_habmodel, :]),
+        #             axis=1)), axis=1)
+        #         if index_habmodel == 0:
+        #             z0jj = np.copy(z0c)
+        #         else:
+        #             z0jj = np.concatenate((z0jj, z0c), axis=0)
+        #     namefile = os.path.join(self.path_txt, mode_name + '_' + self.name_reach[r] + '.txt')
+        #     header_txt = '\t'.join(header0_list) + '\n' + '\t'.join(header1_list)
+        #     np.savetxt(namefile, jj, delimiter='\t', header=header_txt)
+        #     np.savetxt(z0namefile, z0jj, delimiter='\t', header=z0header_txt, fmt='%s')
+        #
+        # # save in txt stathab calculations of depth and  velocity distribution for each reach X discharge Q
+        # z1header_txt = '\t'.join(['site', 'Q', 'frequency', 'Hmin', 'Hmax']) + '\n' + '\t'.join(
+        #     [' ', '[m3/s]', ' ', '[m]', '[m]'])
+        # z2header_txt = '\t'.join(['site', 'Q', 'frequency', 'Vmin', 'Vmax']) + '\n' + '\t'.join(
+        #     [' ', '[m3/s]', ' ', '[m/s]', '[m/s]'])
+        # for r in range(0, len(self.name_reach)):
+        #     z1namefile = os.path.join(self.path_txt, 'z' + mode_name + '_' + self.name_reach[r] + '_dist_h.txt')
+        #     z2namefile = os.path.join(self.path_txt, 'z' + mode_name + '_' + self.name_reach[r] + '_dist_v.txt')
+        #     if mode_name == "Stathab":
+        #         nb_h = len(self.lim_all[0]) - 1
+        #         nb_v = len(self.lim_all[1]) - 1
+        #     elif mode_name == "Stathab_steep":
+        #         nb_h = len(self.hborn_Stahabsteep[0][0])
+        #         nb_v = len(self.vborn_Stahabsteep[0][0])
+        #     qmod = self.q_all[r]
+        #     for iq in range(len(qmod)):
+        #         z1r = np.array([self.name_reach[r] for _ in range(nb_h)], dtype=object)
+        #         z2r = np.array([self.name_reach[r] for _ in range(nb_v)], dtype=object)
+        #         z1q = np.array([qmod[iq] for _ in range(nb_h)])
+        #         z2q = np.array([qmod[iq] for _ in range(nb_v)])
+        #         if mode_name == "Stathab":
+        #             z1all = np.column_stack(
+        #                 (z1r, z1q, self.dist_hs_all[r][iq], self.lim_all[0][0: -1], self.lim_all[0][1:]))
+        #             z2all = np.column_stack(
+        #                 (z2r, z2q, self.dist_vs_all[r][iq], self.lim_all[1][0: -1], self.lim_all[1][1:]))
+        #         elif mode_name == "Stathab_steep":
+        #             deltah, deltav = self.hborn_Stahabsteep[r][iq][0], self.vborn_Stahabsteep[r][iq][0]
+        #             z1all = np.column_stack(
+        #                 (z1r, z1q, self.dist_hs_all[r][iq], self.hborn_Stahabsteep[r][iq] - deltah,
+        #                  self.hborn_Stahabsteep[r][iq] + deltah))
+        #             z2all = np.column_stack(
+        #                 (z2r, z2q, self.dist_vs_all[r][iq], self.vborn_Stahabsteep[r][iq] - deltav,
+        #                  self.vborn_Stahabsteep[r][iq] + deltav))
+        #         if iq == 0:
+        #             z1jj, z2jj = np.copy(z1all), np.copy(z2all)
+        #         else:
+        #             z1jj, z2jj = np.concatenate((z1jj, z1all), axis=0), np.concatenate((z2jj, z2all), axis=0)
+        #     np.savetxt(z1namefile, z1jj, delimiter='\t', header=z1header_txt, fmt='%s')
+        #     np.savetxt(z2namefile, z2jj, delimiter='\t', header=z2header_txt, fmt='%s')
 
 def fstress_test(qmod_all, vh_all, name_inv, name_river, path_rre, project_properties={}):
     """
@@ -525,7 +602,7 @@ def func_stress(vm, h, tau):
     nbst = len(tau)
 
     # estimate the m parameter by dichotomy m is between 2 and 18 (why?)
-    # m is the seconc parameter fo the stress distribution
+    # m is the second parameter fo the stress distribution
     mmin = 2.
     msup = 18.
     for p in range(1, 20):

@@ -1118,6 +1118,7 @@ class Stathab:
         """
         A function to save the stathab results in .txt form
         """
+        #TODO YLC pense inutile car deja fait
         dict_pref_stahab = self.stahab_get_pref()
         nb_models = len(dict_pref_stahab['code_bio_model'])
         mode_name = "Stathab_steep" if self.riverint == 1 else "Stathab"
@@ -1334,7 +1335,7 @@ def power_law(qwh_r):
     w = qwh_r[:, 2]
 
     # fit power-law
-    h_coeff = np.polyfit(np.log(q), np.log(h), 1)  # h_coeff[1] + ln(Q) *h_coeff[0]
+    h_coeff = np.polyfit(np.log(q), np.log(h), 1)  # ln(h) = h_coeff[1] + ln(Q) *h_coeff[0]
     w_coeff = np.polyfit(np.log(q), np.log(w), 1)
 
     return h_coeff, w_coeff

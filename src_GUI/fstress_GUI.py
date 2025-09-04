@@ -452,11 +452,11 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.myfstress.path_txt = self.find_path_text_est()
 
         # check
-        for r in range(0, len(self.myfstress.qwh)):
-            if self.myfstress.qwh[r][1, 0] < self.myfstress.qwh[r][0, 0] * 2:
+        for r in range(0, len(self.myfstress.qhw)):
+            if self.myfstress.qhw[r][1, 0] < self.myfstress.qhw[r][0, 0] * 2:
                 self.send_log.emit('Warning: Measured discharge are too close to each other.'
                                    'Results might be unrealisitc. \n')
-            if self.myfstress.qwh[r][1, 0] > 50 or self.myfstress.qwh[r][0, 0] > 50:
+            if self.myfstress.qhw[r][1, 0] > 50 or self.myfstress.qhw[r][0, 0] > 50:
                 self.send_log.emit('Warning: Discharge is higher then 50m3/s. Results might be unrealisitc \n')
 
         # run FStress
@@ -465,16 +465,17 @@ class FstressW(estimhab_GUI.StatModUseful):
         sys.stdout = sys.__stdout__
         self.send_err_log()
 
-        # caught some errors, special cases.
-        if len(self.myfstress.disthmes) == 0:  # you cannot use seld.list_needed.count()
-            self.send_log.emit("Error: " + self.model_type + " could not be run. Are all files available?")
-            return
-        if len(self.myfstress.disthmes[0]) == 1:
-            if self.myfstress.disthmes[0] == -99:
-                return
+        #TODO comprendre dans stahab fait stopper fstress
+        # # caught some errors, special cases.
+        # if len(self.myfstress.disthmes) == 0:  # you cannot use seld.list_needed.count()
+        #     self.send_log.emit("Error: " + self.model_type + " could not be run. Are all files available?")
+        #     return
+        # if len(self.myfstress.disthmes[0]) == 1:
+        #     if self.myfstress.disthmes[0] == -99:
+        #         return
 
         # save data and fig
-        self.myfstress.savetxt_stathab()
+        self.myfstress.savetxt_fstress()
         self.myfstress.savefig_stahab()
 
         # log information
