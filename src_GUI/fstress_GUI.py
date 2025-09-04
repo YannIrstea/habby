@@ -59,11 +59,8 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.list_re = QListWidget()
         # name of all the text file (see stathabinfo.pdf)
         self.listrivname = 'listriv'
-        self.end_file_reach = ['deb', 'qhw', 'gra', 'dis']  # .txt or .csv
+        self.end_file_reach = ['deb', 'qhw']  # .txt or .csv
         self.end_file_reach_trop = ['deb', 'qhw', 'ii']  # .txt or .csv
-        self.name_file_allreach = ['bornh',
-                                   'bornv']  # old :  self.name_file_allreach = ['bornh', 'bornv', 'borng', 'Pref_latin.txt']
-        self.name_file_allreach_trop = []
         self.hdf5_name = self.tr('No hdf5 selected')
         self.myfstress = fstress_mod.FStress(self.name_prj, self.path_prj)
         self.dir_hdf5 = self.path_prj
@@ -315,12 +312,10 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         # first let's look for the files where one file by reach is needed
         c = -1
-        file_name_all_reach_here = []
         end_file_reach_here = []
         for r in range(0, len(name_reach)):
             # see which files are need based on the current river type
             end_file_reach_here = copy.deepcopy(self.end_file_reach)
-            file_name_all_reach_here = copy.deepcopy(self.name_file_allreach)
 
             for i in range(0, len(end_file_reach_here)):
                 file = os.path.join(self.dir_name, name_reach[r] + end_file_reach_here[i] + '.txt')
@@ -344,73 +339,20 @@ class FstressW(estimhab_GUI.StatModUseful):
             self.list_file.addItem('----------------')
             c += 1
 
-        # files for all reaches
-        # for the preference file in the case of temperate river:
-        # first choice> Pref.txt in dir_name is used.
-        # default choice: Pref.txt in the biology folder.
-        for i in range(0, len(file_name_all_reach_here)):
-            file = os.path.join(self.dir_name, file_name_all_reach_here[i] + '.txt')
-            file2 = os.path.join(self.dir_name, file_name_all_reach_here[i] + '.csv')
-            if os.path.isfile(file):
-                itemf = QListWidgetItem(file_name_all_reach_here[i] + '.txt')
-                file_name_all_reach_here[i] += '.txt'
-                self.list_file.addItem(itemf)
-                itemf.setBackground(Qt.lightGray)
-                # if a custom Pref.txt is present (for stathab temperate)
-                if i == len(self.name_file_allreach):
-                    self.path_bio_stathab = self.dir_name
-            elif os.path.isfile(file2):
-                itemf = QListWidgetItem(file_name_all_reach_here[i] + '.csv')
-                file_name_all_reach_here[i] += '.csv'
-                self.list_file.addItem(itemf)
-                itemf.setBackground(Qt.lightGray)
-                # if a custom Pref.txt is present (for stathab temperate)
-                if i == len(self.name_file_allreach):
-                    self.path_bio_stathab = self.dir_name
-            else:
-                # case 1: a file is missing
-                if i != len(file_name_all_reach_here) - 1:
-                    self.list_needed.addItem(file_name_all_reach_here[i])
-
-        # # read the name of the available fish
-        # name_fish = []
-        # if self.riverint == 0:
-        #     sys.stdout = self.mystdout = StringIO()
-        #     [name_fish, blob] = stathab_mod.load_pref(self.name_file_allreach[-1], self.path_bio_stathab)
-        #     sys.stdout = sys.__stdout__
-        #     self.send_err_log()
-        # if self.riverint == 1:  # univariate
-        #     filenames = hdf5_mod.get_all_filename(self.path_bio_stathab, '.csv')
-        #     for f in filenames:
-        #         if 'uni' in f and f[-7:-4] not in name_fish:
-        #             name_fish.append(f[-7:-4])
-        # if self.riverint == 2:
-        #     filenames = hdf5_mod.get_all_filename(self.path_bio_stathab, '.csv')
-        #     for f in filenames:
-        #         if 'biv' in f:
-        #             name_fish.append(f[-7:-4])
-        #
-        # if name_fish == [-99]:
-        #     return
-        # self.list_f.clear()
-        # for r in range(0, len(name_fish)):
-        #     self.list_f.addItem(name_fish[r])
-
         # load now the text data, create the hdf5 and write in the project file
         if self.list_needed.count() > 0:
-            if not file_name_all_reach_here or not end_file_reach_here:
-                self.send_log.emit('Error: Found only a part of the needed STATHAB files. '
+            if not end_file_reach_here:
+                self.send_log.emit('Error: Found only a part of the needed FStress files. '
                                    'Need to re-load before execution\n')
-                # self.mystathab.save_xml_stathab(True)
+                # self.myfstress.save_xml_stathab(True)
                 return
         else:
             self.list_needed.addItem('All files found')
-            self.send_log.emit('# Found all STATHAB files. Run Now.')
+            self.send_log.emit('# Found all FStress files. Run Now.')
             sys.stdout = self.mystdout = StringIO()
-            self.mystathab.load_stathab_from_txt(end_file_reach_here, file_name_all_reach_here,
-                                                 self.dir_name)
-            # self.mystathab.create_hdf5()
-            # self.mystathab.save_xml_stathab()
+            self.myfstress.load_fstress_from_txt(end_file_reach_here, self.dir_name)
+            # self.myfstress.create_hdf5()
+            # self.myfstress.save_xml_stathab()
             sys.stdout = sys.__stdout__
             self.send_err_log()
 
@@ -424,7 +366,7 @@ class FstressW(estimhab_GUI.StatModUseful):
             src.dev_tools_mod.copy_files(all_files, paths, new_dir)
 
             # log info
-            if not self.mystathab.load_ok:
+            if not self.myfstress.load_ok:
                 self.send_log.emit('Error: Could not load stathab data.\n')
                 return
             var1 = 'py    var1 = ['
@@ -435,20 +377,12 @@ class FstressW(estimhab_GUI.StatModUseful):
                     var1 += "'" + self.end_file_reach[i] + ".txt',"
             var1 = var1[:-1] + "]"
             self.send_log.emit(var1)
-            var2 = 'py    var2 = ['
-            for i in range(0, len(self.name_file_allreach)):
-                if '.txt' in self.name_file_allreach[i]:
-                    var2 += "'" + self.name_file_allreach[i] + "',"
-                else:
-                    var2 += "'" + self.name_file_allreach[i] + ".txt',"
-            var2 = var2[:-1] + "]"
-            self.send_log.emit(var2)
             # self.send_log.emit("py    dir_name = '" + self.dir_name + "'")
-            # self.send_log.emit('py    mystathab = stathab_c.Stathab(name_prj, path_prj)')
-            # self.send_log.emit("py    mystathab.riverint = " + str(self.riverint))
-            # self.send_log.emit("py    mystathab.load_stathab_from_txt( var1, var2, dir_name)")
-            # self.send_log.emit("py    mystathab.create_hdf5()")
-            # self.send_log.emit("py    mystathab.save_xml_stathab()")
+            # self.send_log.emit('py    myfstress = stathab_c.Stathab(name_prj, path_prj)')
+            # self.send_log.emit("py    myfstress.riverint = " + str(self.riverint))
+            # self.send_log.emit("py    myfstress.load_stathab_from_txt( var1, var2, dir_name)")
+            # self.send_log.emit("py    myfstress.create_hdf5()")
+            # self.send_log.emit("py    myfstress.save_xml_stathab()")
 
     def reach_selected(self):
         """

@@ -77,7 +77,7 @@ class FStress:
         self.project_properties = []
         self.path_txt = path_prj  # path where to save the text
 
-    def load_fstress_from_txt(self, end_file_reach, name_file_allreach, path):
+    def load_fstress_from_txt(self, end_file_reach, path):
         """
         A function to read and check the input from fstress based on the csv/txt files.
         All files should be in the same folder.
