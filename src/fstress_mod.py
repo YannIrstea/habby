@@ -238,7 +238,7 @@ class FStress:
         """
         self.fstress_get_pref()
 
-        data_hydro, qrange, riv_name, inv_select, pref_all, name_all, name_prj, path_prj = (0,0,0,0,0,0,0,0)
+        #data_hydro, qrange, riv_name, inv_select, pref_all, name_all, name_prj, path_prj = (0,0,0,0,0,0,0,0)
 
         # initalisation
         nbclaq = 50  # number of discharge point where the data have to be calculate
@@ -253,7 +253,7 @@ class FStress:
 
 
         qmod_all = []
-        nb_inv = len(inv_select)
+        nb_inv = len(dict_pref_fstress ['code_bio_model'])
         vh = []
         pref_select = np.zeros((nb_inv, len(tau)))  # preference coeff for the selected invertebrate
         find_one_inv = False
