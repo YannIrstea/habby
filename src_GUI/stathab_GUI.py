@@ -137,6 +137,10 @@ class StathabW(estimhab_GUI.StatModUseful):
         self.l3 = QLabel(self.tr("File found"))
         self.l4 = QLabel(self.tr("File still needed"))
 
+        self.fromtxt_checkbox = QCheckBox(self.tr("from discharge chronicle file (.txt)"))
+        self.fromtxt_checkbox.setChecked(False)
+        self.fromtxt_checkbox.setToolTip(self.tr("discharge chronicle from .txt file"))
+
         self.fromtxt_lineedit = QLineEdit("")
         self.fromtxt_lineedit.setEnabled(False)
         self.chro_file_pushbutton = QPushButton("...")
@@ -240,9 +244,6 @@ class StathabW(estimhab_GUI.StatModUseful):
         # hydraulic_data_output_group
         hydraulic_data_output_group = QGroupBox(self.tr('Desired habitat value'))
         hydraulic_data_layout = QGridLayout(hydraulic_data_output_group)
-        self.fromtxt_checkbox = QCheckBox(self.tr("from discharge chronicle file (.txt)"))
-        self.fromtxt_checkbox.setChecked(False)
-        self.fromtxt_checkbox.setToolTip(self.tr("discharge chronicle from .txt file"))
         hydraulic_data_layout.addWidget(self.fromtxt_checkbox, 0, 0)
         hydraulic_data_layout.addWidget(self.fromtxt_lineedit, 0, 1)
         hydraulic_data_layout.addWidget(self.chro_file_pushbutton, 0, 2)
