@@ -27,7 +27,7 @@ import copy
 
 from src.project_properties_mod import create_default_project_properties_dict, load_project_properties
 from src.bio_info_mod import read_pref, copy_or_not_user_pref_curve_to_input_folder
-from src.stathab_mod import load_namereach, power_law
+from src.stathab_mod import load_namereach, power_law, check_stahab_files
 from src.variable_unit_mod import HydraulicVariableUnitManagement
 from src.user_preferences_mod import user_preferences
 from src.dev_tools_mod import is_number
@@ -39,15 +39,19 @@ class FStress:
     """
 
     def __init__(self, name_prj, path_prj):
+
+        self.qhw = []  # the discharge, the heigh and width at least at two different dicharges (rivqvh.txt) a list of np.array
+        self.qrange = [] #qrange: the qmin and qmax for each river [qmin,qmax] -> list of list
+
+        #TODO supprimer
         self.qlist = []  # the list of dicharge for each reach, usually in rivdis.txt
-        self.qwh = []  # the discharge, the width and height
-        # at least at two different dicharges (rivqvh.txt) a list of np.array
         self.disthmes = []  # the measured distribution of height (rivdist.txt) a list of np.array
         self.qhmoy = []  # the mean height and q (2 first llines of rivdis.txt)
         self.dist_gran = []  # the distribution of granulo (rivgra.txt)-only used by temperate river, a list of np.array
         self.data_ii = []  # only used by tropical river. The slope, waterfall height and length of river
         self.fish_chosen = []  # the name of the fish to be studied, the name should also be in pref.txt
         self.lim_all = []  # the limits or bornes of h,q and granulio (born*.txt)
+
         self.name_reach = []  # the list with the name of the reaches
         self.j_all = dict()  # habitat values
         self.data_list = list()  # list by reach of dict of all reach data values
@@ -59,8 +63,6 @@ class FStress:
         self.v_all = []  # mean velocity of all the reaches
         self.w_all = []  # mean width of all the reaches
         self.q_all = []  # discharge
-        self.hborn_Stahabsteep = []  # only for Stahab_steep the mean values of h for each class of height per reach X discharge
-        self.vborn_Stahabsteep = []  # only for Stahab_steep the mean values of v for each class of velocity per reach X discharge
         self.dist_hs_all = []  # frequency distribution for height per reach X discharge
         self.dist_vs_all = []  # frequency distribution for velocity per reach X discharge
         self.fish_chosen = []  # the name of the fish
@@ -77,15 +79,12 @@ class FStress:
 
     def load_fstress_from_txt(self, end_file_reach, name_file_allreach, path):
         """
-        A function to read and check the input from stathab based on the text files.
+        A function to read and check the input from fstress based on the csv/txt files.
         All files should be in the same folder.
-        The file Pref.txt is read in run_stathab.
-        If self.fish_chosen is not present, all fish in the preference file are read.
-
         :param end_file_reach: the ending of the files whose names depends on the reach (with .txt or .csv)
         :param name_file_allreach: the name of the file common to all reaches
         :param path: the path to the file
-        :return: the inputs needed for run_stathab
+        :return: the inputs needed for calc_fstress
         """
         self.load_ok = False
         # self.name_reach
@@ -95,7 +94,11 @@ class FStress:
         nb_reach = len(self.name_reach)
 
         # prep
-        self.qwh = []
+        self.qhw = []
+        self.qrange = []
+
+
+        #TODO supprimer
         self.qlist = []
         self.disthmes = []
         self.qhmoy = []
@@ -118,19 +121,19 @@ class FStress:
                     print('Error: The file called ' + filename + ' was not found.\n')
                     return
 
-                # open rivself.qwh.txt
+                # open rivqwh.txt
                 if ef[-7:-4] == 'qhw':
-                    qwh_r = check_fstress_files(filename, True, ['Q[m3/s]', 'H[m]', 'W[m]'], [],False)
-                    if np.array_equal(qwh_r, [-99]):  # if failed
+                    qhw_r = check_stahab_files(filename, True, ['Q[m3/s]', 'H[m]', 'W[m]'], [],False)
+                    if np.array_equal(qhw_r, [-99]):  # if failed
                         return
-                    if np.any(qwh_r[:,0]==0):
+                    if np.any(qhw_r[:,0]==0):
                         print('Error: The file called ' + filename + ' a 0 value for Q[m3/s] has been found\n')
                         return
-                    self.qwh.append(qwh_r)
+                    self.qhw.append(qhw_r)
 
                 # open rivdeb.txt
                 elif ef[-7:-4] == 'deb':
-                    qlist_r = check_fstress_files(filename, True, ['Q[m3/s]'], [],False)
+                    qlist_r = check_stahab_files(filename, True, ['Q[m3/s]'], [],False)
                     if np.array_equal(qlist_r, [-99]):
                         return
                     if np.any(qlist_r ==0):
@@ -139,60 +142,7 @@ class FStress:
                     if len(qlist_r) < 2:
                         print('Error: two discharges minimum are needed in ' + filename + '\n')
                         return
-                    self.qlist.append(qlist_r)
-
-                # open riv dis
-                elif ef[-7:-4] == 'dis':
-                    ldisl = ['Q[m3/s]', 'H[m]']
-                    for i in range(20):
-                        ldisl.append('frequency(' + str(i) + '*H/4<h<' + str(i + 1) + '*H/4)')
-                    dis_r = check_fstress_files(filename, True, [], ldisl,True)
-                    if np.array_equal(dis_r, [-99]):  # if failed
-                        return
-                    self.disthmes.append(dis_r[2:])
-                    self.qhmoy.append(dis_r[:2])
-
-                # open rivgra.txt
-                elif ef[-7:-4] == 'gra':
-                    lgral = ['organic-matter', 'silt:<0,0625[mm]', 'fine-sand:<0,5[mm]', 'coarse-sand:<2[mm]',
-                             'fine-gravel:<8[mm]', 'coarse-gravel:<16[mm]', 'fine-pebbles:<32[mm]',
-                             'coarse-pebbles:<64[mm]', 'fine-cobbles:<128[mm]', 'coarse-cobbles:<256[mm]',
-                             'boulders:<1024[mm]', 'rocks:>=1024[mm]']
-                    dist_granulo_r = check_fstress_files(filename, True,
-                                                        ['substrate_classification_code', 'frequency[]'],
-                                                        lgral,True)
-                    if np.array_equal(dist_granulo_r, [-99]):  # if failed
-                        return
-                    self.dist_gran.append(dist_granulo_r)
-
-                # open data_ii.txt (only for tropical rivers; stahb_steep)
-                elif ef[-6:-4] == 'ii':
-                    data_ii_r = check_fstress_files(filename, False, [],
-                                                   ['reach_slope[%]', 'total_waterfalls_height[m]', 'reach_length[m]'],False)
-                    if np.array_equal(data_ii_r, [-99]):  # if failed
-                        return
-                    self.data_ii.append(data_ii_r)
-
-        # open the files with the limits of class
-        self.lim_all = [[], []]
-        lbornl = [['H[m]'], ['V[m/s]']]
-        bok = 0
-        for b in range(0, len(name_file_allreach)):
-            if name_file_allreach[b].lower() in ('bornh.txt', 'bornh.csv'):
-                bok = 1
-            if name_file_allreach[b].lower() in ('bornv.txt', 'bornv.csv'):
-                bok = 2
-            if bok != 0:
-                filename = os.path.join(path, name_file_allreach[b])
-                born = check_fstress_files(filename, True, lbornl[bok - 1], [],False)
-                if np.array_equal(born, [-99]):
-                    return
-                if len(born) < 2:
-                    print('Error: The file called ' + filename + ' is not in the right format.  '
-                                                                 'At least two values needed. \n')
-                    return
-                self.lim_all[bok - 1] = born
-                bok = 0
+                    self.qrange.append(qlist_r)
         self.load_ok = True
 
     def save_fstress(self, path_hab, path_prj, name_prj, name_bio, path_bio, riv_name, data_hydro, qrange, fish_list):
@@ -287,14 +237,21 @@ class FStress:
         :param name_prj: the name of the project-> string
         """
         self.fstress_get_pref()
+
         data_hydro, qrange, riv_name, inv_select, pref_all, name_all, name_prj, path_prj = (0,0,0,0,0,0,0,0)
+
         # initalisation
         nbclaq = 50  # number of discharge point where the data have to be calculate
+
         data_hydro = np.array(data_hydro)  # qhw
+
         pref_all = np.array(pref_all)
+
         # this is the constraint value on dyn/cm2, empirical data probably
         tau = [0.771, 0.828, 0.945, 1.18, 1.41, 1.66, 2.18, 2.72, 3.93, 5.29, 6.82, 8.26, 10.9, 15.9, 22.7, 31.7, 44.8, 63.4
             , 89.5, 127.]
+
+
         qmod_all = []
         nb_inv = len(inv_select)
         vh = []
@@ -366,7 +323,7 @@ class FStress:
     def fstress_get_pref(self):
         hvum = HydraulicVariableUnitManagement()
         # each animal model
-        dict_pref_fstress = {'code_bio_model': [], 'stage': [], 'pref_shearstress': [], 'pref_number': [],
+        dict_pref_fstress = {'code_bio_model': [], 'stage': [], 'pref_shearstress': [], 'pref_numbers': [],
                              'pref_values': []}
         project_properties = load_project_properties(self.path_prj)  # load_project_properties
         for hab_string_var in self.fish_chosen:
@@ -388,7 +345,7 @@ class FStress:
                 if "HEM" in hydraulic_type_available:
                     dict_pref_fstress['pref_shearstress'].append(
                         hab_var.variable_list[hab_var.variable_list.names().index(hvum.shear_stress.name)].data[0])
-                    dict_pref_fstress['pref_number'].append(
+                    dict_pref_fstress['pref_numbers'].append(
                         hab_var.variable_list[hab_var.variable_list.names().index(hvum.shear_stress.name)].data[1])
                     dict_pref_fstress['pref_values'].append(
                         hab_var.variable_list[hab_var.variable_list.names().index(hvum.shear_stress.name)].data[2])
@@ -543,98 +500,7 @@ def fstress_test(qmod_all, vh_all, name_inv, name_river, path_rre, project_prope
         lgd = plt.legend(bbox_to_anchor=(1.4, 1), loc='upper right', ncol=1)
         i += 1
 
-def check_fstress_files(filename,check_neg,lchkcolhead,lchklines,check_sumone):
-    '''
-    A function to load and check stahab and stahab_steep files and extract list of floats
-    :param filename:  the file to load with the path
-    :param check_neg: if true negatives values are not allowed in the data
-    :param lchkcolhead: a list of string for column names
-    :param lchklines: a list of string for lines names
-    :param check_sumone: if true the sum of the values must be one at tolerance_check_sumone
 
-    :return: data in a list of np.array if ok, [-99] if failed
-    '''
-    tolerance_check_sumone = 0.0011
-    filemantisse, file_extension = os.path.splitext(filename)
-    nbcol, nblines = len(lchkcolhead), len(lchklines)
-    myfloatdata = []
-    inblines = 0
-    with open(filename, 'rt') as fi:
-        lines = fi.readlines()
-        for iline, line in enumerate(lines):
-            if '\n' in line:
-                line = line[:-1]
-            if file_extension.lower() == '.csv' or ';' in line:
-                col = line.split(';')
-            else:
-                col = line.split()
-            if iline == 0 and nbcol != 0:
-                if len(col) != nbcol:
-                    print('Error: the first line information ' + ' '.join(
-                        lchkcolhead) + ' has not been  found correctly in ' + filename + '.\n')
-                    return [-99]
-                for i in range(nbcol):
-                    if lchkcolhead[i].lower() != col[i].lower():
-                        print('Error: the first line information ' + lchkcolhead[
-                            i] + ' has not been  found correctly in ' + filename + '.\n')
-                        return [-99]
-            else:
-                if line.split() != '':
-                    if nblines != 0:
-                        if inblines > nblines - 1:
-                            print('Error: Too much lines and values found in ' + filename + ' ' + line + '.\n')
-                            return [-99]
-                        if col[0].lower().replace(" ", "") != lchklines[
-                            inblines].lower():  # to accept for csv the string with spaces frequency(0*H/4 < h < 1*H/4)
-                            print('Error: the line information ' + lchklines[
-                                inblines] + ' has not been  found in ' + filename + '.\n')
-                            return [-99]
-                        inblines += 1
-                        if len(col) != 2:
-                            print('Error: the line ' + lchklines[
-                                inblines] + ' has not 2 informations in ' + filename + '.\n')
-                            return [-99]
-                        if is_number(col[1]):
-                            myfloatdata.append(float(col[1]))
-                        else:
-                            print('Error: the line ' + lchklines[
-                                inblines] + ' the second information is not numeric ' + filename + '.\n')
-                            return [-99]
-                    else:
-                        if nbcol != 0:
-                            if len(col) != nbcol:
-                                print('Error: the line ' + str(
-                                    iline + 1) + ' the number of informations is not correct ' + filename + '.\n')
-                                return [-99]
-                        for i, icol in enumerate(col):
-                            if is_number(col[i]):
-                                col[i] = float(col[i])
-                            else:
-                                print('Error: the line ' + str(
-                                    iline + 1) + ' at least one information is not numeric ' + filename + '.\n')
-                                return [-99]
-                            if check_neg and col[i] < 0:  # if there is negative value
-                                print('Error: the line ' + str(
-                                    iline + 1) + ' negative values found in ' + filename + '.\n')
-                                return [-99]
-                        myfloatdata.append(col)
-        myfloatdata2 = np.array(myfloatdata)
-        try:
-            if myfloatdata2.shape[1] == 1:
-                myfloatdata2 = myfloatdata2.reshape((myfloatdata2.shape[0],))
-        except:
-            pass
-    if check_sumone:
-
-        if filename[-7:-3].lower() == "dis.":
-            sumdata = np.sum(myfloatdata[2:])
-        else:
-            sumdata = np.sum(myfloatdata)
-        if np.abs(sumdata - 1) > tolerance_check_sumone:
-            print('Error: the sum of the values are not one withe a ' + str(
-                tolerance_check_sumone) + ' tolerance ' + filename + '.\n')
-            return [-99]
-    return myfloatdata2
 
 def func_stress(vm, h, tau):
     """

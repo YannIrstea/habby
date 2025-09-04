@@ -1376,5 +1376,6 @@ def load_namereach(path):
                     reach=file.lower()[:-7]
                     if not(reach in name_reach):
                         name_reach.append(reach)
-
+        if len(name_reach)==0:
+            name_reach= [-99]
     return name_reach
