@@ -462,8 +462,7 @@ class FstressW(estimhab_GUI.StatModUseful):
         # run FStress
         sys.stdout = self.mystdout = StringIO()
         self.myfstress.calc_fstress()
-        sys.stdout = sys.__stdout__
-        self.send_err_log()
+
 
         #TODO comprendre dans stahab fait stopper fstress
         # # caught some errors, special cases.
@@ -476,9 +475,10 @@ class FstressW(estimhab_GUI.StatModUseful):
 
         # save data and fig
         self.myfstress.savetxt_fstress()
-        self.myfstress.savefig_stahab()
+        self.myfstress.savefig_fstress()
 
         # log information
+        sys.stdout = sys.__stdout__
         self.send_err_log()
 
 

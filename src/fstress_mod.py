@@ -17,6 +17,7 @@ https://github.com/YannIrstea/habby
 from lxml import etree as ET
 from src import hdf5_mod
 import h5py
+from multiprocessing import Value
 import os
 import time
 import numpy as np
@@ -31,6 +32,7 @@ from src.stathab_mod import load_namereach, power_law, check_stahab_files
 from src.variable_unit_mod import HydraulicVariableUnitManagement
 from src.user_preferences_mod import user_preferences
 from src.dev_tools_mod import is_number
+from src.plot_mod import plot_stat_data
 
 
 class FStress:
@@ -269,32 +271,34 @@ class FStress:
 
         self.qmod_all = []
 
-        nb_inv = len(self.dict_pref_fstress ['code_bio_model'])
+        nb_models = len(self.dict_pref_fstress['code_bio_model'])
 
         self.vh_all = []
 
         # TODO supprimer
-        #pref_select = np.zeros((nb_inv, len(tau)))  # preference coeff for the selected invertebrate
+        #pref_select = np.zeros((nb_models, len(tau)))  # preference coeff for the selected invertebrate
 
-
+        vh_riv = np.zeros((len(self.name_reach), nb_models, nbclaq))  # nbclaq habitat values for each of the invertabrate selected
+        wua_riv = np.zeros((len(self.name_reach), nb_models, nbclaq))  # nbclaq habitat values for each of the invertabrate selected
         # for each river
-        for i in range(0, len(self.name_reach)):
-            vh_riv = np.zeros((nbclaq, nb_inv)) # nbclaq habitat values for each of the invertabrate selected
+        for reach_i in range(0, len(self.name_reach)):
+
             qmod = np.zeros(nbclaq, ) # nbclaq discharge values
             hmod = np.zeros(nbclaq, ) # nbclaq mean water depth values
             wmod = np.zeros(nbclaq, ) # nbclaq width values
+            vmmod = np.zeros(nbclaq, ) #
 
             # calculate the rating curve
-            [h_coeff, w_coeff] = power_law(qhw[i])
+            [h_coeff, w_coeff] = power_law(qhw[reach_i])
 
-            if self.qrange[i][0] == 0:
-                qrange[i][0] = 1e-2
-            if qrange[i][1] == 0:
-                qrange[i][0] = 1e-2
+            if self.qrange[reach_i][0] == 0:
+                qrange[reach_i][0] = 1e-2
+            if qrange[reach_i][1] == 0:
+                qrange[reach_i][0] = 1e-2
             # for each discharge
             for qind in range(0, nbclaq):
                 # discharge
-                lnqs = np.log(min(qrange[i])) + (qind + 0.5) * (np.log(max(qrange[i])) - np.log(min(qrange[i]))) / nbclaq
+                lnqs = np.log(min(qrange[reach_i])) + (qind + 0.5) * (np.log(max(qrange[reach_i])) - np.log(min(qrange[reach_i]))) / nbclaq
                 qmod[qind] = np.exp(lnqs)
                 # height and width and vm
                 hs = np.exp(h_coeff[1] + lnqs * h_coeff[0]) # possible aussi hs= h_coeff[1]*(qmod[qind] ** h_coeff[0])
@@ -302,14 +306,31 @@ class FStress:
                 ws = np.exp(w_coeff[1] + lnqs * w_coeff[0])
                 wmod[qind] = ws
                 vm = qmod[qind] / (hs * ws) #mean velocity for the discharge value
+                vmmod[qind] = vm
                 # stress distribution
 
                 # habitat value
-                for ii in range(0, nb_inv):
-                    diststress = func_stress(vm, hs,[x * 10 for x in self.dict_pref_fstress ['shearstress'][ii]])
-                    vh_riv[qind, ii] = np.sum(diststress * self.dict_pref_fstress ['pref_values'][ii]) # np.sum(diststress * pref_select[ii, :])
-            self.vh_all.append(vh_riv)
+                for model_i in range(0, nb_models):
+                    diststress = func_stress(vm, hs,[x * 10 for x in self.dict_pref_fstress ['shearstress'][model_i]])
+                    vh_riv[reach_i, model_i, qind] = np.sum(diststress * self.dict_pref_fstress ['pref_values'][model_i]) # np.sum(diststress * pref_select[model_i, :])
+                    wua_riv[reach_i, model_i, qind] = vh_riv[reach_i, model_i, qind] * ws * 100  # WUA/100m of river
+
+            self.h_all.append(hmod)
+            self.v_all.append(vmmod)
+            self.w_all.append(wmod)
+            self.vh_all.append(vh_riv[reach_i])
             self.qmod_all.append(qmod)
+
+            self.data_list.append(dict(fish_list=[
+                self.dict_pref_fstress['code_bio_model'][index_habmodel] + '-' + self.dict_pref_fstress['stage'][index_habmodel] for
+                index_habmodel in range(nb_models)],
+                                        qrange=qmod,
+                                       q_all=qmod,
+                                       h_all=hmod,
+                                       w_all=wmod,
+                                       vel_all=vmmod,
+                                       OSI=vh_riv[reach_i],
+                                       WUA=wua_riv[reach_i]))
 
         #return vh, qmod_all, dict_pref_fstress ['code_bio_model']
 
@@ -445,6 +466,23 @@ class FStress:
                         dpi=project_properties['resolution'], transparent=True)
             i += 1
 
+    def savefig_fstress(self):
+        """
+        """
+        # figure option
+        self.project_properties = load_project_properties(self.path_prj)
+        if len(self.qmod_all) < len(self.name_reach):
+            print('Error: Could not find discharge data. Figure not plotted. \n')
+            return
+
+        # plot
+        for r in range(0, len(self.name_reach)):
+            self.data_list[r]["name_reach"] = self.name_reach[r]
+            progress_value = Value("d", 0)
+            plot_stat_data(progress_value, self.data_list[r],
+                           "FStress",
+                           self.project_properties)
+
     def savetxt_fstress(self):
         """
         A function to save the stathab results in .txt form
@@ -464,7 +502,11 @@ class FStress:
         header_txt='\t'.join(header0_list)
         for r in range(0, len(self.name_reach)):
             namefile = os.path.join(self.path_txt, 'z' + 'Fstress_Q_' + self.name_reach[r] + '.txt')
-            np.savetxt(namefile, np.concatenate((np.resize(self.qmod_all[r],(self.qmod_all[r].shape[0],1)), self.vh_all[r]), axis=1), delimiter='\t', header=header_txt )
+            np.savetxt(namefile,
+                       np.concatenate((np.resize(self.qmod_all[r],(self.qmod_all[r].shape[0], 1)),
+                                       np.resize(self.vh_all[r],(self.qmod_all[r].shape[0], self.vh_all[r].shape[0]))), axis=1),
+                       delimiter='\t',
+                       header=header_txt)
         #     qmod = self.q_all[r]
         #     hmod = self.h_all[r]
         #     vmod = self.v_all[r]
@@ -536,6 +578,7 @@ class FStress:
         #             z1jj, z2jj = np.concatenate((z1jj, z1all), axis=0), np.concatenate((z2jj, z2all), axis=0)
         #     np.savetxt(z1namefile, z1jj, delimiter='\t', header=z1header_txt, fmt='%s')
         #     np.savetxt(z2namefile, z2jj, delimiter='\t', header=z2header_txt, fmt='%s')
+
 
 def fstress_test(qmod_all, vh_all, name_inv, name_river, path_rre, project_properties={}):
     """
