@@ -42,7 +42,9 @@ class FStress:
 
         self.qhw = []  # the discharge, the heigh and width at least at two different dicharges (rivqvh.txt) a list of np.array
         self.qrange = [] #qrange: the qmin and qmax for each river [qmin,qmax] -> list of list
-        self.qmod_all=[] # the list of dicharge for each reach
+        self.qmod_all=[] # the list of discharges for each reach
+        self.dict_pref_fstress = dict() # the relevant information per bio-model
+        self.vh_all = [] # the list of (np.array of habitat values per discharge per bio-model ) for each reach
 
         #TODO supprimer
         self.qlist = []  # the list of dicharge for each reach, usually in rivdis.txt
@@ -247,7 +249,7 @@ class FStress:
         :param path_prj: the path to the project-> string
         :param name_prj: the name of the project-> string
         """
-        dict_pref_fstress=self.fstress_get_pref()
+        self.dict_pref_fstress=self.fstress_get_pref()
         qrange=self.qrange
         qhw=self.qhw
 
@@ -267,9 +269,9 @@ class FStress:
 
         self.qmod_all = []
 
-        nb_inv = len(dict_pref_fstress ['code_bio_model'])
+        nb_inv = len(self.dict_pref_fstress ['code_bio_model'])
 
-        vh = []
+        self.vh_all = []
 
         # TODO supprimer
         #pref_select = np.zeros((nb_inv, len(tau)))  # preference coeff for the selected invertebrate
@@ -304,17 +306,17 @@ class FStress:
 
                 # habitat value
                 for ii in range(0, nb_inv):
-                    diststress = func_stress(vm, hs,[x * 10 for x in dict_pref_fstress ['shearstress'][ii]])
-                    vh_riv[qind, ii] = np.sum(diststress * dict_pref_fstress ['pref_values'][ii]) # np.sum(diststress * pref_select[ii, :])
-            vh.append(vh_riv)
+                    diststress = func_stress(vm, hs,[x * 10 for x in self.dict_pref_fstress ['shearstress'][ii]])
+                    vh_riv[qind, ii] = np.sum(diststress * self.dict_pref_fstress ['pref_values'][ii]) # np.sum(diststress * pref_select[ii, :])
+            self.vh_all.append(vh_riv)
             self.qmod_all.append(qmod)
 
-        return vh, dict_pref_fstress ['code_bio_model'] #return vh, qmod_all, dict_pref_fstress ['code_bio_model']
+        #return vh, qmod_all, dict_pref_fstress ['code_bio_model']
 
     def fstress_get_pref(self):
         hvum = HydraulicVariableUnitManagement()
         # each animal model
-        dict_pref_fstress = {'code_bio_model': [], 'stage': [], 'shearstress': [], 'pref_numbers': [],
+        dict_pref_fstress = {'code_bio_model': [], 'stage': [],  'codefish': [], 'shearstress': [], 'pref_numbers': [],
                              'pref_values': []}
         project_properties = load_project_properties(self.path_prj)  # load_project_properties
         for hab_string_var in self.fish_chosen:
@@ -328,6 +330,7 @@ class FStress:
             hab_var = information_model_dict["hab_variable_list"][stage_index]
             dict_pref_fstress['code_bio_model'].append(code_bio_model)
             dict_pref_fstress['stage'].append(stage)
+            dict_pref_fstress['codefish'].append(code_bio_model+ '-' + stage)
             hydraulic_type_available = information_model_dict["hydraulic_type_available"][stage_index]
             # copy_or_not_user_pref_curve_to_input_folder
             copy_or_not_user_pref_curve_to_input_folder(hab_var, project_properties)
@@ -447,7 +450,7 @@ class FStress:
         A function to save the stathab results in .txt form
         """
         # dict_pref_stahab = self.stahab_get_pref()
-        # nb_models = len(dict_pref_stahab['code_bio_model'])
+        nb_models = len(self.dict_pref_fstress['code_bio_model'])
         # mode_name = "Stathab_steep" if self.riverint == 1 else "Stathab"
         #
         # z0header_txt = '\t'.join(['site', 'esp', 'Q', 'W', 'H', 'V', 'vh_v', 'spu_v', 'vh_h', 'spu_h', 'vh_hv',
@@ -455,8 +458,13 @@ class FStress:
         #     [' ', ' ', '[m3/s]', '[m]', '[m]', '[m/s]', '[-]', '[m2/100m]', '[-]', '[m2/100m]', '[-]', '[m2/100m]'])
         #
         # # save in txt hydraulic information and habitat results for each reach X biological models selected
+        header0_list = ['Q[m3/s]']
+        for index_habmodel in range(nb_models):
+            header0_list.extend(['osi_hv-' + self.dict_pref_fstress['codefish'][index_habmodel]+'[]'])
+        header_txt='\t'.join(header0_list)
         for r in range(0, len(self.name_reach)):
-            z0namefile = os.path.join(self.path_txt, 'z' + 'Fstress_Q_' + self.name_reach[r] + '.txt')
+            namefile = os.path.join(self.path_txt, 'z' + 'Fstress_Q_' + self.name_reach[r] + '.txt')
+            np.savetxt(namefile, np.concatenate((np.resize(self.qmod_all[r],(self.qmod_all[r].shape[0],1)), self.vh_all[r]), axis=1), delimiter='\t', header=header_txt )
         #     qmod = self.q_all[r]
         #     hmod = self.h_all[r]
         #     vmod = self.v_all[r]
