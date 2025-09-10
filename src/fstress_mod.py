@@ -170,11 +170,11 @@ class FStress:
 
         self.vh_all = []
 
-        vh_riv = np.zeros(( nb_models, nbclaq))  # nbclaq habitat values for each of the invertabrate selected
-        wua_riv = np.zeros(( nb_models, nbclaq))  # nbclaq habitat values for each of the invertabrate selected
+
         # for each river
         for reach_i in range(0, len(self.name_reach)):
-
+            vh_riv = np.zeros(( nb_models, nbclaq))  # nbclaq habitat values for each of the invertabrate selected
+            wua_riv = np.zeros(( nb_models, nbclaq))  # nbclaq habitat values for each of the invertabrate selected
             qmod = np.zeros(nbclaq, ) # nbclaq discharge values
             hmod = np.zeros(nbclaq, ) # nbclaq mean water depth values
             wmod = np.zeros(nbclaq, ) # nbclaq width values
