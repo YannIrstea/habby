@@ -361,8 +361,8 @@ def all_command(all_arg, name_prj, path_prj, HABBY_VERSION, option_restart=False
             path_hdf5 = path_prj
         else:
             path_hdf5 = all_arg[3]
-        # do not change the name from this file which should be in the biology folder.
-        name_bio = 'pref_fstress.txt'
+        #TODO: get biological model
+        name_bio = ''
 
         # get the data from txt file
         [riv_name, qhw, qrange] = load_fstress_text(path_fstress)

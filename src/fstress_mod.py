@@ -700,7 +700,7 @@ def main():
     name_prj = 'blob'
     path_im = path_prj
     path_bio = r'C:\Users\diane.von-gunten\HABBY\biology'
-    name_bio = 'pref_fstress.txt'
+    name_bio = ''
     riv_name = ['riv1', 'riv2']
     hdf5_name = r'FStress_DefaultProj_23_02_2017_at_13_31_08.hab'
     hdf5_path = r'D:\Diane_work\dummy_folder\DefaultProj'

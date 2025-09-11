@@ -181,6 +181,7 @@ def get_biomodels_informations_for_database(path_xml):
                 shearstress_data = [list(map(float, pref_element[0].findall(".//MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues")[0].text.split(" "))),
                                   list(map(float, pref_element[0].findall(".//HemisphereNumber")[0].text.split())),
                                   list(map(float, pref_element[0].findall(".//SuitabilityIndex")[0].text.split()))]
+                # TODO: check unity pascal
                 shearstress_not_valid = all((check_if_data_model_has_error(shearstress_data[0], "MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues", increasing=True),
                                          check_if_data_model_has_error(shearstress_data[1], "HemisphereNumber", increasing=True)))
                 hv_not_valid = check_if_data_model_has_error(shearstress_data[2], "SuitabilityIndex", increasing=False)
