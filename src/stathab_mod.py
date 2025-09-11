@@ -1255,7 +1255,7 @@ def check_stahab_files(filename,check_neg,lchkcolhead,lchklines,check_sumone):
             if '\n' in line:
                 line = line[:-1]
             if file_extension.lower() == '.csv' or ';' in line:
-                col = line.split(';')
+                col = line.replace(';','\t').split() # technique to avoid problems if one or manny ; at end line
             else:
                 col = line.split()
             if iline == 0 and nbcol != 0:
