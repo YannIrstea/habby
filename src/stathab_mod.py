@@ -130,7 +130,13 @@ class Stathab:
 
                 # open rivdeb.txt
                 elif ef[-7:-4] == 'deb':
-                    qlist_r = check_stahab_files(filename, True, ['Q[m3/s]'], [],False)
+                    #to accept old format version of.deb and new format version
+                    with open(filename, 'rt') as fi:
+                        lines = fi.readlines()
+                        if lines[0][0:2].lower()=='qm': # new format version
+                            qlist_r = check_stahab_files(filename, True, [], ['Qmin[m3/s]', 'Qmax[m3/s]'], False)
+                        else: # old format version
+                            qlist_r = check_stahab_files(filename, True, ['Q[m3/s]'], [],False)
                     if np.array_equal(qlist_r, [-99]):
                         return
                     if np.any(qlist_r ==0):
@@ -1249,7 +1255,7 @@ def check_stahab_files(filename,check_neg,lchkcolhead,lchklines,check_sumone):
             if '\n' in line:
                 line = line[:-1]
             if file_extension.lower() == '.csv' or ';' in line:
-                col = line.split(';')
+                col = line.replace(';','\t').split() # technique to avoid problems if one or manny ; at end line
             else:
                 col = line.split()
             if iline == 0 and nbcol != 0:

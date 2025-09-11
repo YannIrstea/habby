@@ -21,6 +21,7 @@ import sys
 import copy
 import os
 from io import StringIO
+import numpy as np
 
 import src.dev_tools_mod
 import src.tools_mod
@@ -452,12 +453,12 @@ class FstressW(estimhab_GUI.StatModUseful):
         self.myfstress.path_txt = self.find_path_text_est()
 
         # check
-        for r in range(0, len(self.myfstress.qhw)):
-            if self.myfstress.qhw[r][1, 0] < self.myfstress.qhw[r][0, 0] * 2:
-                self.send_log.emit('Warning: Measured discharge are too close to each other.'
-                                   'Results might be unrealisitc. \n')
-            if self.myfstress.qhw[r][1, 0] > 50 or self.myfstress.qhw[r][0, 0] > 50:
-                self.send_log.emit('Warning: Discharge is higher then 50m3/s. Results might be unrealisitc \n')
+        for r in range(0, len(self.myfstress.name_reach)):
+            if np.min(self.myfstress.qhw[r][:,0]) < np.max(self.myfstress.qhw[r][:,0]) * 2:
+                self.send_log.emit('Warning: Measured discharge are too close to each other. '+ self.myfstress.name_reach[r] +
+                                   '  Results might be unrealisitc. \n')
+            if np.max(self.myfstress.qhw[r][:,0]) > 50:
+                self.send_log.emit('Warning: al least one discharge is higher than 50m3/s. '+ self.myfstress.name_reach[r] + '  Results might be unrealisitc \n')
 
         # run FStress
         sys.stdout = self.mystdout = StringIO()
