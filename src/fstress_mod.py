@@ -159,7 +159,6 @@ class FStress:
         qrange=self.qrange
         qhw=self.qhw
 
-        #data_hydro, qrange, riv_name, inv_select, pref_all, name_all, name_prj, path_prj = (0,0,0,0,0,0,0,0)
 
         # initalisation
         nbclaq = 50  # number of discharge point where the data have to be calculate
@@ -225,9 +224,7 @@ class FStress:
                                        vel_all=vmmod,
                                        OSI=vh_riv,
                                        WUA=wua_riv))
-            titi=0
 
-        #return vh, qmod_all, dict_pref_fstress ['code_bio_model']
 
     def fstress_get_pref(self):
         hvum = HydraulicVariableUnitManagement()
@@ -283,27 +280,12 @@ class FStress:
         """
         A function to save the stathab results in .txt form
         """
-        # dict_pref_stahab = self.stahab_get_pref()
-        nb_models = len(self.dict_pref_fstress['code_bio_model'])
-        # mode_name = "Stathab_steep" if self.riverint == 1 else "Stathab"
-        #
-        # z0header_txt = '\t'.join(['site', 'esp', 'Q', 'W', 'H', 'V', 'vh_v', 'spu_v', 'vh_h', 'spu_h', 'vh_hv',
-        #                           'spu_hv']) + '\n' + '\t'.join(
-        #     [' ', ' ', '[m3/s]', '[m]', '[m]', '[m/s]', '[-]', '[m2/100m]', '[-]', '[m2/100m]', '[-]', '[m2/100m]'])
-        #
-        # # save in txt hydraulic information and habitat results for each reach X biological models selected
 
-        # header0_list = ['Q', 'W', 'H', 'V']
-        # header1_list = ['[m3/s]', '[m]', '[m]', '[m/s]']
-        # for index_habmodel in range(nb_models):
-        #     header0_list.extend(['osi_hv-' + self.dict_pref_fstress['codefish'][index_habmodel]+'[]'])
-        # header_txt='\t'.join(header0_list)
+        nb_models = len(self.dict_pref_fstress['code_bio_model'])
+
 
         for r in range(0, len(self.name_reach)):
             namefile = os.path.join(self.path_txt,  'Fstress_' + self.name_reach[r] + '.txt')
-            #
-            # np.savetxt(namefile, np.concatenate((np.resize(self.qmod_all[r], (self.qmod_all[r].shape[0], 1)),
-            #                            np.transpose(self.vh_all[r])), axis=1),delimiter='\t', header=header_txt)
 
             qmod = self.qmod_all[r]
             hmod = self.h_all[r]
@@ -322,60 +304,9 @@ class FStress:
                 jj = np.concatenate((jj, np.stack(
                     (self.vh_all[r][index_habmodel, :], self.wua_all[r][index_habmodel, :]),
                     axis=1)), axis=1)
-                # z0b = np.array([codefish for _ in range(len(qmod))], dtype=object)
-                # z0c = np.concatenate((np.column_stack((z0a, z0b)), jj0, np.stack(
-                #     (self.j_all['hv_v'][r, index_habmodel, :], self.j_all['wua_v'][r, index_habmodel, :],
-                #      self.j_all['hv_h'][r, index_habmodel, :], self.j_all['wua_h'][r, index_habmodel, :],
-                #      self.j_all['hv_hv'][r, index_habmodel, :], self.j_all['wua_hv'][r, index_habmodel, :]),
-                #     axis=1)), axis=1)
-                # if index_habmodel == 0:
-                #     z0jj = np.copy(z0c)
-                # else:
-                #     z0jj = np.concatenate((z0jj, z0c), axis=0)
-            # namefile = os.path.join(self.path_txt, mode_name + '_' + self.name_reach[r] + '.txt')
             header_txt = '\t'.join(header0_list) + '\n' + '\t'.join(header1_list)
             np.savetxt(namefile, jj, delimiter='\t', header=header_txt)
-            # np.savetxt(z0namefile, z0jj, delimiter='\t', header=z0header_txt, fmt='%s')
-        #
-        # # save in txt stathab calculations of depth and  velocity distribution for each reach X discharge Q
-        # z1header_txt = '\t'.join(['site', 'Q', 'frequency', 'Hmin', 'Hmax']) + '\n' + '\t'.join(
-        #     [' ', '[m3/s]', ' ', '[m]', '[m]'])
-        # z2header_txt = '\t'.join(['site', 'Q', 'frequency', 'Vmin', 'Vmax']) + '\n' + '\t'.join(
-        #     [' ', '[m3/s]', ' ', '[m/s]', '[m/s]'])
-        # for r in range(0, len(self.name_reach)):
-        #     z1namefile = os.path.join(self.path_txt, 'z' + mode_name + '_' + self.name_reach[r] + '_dist_h.txt')
-        #     z2namefile = os.path.join(self.path_txt, 'z' + mode_name + '_' + self.name_reach[r] + '_dist_v.txt')
-        #     if mode_name == "Stathab":
-        #         nb_h = len(self.lim_all[0]) - 1
-        #         nb_v = len(self.lim_all[1]) - 1
-        #     elif mode_name == "Stathab_steep":
-        #         nb_h = len(self.hborn_Stahabsteep[0][0])
-        #         nb_v = len(self.vborn_Stahabsteep[0][0])
-        #     qmod = self.q_all[r]
-        #     for iq in range(len(qmod)):
-        #         z1r = np.array([self.name_reach[r] for _ in range(nb_h)], dtype=object)
-        #         z2r = np.array([self.name_reach[r] for _ in range(nb_v)], dtype=object)
-        #         z1q = np.array([qmod[iq] for _ in range(nb_h)])
-        #         z2q = np.array([qmod[iq] for _ in range(nb_v)])
-        #         if mode_name == "Stathab":
-        #             z1all = np.column_stack(
-        #                 (z1r, z1q, self.dist_hs_all[r][iq], self.lim_all[0][0: -1], self.lim_all[0][1:]))
-        #             z2all = np.column_stack(
-        #                 (z2r, z2q, self.dist_vs_all[r][iq], self.lim_all[1][0: -1], self.lim_all[1][1:]))
-        #         elif mode_name == "Stathab_steep":
-        #             deltah, deltav = self.hborn_Stahabsteep[r][iq][0], self.vborn_Stahabsteep[r][iq][0]
-        #             z1all = np.column_stack(
-        #                 (z1r, z1q, self.dist_hs_all[r][iq], self.hborn_Stahabsteep[r][iq] - deltah,
-        #                  self.hborn_Stahabsteep[r][iq] + deltah))
-        #             z2all = np.column_stack(
-        #                 (z2r, z2q, self.dist_vs_all[r][iq], self.vborn_Stahabsteep[r][iq] - deltav,
-        #                  self.vborn_Stahabsteep[r][iq] + deltav))
-        #         if iq == 0:
-        #             z1jj, z2jj = np.copy(z1all), np.copy(z2all)
-        #         else:
-        #             z1jj, z2jj = np.concatenate((z1jj, z1all), axis=0), np.concatenate((z2jj, z2all), axis=0)
-        #     np.savetxt(z1namefile, z1jj, delimiter='\t', header=z1header_txt, fmt='%s')
-        #     np.savetxt(z2namefile, z2jj, delimiter='\t', header=z2header_txt, fmt='%s')
+
 
 
 def func_stress(vm, h, tau):
