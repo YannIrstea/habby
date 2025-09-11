@@ -136,7 +136,7 @@ def get_biomodels_informations_for_database(path_xml):
     v_not_valid = None
     shearstress_not_valid = None
     sub_not_valid = None
-    hv_not_valid = None
+    hsi_not_valid = None
 
     # model varaible by stage
     for index_stage, stage in enumerate(root.findall(".//Stage")):
@@ -156,8 +156,9 @@ def get_biomodels_informations_for_database(path_xml):
                 hvum_stage.software_detected_list.append(hvum.h)
                 h_data = [list(map(float, pref_element[0].findall(".//HeightOfWaterValues")[0].text.split())),
                         list(map(float, pref_element[0].findall(".//SuitabilityIndex")[0].text.split()))]
+                #TODO check all unit available and convert if need
                 h_not_valid = check_if_data_model_has_error(h_data[0], "HeightOfWaterValues", increasing=True)
-                hv_not_valid = check_if_data_model_has_error(h_data[1], "SuitabilityIndex", increasing=False)
+                hsi_not_valid = check_if_data_model_has_error(h_data[1], "SuitabilityIndex", increasing=False)
                 if len(h_data[0]) != len(h_data[1]):
                     return "Error: HeightOfWaterValues and SuitabilityIndex are not the same length in " + path_xml
 
@@ -169,7 +170,7 @@ def get_biomodels_informations_for_database(path_xml):
                 v_data = [list(map(float, pref_element[0].findall(".//VelocityValues")[0].text.split())),
                         list(map(float, pref_element[0].findall(".//SuitabilityIndex")[0].text.split()))]
                 v_not_valid = check_if_data_model_has_error(v_data[0], "VelocityValues", increasing=True)
-                hv_not_valid = check_if_data_model_has_error(v_data[1], "SuitabilityIndex", increasing=False)
+                hsi_not_valid = check_if_data_model_has_error(v_data[1], "SuitabilityIndex", increasing=False)
                 if len(v_data[0]) != len(v_data[1]):
                     return "Error: VelocityValues and SuitabilityIndex are not the same length in " + path_xml
 
@@ -181,10 +182,12 @@ def get_biomodels_informations_for_database(path_xml):
                 shearstress_data = [list(map(float, pref_element[0].findall(".//MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues")[0].text.split(" "))),
                                   list(map(float, pref_element[0].findall(".//HemisphereNumber")[0].text.split())),
                                   list(map(float, pref_element[0].findall(".//SuitabilityIndex")[0].text.split()))]
-                # TODO: check unity pascal
+                shearstress_unit = pref_element[0].findall(".//MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues")[0].values()[0].lower()
+                if shearstress_unit not in (hvum.shear_stress.unit, "pascal"):
+                    return "Error: MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues unit " + shearstress_unit + " is not accepted in " + path_xml
                 shearstress_not_valid = all((check_if_data_model_has_error(shearstress_data[0], "MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues", increasing=True),
                                          check_if_data_model_has_error(shearstress_data[1], "HemisphereNumber", increasing=True)))
-                hv_not_valid = check_if_data_model_has_error(shearstress_data[2], "SuitabilityIndex", increasing=False)
+                hsi_not_valid = check_if_data_model_has_error(shearstress_data[2], "SuitabilityIndex", increasing=False)
                 if len(shearstress_data[0]) != len(shearstress_data[1]) != len(shearstress_data[2]):
                     return "Error: MinimumBottomShearStressCausingTheMovementOfAGivenFSTHemisphereNumberValues and HemisphereNumber and SuitabilityIndex are not the same length in " + path_xml
 
@@ -220,7 +223,7 @@ def get_biomodels_informations_for_database(path_xml):
                 sub_data = [list(map(float, [element[1:] for element in pref_element[0].findall(".//SubstrateValues")[0].text.split(" ")])),
                                   list(map(float, pref_element[0].findall(".//SuitabilityIndex")[0].text.split(" ")))]
                 sub_not_valid = check_if_data_model_has_error(sub_data[0], "SubstrateValues", increasing=True)
-                hv_not_valid = check_if_data_model_has_error(sub_data[1], "SuitabilityIndex", increasing=False)
+                hsi_not_valid = check_if_data_model_has_error(sub_data[1], "SuitabilityIndex", increasing=False)
                 if len(sub_data[0]) != len(sub_data[1]):
                     return "Error: SubstrateValues and SuitabilityIndex are not the same length in " + path_xml
         elif model_type == "bivariate suitability index models":
@@ -254,7 +257,7 @@ def get_biomodels_informations_for_database(path_xml):
                         return "Error: DescriptionMode is not 'VelocityIncreasingAndThenHeightOfWaterIncreasing' for bivariate suitability index models. Please verify this xml file :" + path_xml
                     else:
                         hv_data = list(map(float, pref_element[0].text.split(" ")))
-                        hv_not_valid = check_if_data_model_has_error(hv_data, "SuitabilityIndex", increasing=False)
+                        hsi_not_valid = check_if_data_model_has_error(hv_data, "SuitabilityIndex", increasing=False)
                 else:
                     print("Error: DescriptionMode not recognised in SuitabilityIndex for bivariate suitability index models. Please verify this xml file :",
                         path_xml)
@@ -277,8 +280,8 @@ def get_biomodels_informations_for_database(path_xml):
             return "Error: Suitability model type not recognized in " + path_xml
 
         # always hv_presence
-        if hv_not_valid:
-            return hv_not_valid
+        if hsi_not_valid:
+            return hsi_not_valid
 
         # model data is valid ?
         for presence, not_valid in zip([height_presence, velocity_presence, shear_presence, sub_presence],

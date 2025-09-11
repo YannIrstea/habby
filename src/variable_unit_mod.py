@@ -444,7 +444,7 @@ class HydraulicVariableUnitManagement:
                                                    unit="N/m²",
                                                    name="shear_stress_beta",
                                                    name_gui="shear stress beta",
-                                                   descr="",
+                                                   descr="(beta) trying to compute shear stress from hydraulic variables",
                                                    dtype=np.float64,
                                                    index_gui=index_gui)
         index_gui += 1
