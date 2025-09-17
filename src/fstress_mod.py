@@ -46,6 +46,7 @@ class FStress:
 
         self.data_list = list()  # list by reach of dict of all reach data values
 
+        self.dist_tau_all = []  # frequency distribution for shear stress per reach X discharge for the first bio-model
 
 
         self.h_all = []  # mean height of all the reaches
@@ -169,6 +170,7 @@ class FStress:
 
         self.vh_all = []
 
+        self.dist_tau_all = []
 
         # for each river
         for reach_i in range(0, len(self.name_reach)):
@@ -178,6 +180,7 @@ class FStress:
             hmod = np.zeros(nbclaq, ) # nbclaq mean water depth values
             wmod = np.zeros(nbclaq, ) # nbclaq width values
             vmmod = np.zeros(nbclaq, ) #
+            dist_tau = np.zeros(( nbclaq, len(self.dict_pref_fstress ['shearstress'][0]))) # frequency distribution for shear stress per discharge for the first bio-model
 
             # calculate the rating curve
             [h_coeff, w_coeff] = power_law(qhw[reach_i])
@@ -206,6 +209,8 @@ class FStress:
                     diststress = func_stress(vm, hs,[x * 10 for x in self.dict_pref_fstress ['shearstress'][model_i]])
                     vh_riv[ model_i, qind] = np.sum(diststress * self.dict_pref_fstress['pref_values'][model_i]) # np.sum(diststress * pref_select[model_i, :])
                     wua_riv[ model_i, qind] = vh_riv[ model_i, qind] * ws * 100  # WUA/100m of river
+                    if model_i==0:
+                        dist_tau[qind]=diststress
 
             self.h_all.append(hmod)
             self.v_all.append(vmmod)
@@ -213,6 +218,8 @@ class FStress:
             self.vh_all.append(vh_riv)
             self.wua_all.append(wua_riv)
             self.qmod_all.append(qmod)
+
+            self.dist_tau_all.append(dist_tau)
 
             self.data_list.append(dict(fish_list=[
                 self.dict_pref_fstress['code_bio_model'][index_habmodel] + '-' + self.dict_pref_fstress['stage'][index_habmodel] for
@@ -283,10 +290,13 @@ class FStress:
 
         nb_models = len(self.dict_pref_fstress['code_bio_model'])
 
-
+        z0namefile = os.path.join(self.path_txt, 'zFstress_.txt')
+        z0header_txt = '\t'.join(['site','Q']+['ShearStress']*len(self.dict_pref_fstress['shearstress'][0])) + '\n' + '\t'.join(
+            ['site','[m3/s]']+['Pascal']*len(self.dict_pref_fstress['shearstress'][0]))+ '\n' + '\t'.join(
+            ['site','[m3/s]']+[str(x) for x in self.dict_pref_fstress['shearstress'][0]])+ '\n' + '\t'.join(
+            ['site', '[m3/s]'] + ['Frequency'] * len(self.dict_pref_fstress['shearstress'][0]))
         for r in range(0, len(self.name_reach)):
             namefile = os.path.join(self.path_txt,  'Fstress_' + self.name_reach[r] + '.txt')
-
             qmod = self.qmod_all[r]
             hmod = self.h_all[r]
             vmod = self.v_all[r]
@@ -306,6 +316,17 @@ class FStress:
                     axis=1)), axis=1)
             header_txt = '\t'.join(header0_list) + '\n' + '\t'.join(header1_list)
             np.savetxt(namefile, jj, delimiter='\t', header=header_txt)
+
+            dist_tau=self.dist_tau_all[r]
+            z0r = np.array([self.name_reach[r]]*qmod.shape[0], dtype=object)
+            z0all = np.column_stack(
+                        (z0r, qmod, self.dist_tau_all[r]))
+            if r == 0:
+                z0jj = np.copy(z0all)
+            else:
+                z0jj = np.concatenate((z0jj, z0all), axis=0)
+        np.savetxt(z0namefile, z0jj, delimiter='\t', header=z0header_txt, fmt='%s')
+
 
 
 
@@ -375,24 +396,7 @@ def main():
     """
     This is not the main() of HABBY. This local function is used to test the Fstress model.
     """
-    path_prj = r'D:\Diane_work\dummy_folder\DefaultProj'
-    name_prj = 'blob'
-    path_im = path_prj
-    path_bio = r'C:\Users\diane.von-gunten\HABBY\biology'
-    name_bio = ''
-    riv_name = ['riv1', 'riv2']
-    hdf5_name = r'FStress_DefaultProj_23_02_2017_at_13_31_08.hab'
-    hdf5_path = r'D:\Diane_work\dummy_folder\DefaultProj'
-    path_rre = r'D:\Diane_work\model_stat\FSTRESSandtathab\fstress_stathab_C\FSTRESSDiane'
 
-    # [qhw, qrange, riv_name, name_inv] = read_fstress_hdf5(hdf5_name, hdf5_path)
-    #
-    # [pref_all, name_all] = read_pref(path_bio, name_bio)
-    # # all inv selected -> name_allx2
-    # [vh, qmod, inv_select] = run_fstress(qhw, qrange, riv_name, name_all, pref_all, name_all, name_prj, path_prj)
-    # # figure_fstress(qmod, vh, inv_select, path_im, riv_name)
-    # fstress_test(qmod, vh, inv_select, riv_name, path_rre)
-    # plt.show()
 
 if __name__ == '__main__':
     main()
