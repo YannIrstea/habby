@@ -190,8 +190,9 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
         # DAT
         mesh_tin, node_xyz, nb_cell = load_dat_2d(self.filename_dat, self.folder_path)  # node
-        if mesh_tin== [-99]:
-            return None,None
+        error_test = mesh_tin == [-99]
+        if error_test.any():
+            return None, None
 
         # TPS
         timestep, mesh_h, mesh_v = load_tps_2d(self.filename_tps, self.folder_path, nb_cell)  # cell
@@ -243,28 +244,27 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         node_xy = node_xyz[:, (0, 1)]
         node_z = node_xyz[:, 2]
 
+        # set_variable_data_structure
+        self.hvum.set_variable_data_structure(self.reach_number, self.timestep_wish_nb)
+
         # prepare original and computed data for data_2d
         for reach_number in range(self.reach_number):  # for each reach
             for timestep_index in range(self.timestep_wish_nb):  # for each timestep
                 for variables_wish in self.hvum.hdf5_and_computable_list:  # .varunits
                     if variables_wish.position == "mesh":
                         if variables_wish.name == self.hvum.h.name:
-                            variables_wish.data[reach_number].append(
-                                mesh_h[:, timestep_index].astype(variables_wish.dtype))
+                            variables_wish.data[reach_number][timestep_index] = mesh_h[:, timestep_index].astype(variables_wish.dtype)
                         elif variables_wish.name == self.hvum.v.name:
-                            variables_wish.data[reach_number].append(
-                                mesh_v[:, timestep_index].astype(variables_wish.dtype))
+                            variables_wish.data[reach_number][timestep_index] = mesh_v[:, timestep_index].astype(variables_wish.dtype)
                     if variables_wish.position == "node":
                         if variables_wish.name == self.hvum.z.name:
-                            variables_wish.data[reach_number].append(node_z.astype(variables_wish.dtype))
+                            variables_wish.data[reach_number][timestep_index] = node_z.astype(variables_wish.dtype)
                         elif variables_wish.name == self.hvum.h.name:
-                            variables_wish.data[reach_number].append(
-                                node_h[:, timestep_index].astype(variables_wish.dtype))
+                            variables_wish.data[reach_number][timestep_index] = node_h[:, timestep_index].astype(variables_wish.dtype)
                         else:
                             var_node_index = data_mesh_pd_r_list[0][0].columns.values.tolist().index(
                                 variables_wish.name)
-                            variables_wish.data[reach_number].append(
-                                data_node_pd[timestep_index][:, var_node_index].astype(variables_wish.dtype))
+                            variables_wish.data[reach_number][timestep_index] = data_node_pd[timestep_index][:, var_node_index].astype(variables_wish.dtype)
 
             # coord
             self.hvum.xy.data[reach_number] = [node_xy] * self.timestep_wish_nb
@@ -431,7 +431,7 @@ def load_mai_1d(mailfile, path):
     data_geo1d = data_geo1d.split()
     # find the number of mailles
     try:
-        nb_mail = np.int(data_geo1d[0])
+        nb_mail = int(data_geo1d[0])
     except ValueError:
         print('Error: Could not extract the number of cells from the mail.ETUDE file.')
         return [-99], 99
@@ -483,7 +483,7 @@ def load_data_1d(name_data_vh, path, x):
         data_vh_i = data_vh[i].split()
         if len(data_vh_i) != 4 and len(data_vh_i) > 0:
             try:
-                timestep.append(np.float(data_vh_i[0]))
+                timestep.append(np.float64(data_vh_i[0]))
             except ValueError:
                 print('Error: the timesteps could not be extracted from the profile.ETUDE file.\n')
                 return failload
@@ -493,17 +493,17 @@ def load_data_1d(name_data_vh, path, x):
                 c = 0
         elif len(data_vh_i) > 0:
             try:
-                h_i = np.float(data_vh_i[0])
+                h_i = np.float64(data_vh_i[0])
             except ValueError:
                 print('Error: Velocity could not be extracted from the profile.ETUDE file.\n')
                 return failload
             try:
-                vel_i = np.float(data_vh_i[1])
+                vel_i = np.float64(data_vh_i[1])
             except ValueError:
                 print('Error: Water height could not be extracted from the profile.ETUDE file.\n')
                 return failload
             try:
-                cote_i = np.float(data_vh_i[3])
+                cote_i = np.float64(data_vh_i[3])
             except ValueError:
                 print('Error: River bed altitude could not be extracted from the profile.ETUDE file.\n')
                 return failload
@@ -576,7 +576,7 @@ def m_file_load_coord_1d(geofile_name, pathgeo):
             if new_profile:
                 # test for new bief
                 try:
-                    pro2 = np.float(data_i[0])
+                    pro2 = np.float64(data_i[0])
                 except ValueError:
                     print('Error: the profile number could not be extracted from the m.ETUDE file. \n')
                     return failload
@@ -591,13 +591,13 @@ def m_file_load_coord_1d(geofile_name, pathgeo):
                         # this means that two number are stick together
                         num = data_i[3]
                         num = num[3:]
-                        dist_riv_here = np.float(num)
+                        dist_riv_here = np.float64(num)
                     except ValueError:
                         print('Error: the distance between profile could not be extracted from the m.ETUDE file. \n')
                         return failload
                 else:
                     try:
-                        dist_riv_here = np.float(data_i[4])
+                        dist_riv_here = np.float64(data_i[4])
                     except ValueError:
                         print('Error: the distance between profile could not be extracted from the m.ETUDE file. \n')
                         return failload
@@ -620,9 +620,9 @@ def m_file_load_coord_1d(geofile_name, pathgeo):
                     dist_pro = []
             else:
                 try:
-                    xhere = np.float(data_i[0])
-                    yhere = np.float(data_i[1])
-                    zhere = np.float(data_i[2])
+                    xhere = np.float64(data_i[0])
+                    yhere = np.float64(data_i[1])
+                    zhere = np.float64(data_i[2])
                 except ValueError:
                     print('Error: A coordinate could not be extracted from the m.ETUDE file. \n')
                     return failload
@@ -713,7 +713,7 @@ def load_coord_1d(name_rbe, path):
                                                 'The name of the profile could not be extracted from the .reb file.\n'))
         try:
             x = sect[i].attrib['Pk']  # nthis is hte distance along the river, not along the profile
-            dist_riv.append(np.float(x))
+            dist_riv.append(np.float64(x))
         except KeyError:
             print('Warning: ' + qt_tr.translate("rubar1d2d_mod",
                                                 'The name of the profile could not be extracted from the .reb file.\n'))
@@ -723,9 +723,9 @@ def load_coord_1d(name_rbe, path):
         for j in range(0, len(point)):
             attrib_p = point[j].attrib
             try:
-                coord_sect[j, 0] = np.float(attrib_p['x'])
-                coord_sect[j, 1] = np.float(attrib_p['y'])
-                coord_sect[j, 2] = np.float(attrib_p['z'])
+                coord_sect[j, 0] = np.float64(attrib_p['x'])
+                coord_sect[j, 1] = np.float64(attrib_p['y'])
+                coord_sect[j, 2] = np.float64(attrib_p['z'])
                 if j > 0:
                     coord_sect[j, 3] = coord_sect[j - 1, 3] + np.sqrt((coord_sect[j, 0] - coord_sect[j - 1, 0]) ** 2 +
                                                                       (coord_sect[j, 1] - coord_sect[j - 1, 1]) ** 2)
@@ -1030,7 +1030,7 @@ def load_dat_2d(geofile, path):
     data_geo2d = data_geo2d.splitlines()
     # extract nb cells
     try:
-        nb_cell = np.int(data_geo2d[0])
+        nb_cell = int(data_geo2d[0])
     except ValueError:
         print('Error: Could not extract the number of cells from the .dat file.\n')
         return [-99], [-99], [-99]
@@ -1073,7 +1073,7 @@ def load_dat_2d(geofile, path):
 
     # nb coordinates
     try:
-        nb_coord = np.int(data_geo2d[m])
+        nb_coord = int(data_geo2d[m])
     except ValueError:
         print('Error: Could not extract the number of coordinates from the .dat file.\n')
         nb_coord = 0
@@ -1134,7 +1134,7 @@ def load_dat_2d(geofile, path):
 #     while i < len(data_tps):
 #         try:
 #             # time
-#             ti = np.float(data_tps[i])
+#             ti = np.float64(data_tps[i])
 #             t.append(ti)
 #             i += 1
 #             hi = np.array(list(map(float, data_tps[i:i + nb_cell])))
@@ -1209,9 +1209,9 @@ def load_dat_2d(geofile, path):
 #             print('Error: the data could not be extracted from the .tps file. Error at number ' + str(i) + '.\n')
 #             return [-99], [-99], [-99]
 #
-#     h = np.asarray(h, dtype=np.float)
-#     qve = np.asarray(qve, dtype=np.float)
-#     que = np.asarray(que, dtype=np.float)
+#     h = np.asarray(h, dtype=np.float64)
+#     qve = np.asarray(qve, dtype=np.float64)
+#     que = np.asarray(que, dtype=np.float64)
 #     # compute velocity
 #     hiv = np.copy(h)
 #     hiv[hiv == 0] = -99  # avoid division by zeros
@@ -1283,9 +1283,9 @@ def load_dat_2d(geofile, path):
 #         que.append(que_timestep)
 #
 #     # convert to numpy
-#     hi = np.asarray(hi, dtype=np.float)
-#     qve = np.asarray(qve, dtype=np.float)
-#     que = np.asarray(que, dtype=np.float)
+#     hi = np.asarray(hi, dtype=np.float64)
+#     qve = np.asarray(qve, dtype=np.float64)
+#     que = np.asarray(que, dtype=np.float64)
 #
 #     # compute velocity
 #     hiv = np.copy(hi)
@@ -1355,9 +1355,9 @@ def load_tps_2d(tpsfile, path, nb_cell):
     data_tps_array = data_tps_array[~np.isnan(data_tps_array)]
 
     # create array and compute velocity
-    h_array = np.empty((int(data_tps_array.shape[0] / nb_cell / 3), nb_cell), dtype=np.float)
-    qve_array = np.empty((int(data_tps_array.shape[0] / nb_cell / 3), nb_cell), dtype=np.float)
-    que_array = np.empty((int(data_tps_array.shape[0] / nb_cell / 3), nb_cell), dtype=np.float)
+    h_array = np.empty((int(data_tps_array.shape[0] / nb_cell / 3), nb_cell), dtype=np.float64)
+    qve_array = np.empty((int(data_tps_array.shape[0] / nb_cell / 3), nb_cell), dtype=np.float64)
+    que_array = np.empty((int(data_tps_array.shape[0] / nb_cell / 3), nb_cell), dtype=np.float64)
 
     start = 0
     end = nb_cell

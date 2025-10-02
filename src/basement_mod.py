@@ -39,6 +39,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         # simulation attributes
         self.morphology_available = True
         self.second_file_suffix = "_aux"
+        self.version = 3  # check version of basement
         # simulation info
         self.simulation_name = "unknown"
         # hydraulic variables
@@ -46,13 +47,13 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                                                     attribute_list=["Coordnts"],
                                                     position="node")
         self.hvum.link_unit_with_software_attribute(name=self.hvum.z.name,
-                                                    attribute_list=["BottomEl"],
+                                                    attribute_list=["bottom_elevation"],
                                                     position="mesh")
         self.hvum.link_unit_with_software_attribute(name=self.hvum.h.name,
-                                                    attribute_list=["always h"],
+                                                    attribute_list=["water_depth"],
                                                     position="mesh")
         self.hvum.link_unit_with_software_attribute(name=self.hvum.v.name,
-                                                    attribute_list=["always v"],
+                                                    attribute_list=["flow_velocity"],
                                                     position="mesh")
         # readable file ?
         try:
@@ -109,26 +110,33 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
     def get_simulation_info(self):
         """Get simulation name from file."""
-        self.simulation_name = eval(self.results_data_file[".config"]["model"][:].tolist()[0])["SETUP"]["simulation_name"]
+        try:  # old version
+            self.simulation_name = eval(self.results_data_file[".config"]["model"][:].tolist()[0])["SETUP"]["simulation_name"]  # <HDF5 dataset "model": shape (1,), type "|O">
+            self.simulation_dict = eval(self.results_data_file[".config"]["simulation"][:].tolist()[0])
+            self.model_dict = eval(self.results_data_file[".config"]["model"][:].tolist()[0])
+        except ValueError: # version 4
+            self.simulation_name = eval(self.results_data_file[".config"]["model"][()])["SETUP"]["simulation_name"]  # <HDF5 dataset "model": shape (), type "|O">
+            self.simulation_dict = eval(self.results_data_file[".config"]["simulation"][()])
+            self.model_dict = eval(self.results_data_file[".config"]["model"][()])
+            self.version = 4
 
     def get_hydraulic_variable_list(self):
         """Get hydraulic variable list from file."""
-        # #hydraulic_variables = eval(self.results_data_file[".config"]["simulation"][:].tolist()[0])["SIMULATION"]["OUTPUT"]
+        # TODO: get list from source
+        # varnames = self.simulation_dict["SIMULATION"]["OUTPUT"]
+        # if "??" in varnames:
+        #     varnames.append(self.hvum.h.name)
 
-        # get list from source
-        varnames = ["Coordnts", "BottomEl", "always h", "always v"]
+        varnames = ["Coordnts", "bottom_elevation", "water_depth", "flow_velocity"]
 
         # check witch variable is available
         self.hvum.detect_variable_from_software_attribute(varnames)
 
     def get_time_step(self):
         """Get time step information from file."""
-
-        simulation_dict = eval(self.results_data_file[".config"]["simulation"][:].tolist()[0])
-
-        timestep_float_list = list(frange(simulation_dict["SIMULATION"]["TIME"]["start"],
-                               simulation_dict["SIMULATION"]["TIME"]["end"],
-                               simulation_dict["SIMULATION"]["TIME"]["out"]))
+        timestep_float_list = list(frange(self.simulation_dict["SIMULATION"]["TIME"]["start"],
+                               self.simulation_dict["SIMULATION"]["TIME"]["end"],
+                               self.simulation_dict["SIMULATION"]["TIME"]["out"]))
         self.timestep_name_list = list(map(str, timestep_float_list))
         self.timestep_nb = len(self.timestep_name_list)
         self.timestep_unit = "time [s]"
@@ -144,8 +152,11 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.load_specific_timestep(timestep_name_wish_list)
 
         # simulation dict
-        model_dict = eval(self.results_data_file[".config"]["model"][:].tolist()[0])["SETUP"]
-        if "MORPHOLOGY" in model_dict["DOMAIN"]["BASEPLANE_2D"].keys():
+        if self.version == 3:
+            source_path = self.model_dict["SETUP"]["DOMAIN"]["BASEPLANE_2D"]
+        elif self.version == 4:
+            source_path = self.model_dict["SETUP"]["BASEHPC"]["BASEPLANE_2D"]
+        if "MORPHOLOGY" in source_path.keys():
             self.unit_z_equal = False
         else:
             self.unit_z_equal = True
@@ -169,7 +180,10 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
         """ get mesh data """
         # total
-        mesh_nb = CellAll_group["set"][:][0]
+        if self.version == 3:
+            mesh_nb = CellAll_group["set"][:][0]
+        elif self.version == 4:
+            mesh_nb = CellAll_group["set"][:][0][0]
         # tin
         mesh_tin = CellAll_group["Topology"][:].astype(np.int64)
         # z
@@ -218,7 +232,6 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
             data_mesh_pd_t_list = []
             for timestep_name_wish_index in range(self.timestep_wish_nb):
                 data_mesh_pd = pd.DataFrame()
-                data_mesh_pd[self.hvum.h.name] = mesh_h[:, timestep_name_wish_index]
                 data_mesh_pd[self.hvum.v.name] = mesh_v[:, timestep_name_wish_index]
                 data_mesh_pd_t_list.append(data_mesh_pd)
             data_mesh_pd_r_list.append(data_mesh_pd_t_list)
@@ -230,6 +243,9 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                                                                                                           mesh_h,
                                                                                                           data_mesh_pd_r_list[0])
 
+        # set_variable_data_structure
+        self.hvum.set_variable_data_structure(self.reach_number, self.timestep_wish_nb)
+
         # prepare original and computed data for data_2d
         for reach_number in range(self.reach_number):  # for each reach
             for timestep_index in range(self.timestep_wish_nb):  # for each timestep
@@ -237,21 +253,21 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                     if variables_wish.position == "mesh":
                         if variables_wish.name == self.hvum.z.name:
                             if self.unit_z_equal:
-                                variables_wish.data[reach_number].append(mesh_z.astype(variables_wish.dtype))
+                                variables_wish.data[reach_number][timestep_index] = mesh_z.astype(variables_wish.dtype)
                             else:
-                                variables_wish.data[reach_number].append(mesh_z[:, timestep_index].astype(variables_wish.dtype))
+                                variables_wish.data[reach_number][timestep_index] = mesh_z[:, timestep_index].astype(variables_wish.dtype)
                         elif variables_wish.name == self.hvum.h.name:
-                            variables_wish.data[reach_number].append(mesh_h[:, timestep_index].astype(variables_wish.dtype))
+                            variables_wish.data[reach_number][timestep_index] = mesh_h[:, timestep_index].astype(variables_wish.dtype)
                         elif variables_wish.name == self.hvum.v.name:
-                            variables_wish.data[reach_number].append(mesh_v[:, timestep_index].astype(variables_wish.dtype))
-                    if variables_wish.position == "node":
+                            variables_wish.data[reach_number][timestep_index] = mesh_v[:, timestep_index].astype(variables_wish.dtype)
+                    elif variables_wish.position == "node":
                         if variables_wish.name == self.hvum.z.name:
-                            variables_wish.data[reach_number].append(node_z.astype(variables_wish.dtype))
+                            variables_wish.data[reach_number][timestep_index] = node_z.astype(variables_wish.dtype)
                         elif variables_wish.name == self.hvum.h.name:
-                            variables_wish.data[reach_number].append(node_h[:, timestep_index].astype(variables_wish.dtype))
+                            variables_wish.data[reach_number][timestep_index] = node_h[:, timestep_index].astype(variables_wish.dtype)
                         else:
                             var_node_index = data_mesh_pd_r_list[0][0].columns.values.tolist().index(variables_wish.name)
-                            variables_wish.data[reach_number].append(data_node_list[timestep_index][:, var_node_index].astype(variables_wish.dtype))
+                            variables_wish.data[reach_number][timestep_index] = data_node_list[timestep_index][:, var_node_index].astype(variables_wish.dtype)
 
             # coord
             self.hvum.xy.data[reach_number] = [node_xy] * self.timestep_wish_nb

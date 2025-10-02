@@ -653,7 +653,7 @@ def load_transect_data(fac_filename_all):
         d = d.strip().split()
         if len(d) == 2:
             try:
-                data_q = str(np.float(d[0]))
+                data_q = str(np.float64(d[0]))
             except ValueError:
                 print('Error: Discharge data not understood')
                 return failload

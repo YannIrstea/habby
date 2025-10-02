@@ -301,7 +301,7 @@ def load_sub_txt(sub_description, progress_value):
         header_list = [layer_defn.GetFieldDefn(i).GetName() for i in range(layer_defn.GetFieldCount())]
 
         # Extract list of points and sub values from shp
-        point_in = np.empty(shape=(len(layer), 2), dtype=np.float)
+        point_in = np.empty(shape=(len(layer), 2), dtype=np.float64)
         x = []
         y = []
         sub_array = [[] for _ in range(sub_class_number)]

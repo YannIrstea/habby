@@ -223,7 +223,7 @@ def read_mesh_sw2d(geofile, pathfile):
                 data = np.fromfile(f, dtype=np.int32, count=3)
                 noNodElem[i] = data[0]
                 nnCel[i] = data[1]
-                data = np.fromfile(f, dtype=np.float, count=4)
+                data = np.fromfile(f, dtype=np.float64, count=4)
             data = np.fromfile(f, dtype=np.int32, count=1)  # end label
             # reading connectivity
             ### listNoNodElem = np.zeros([ncel, np.max(noNodElem)], dtype=int)
@@ -235,7 +235,7 @@ def read_mesh_sw2d(geofile, pathfile):
 
                 for j in range(int(noNodElem[i])):
                     ikle[j] = np.fromfile(f, dtype=np.int32, count=1) - 1
-                    data = np.fromfile(f, dtype=np.float, count=2)
+                    data = np.fromfile(f, dtype=np.float64, count=2)
 
                 listNoNodElem.append(ikle)
 
@@ -253,13 +253,13 @@ def read_mesh_sw2d(geofile, pathfile):
             data = np.fromfile(f, dtype=np.int32, count=1)  # label
             for i in range(nint):
                 data = np.fromfile(f, dtype=np.int32, count=4)
-                data = np.fromfile(f, dtype=np.float, count=7)
+                data = np.fromfile(f, dtype=np.float64, count=7)
             data = np.fromfile(f, dtype=np.int32, count=1)  # end label
             # reading the coordinates of nodes
             nodesXYZ = np.zeros((nnod, 3))
             data = np.fromfile(f, dtype=np.int32, count=1)  # label
             for i in range(nnod):
-                nodesXYZ[i,] = np.fromfile(f, dtype=np.float, count=3)
+                nodesXYZ[i,] = np.fromfile(f, dtype=np.float64, count=3)
                 data = np.fromfile(f, dtype=np.int32, count=1)
             data = np.fromfile(f, dtype=np.int32, count=1)  # end label
 
@@ -296,15 +296,15 @@ def read_result_sw2d(resfile, pathfile):
             cxy = np.zeros(2)
             data = np.fromfile(f, dtype=np.int32, count=1)  # label
             for i in range(ncel):
-                # baryXY[i,] = np.fromfile(f, dtype=np.float, count=2)
-                cxy = np.fromfile(f, dtype=np.float, count=2)
+                # baryXY[i,] = np.fromfile(f, dtype=np.float64, count=2)
+                cxy = np.fromfile(f, dtype=np.float64, count=2)
                 baryXY.append(cxy)
             data = np.fromfile(f, dtype=np.int32, count=1)  # end label
             # reading info on edges
             data = np.fromfile(f, dtype=np.int32, count=1)  # label
             for i in range(nint):
                 data = np.fromfile(f, dtype=np.int32, count=2)
-                data = np.fromfile(f, dtype=np.float, count=6)
+                data = np.fromfile(f, dtype=np.float64, count=6)
             data = np.fromfile(f, dtype=np.int32, count=1)  # end label
             # reading results
             times = np.array([]).reshape(0, 1)
@@ -314,12 +314,12 @@ def read_result_sw2d(resfile, pathfile):
                 data = np.fromfile(f, dtype=np.int32, count=1)  # label
                 if data.size < 1:
                     break
-                timeval = np.fromfile(f, dtype=np.float, count=1)
+                timeval = np.fromfile(f, dtype=np.float64, count=1)
                 nvar = np.fromfile(f, dtype=np.int32, count=1)
                 data = np.fromfile(f, dtype=np.int32, count=1)  # end label
                 times = np.vstack([times, timeval])
                 data = np.fromfile(f, dtype=np.int32, count=1)  # label
-                result = np.fromfile(f, dtype=np.float, count=ncel)
+                result = np.fromfile(f, dtype=np.float64, count=ncel)
                 data = np.fromfile(f, dtype=np.int32, count=1)  # end label
                 if nvar == 1:
                     h = np.vstack([h, result])

@@ -158,7 +158,7 @@ def dist_velocity_hecras(coord_pro, xhzv_data_all, manning_pro, nb_point=-99, en
                 return [-99]
 
             # manning
-            n = np.array(manning_pro[p], dtype=np.float)  # need a float even if manning input might be an int.
+            n = np.array(manning_pro[p], dtype=np.float64)  # need a float even if manning input might be an int.
             if len(n) != len(x_p):
                 print('Error: Length of Manning data is not coherent with the length of the profil.\n')
                 return [-99]

@@ -136,13 +136,12 @@ class HydraulicSimulationResultsBase:
         mesh_list = self.hvum.hdf5_and_computable_list.meshs()
 
         for reach_number in range(len(self.reach_name_list)):
-
             for unit_number in range(self.timestep_wish_nb):
                 # node
                 data_2d[reach_number][unit_number]["node"][self.hvum.xy.name] = self.hvum.xy.data[reach_number][unit_number]
                 data_2d[reach_number][unit_number]["node"]["data"] = pd.DataFrame()
+
                 for node_variable in node_list:
-                    #print(node_variable.name, node_variable.data[reach_number][unit_number].shape)
                     try:
                         data_2d[reach_number][unit_number]["node"]["data"][node_variable.name] = node_variable.data[reach_number][unit_number]
                     except IndexError:
@@ -164,6 +163,10 @@ class HydraulicSimulationResultsBase:
                         data_2d[reach_number][unit_number]["mesh"]["data"][mesh_variable.name] = mesh_variable.data[reach_number][unit_number]
                     except IndexError:
                         print("Error: mesh data not found : " + mesh_variable.name + " in get_data_2d.")
+                        return False, False
+                    except ValueError:
+                        print("Error: mesh data as different size for : " + str(*list(data_2d[reach_number][unit_number]["mesh"]["data"].keys())) + ": " + str(data_2d[reach_number][unit_number]["mesh"]["data"].shape) +
+                              " and " + mesh_variable.name + ": " + str(mesh_variable.data[reach_number][unit_number].shape))
                         return False, False
 
         # i_split

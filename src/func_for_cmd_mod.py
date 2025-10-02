@@ -924,8 +924,8 @@ def load_manning_txt(filename_path):
                 if len(data_here) == 3:
                     try:
                         manning[l - com, 0] = np.int(data_here[0])
-                        manning[l - com, 1] = np.float(data_here[1])
-                        manning[l - com, 2] = np.float(data_here[2])
+                        manning[l - com, 1] = np.float64(data_here[1])
+                        manning[l - com, 2] = np.float64(data_here[2])
                     except ValueError:
                         print('Error: The manning data could not be converted to float or int.'
                               ' Format: p,dist,n line by line.')
