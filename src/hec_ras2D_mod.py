@@ -64,7 +64,11 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
             self.valid_file = False
 
         # result_file ?
-        if not "Results" in self.results_data_file.keys():
+        try:
+            if not "Results" in self.results_data_file.keys():
+                self.warning_list.append('Error: The file is not ' + self.model_type + ' results type.')
+                self.valid_file = False
+        except AttributeError:
             self.warning_list.append('Error: The file is not ' + self.model_type + ' results type.')
             self.valid_file = False
 
