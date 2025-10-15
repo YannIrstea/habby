@@ -191,7 +191,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         # DAT
         mesh_tin, node_xyz, nb_cell = load_dat_2d(self.filename_dat, self.folder_path)  # node
         error_test = mesh_tin == [-99]
-        if error_test.any():
+        if error_test is True:
             return None, None
 
         # TPS
@@ -1011,6 +1011,7 @@ def load_dat_2d(geofile, path):
     :param path: the path to this file
     :return: connectivity table, point coordinates, coordinates of the cell centers
     """
+    version = "old"
     filename_path = os.path.join(path, geofile)
     # check extension
     blob, ext = os.path.splitext(geofile)
@@ -1049,6 +1050,9 @@ def load_dat_2d(geofile, path):
         # data_l = data_geo2d[m].split()
         # data_l = data_geo2d[m].split()
         data_l = wrap(data_geo2d[m], 6)
+        if not "4" in data_l[0]:  # the length of number is 6.
+            version = "new"
+            data_l = wrap(data_geo2d[m], 9)  # the length of number is 9.
         if m2 == m:
             ind_l = np.array([-1] * 4, dtype=int)
             for i in range(0, len(data_l) - 1):
@@ -1081,17 +1085,19 @@ def load_dat_2d(geofile, path):
     data_f = []
     m += 1
     c = 0
+    # lenght_of_number = 8
+    # if version == "new":
+    #     lenght_of_number = 13
     while c < 3 * nb_coord and c < 10 ** 8:
         data_str = data_geo2d[m]
         l = 0
         while l < len(data_str):
             try:
-                data_f.append(float(data_str[l:l + 8]))  # the length of number is eight.
+                data_f.append(float(data_str[l:l + 8]))  # the length of number is 8. in old version?
                 l += 8
                 c += 1
             except ValueError:
                 print('Error: Could not extract the coordinates from the .dat file.\n')
-                print(data_geo2d[mi])
                 return [-99], [-99], [-99]
         m += 1
     # merge x and y
