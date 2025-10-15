@@ -1548,7 +1548,7 @@ class Hdf5Management:
         for reach_number in range(self.data_2d.reach_number):
             # for all units
             for unit_number in range(self.data_2d[reach_number].unit_number):
-                part_timestep_indice.append((reach_number, unit_number))
+                part_timestep_indice.append((reach_number, self.data_2d[reach_number][unit_number].unit_name))
                 # create one vtu file by time step
                 x = np.ascontiguousarray(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][:, 0])
                 y = np.ascontiguousarray(self.data_2d[reach_number][unit_number]["node"][self.data_2d.hvum.xy.name][:, 1])
