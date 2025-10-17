@@ -1011,7 +1011,6 @@ def load_dat_2d(geofile, path):
     :param path: the path to this file
     :return: connectivity table, point coordinates, coordinates of the cell centers
     """
-    version = "old"
     filename_path = os.path.join(path, geofile)
     # check extension
     blob, ext = os.path.splitext(geofile)
@@ -1029,6 +1028,15 @@ def load_dat_2d(geofile, path):
         print('Error: The .dat file can not be open.\n')
         return [-99], [-99], [-99]
     data_geo2d = data_geo2d.splitlines()
+    #determin wether the .dat file is an old or new version
+    if len(data_geo2d[0])==6:
+        lI6I9a=6
+    elif len(data_geo2d[0])==9:
+        lI6I9a = 9
+    else:
+        print('Error: Could not determine the version of the .dat file. by using the length of the first line\n')
+        return [-99], [-99], [-99]
+
     # extract nb cells
     try:
         nb_cell = int(data_geo2d[0])
@@ -1047,12 +1055,7 @@ def load_dat_2d(geofile, path):
         if m >= len(data_geo2d):
             print('Error: Could not extract the connectivity table from the .dat file(1).\n')
             return [-99], [-99], [-99]
-        # data_l = data_geo2d[m].split()
-        # data_l = data_geo2d[m].split()
-        data_l = wrap(data_geo2d[m], 6)
-        if not "4" in data_l[0]:  # the length of number is 6.
-            version = "new"
-            data_l = wrap(data_geo2d[m], 9)  # the length of number is 9.
+        data_l = wrap(data_geo2d[m], lI6I9a)
         if m2 == m:
             ind_l = np.array([-1] * 4, dtype=int)
             for i in range(0, len(data_l) - 1):
@@ -1085,7 +1088,7 @@ def load_dat_2d(geofile, path):
     data_f = []
     m += 1
     c = 0
-    # lenght_of_number = 8
+    # ----------------------lenght_of_number = 8
     # if version == "new":
     #     lenght_of_number = 13
     while c < 3 * nb_coord and c < 10 ** 8:
@@ -1093,7 +1096,7 @@ def load_dat_2d(geofile, path):
         l = 0
         while l < len(data_str):
             try:
-                data_f.append(float(data_str[l:l + 8]))  # the length of number is 8. in old version?
+                data_f.append(float(data_str[l:l + 8]))  # the length of number is 8. ------------------------------in old version?
                 l += 8
                 c += 1
             except ValueError:
