@@ -165,8 +165,8 @@ class HydraulicSimulationResultsBase:
                         print("Error: mesh data not found : " + mesh_variable.name + " in get_data_2d.")
                         return False, False
                     except ValueError:
-                        print("Error: mesh data as different size for : " + str(*list(data_2d[reach_number][unit_number]["mesh"]["data"].keys())) + ": " + str(data_2d[reach_number][unit_number]["mesh"]["data"].shape) +
-                              " and " + mesh_variable.name + ": " + str(mesh_variable.data[reach_number][unit_number].shape))
+                        print("Error: mesh data as different size for : " + str(list(data_2d[reach_number][unit_number]["mesh"]["data"].keys())) + ": " + str(data_2d[reach_number][unit_number]["mesh"]["data"].shape) +
+                              " and " + mesh_variable.name + ": " + str(len(mesh_variable.data[reach_number][unit_number])))
                         return False, False
 
         # i_split

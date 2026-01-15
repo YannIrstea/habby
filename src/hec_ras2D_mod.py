@@ -24,7 +24,8 @@ import pandas as pd
 
 from src import manage_grid_mod
 from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
-from src.export_manager_mod import export_raw_mesh_layer_to_gpkg, merge_gpkg_to_one, export_raw_node_layer_to_gpkg
+from src.export_manager_mod import (export_raw_mesh_layer_to_gpkg, merge_gpkg_to_one, export_raw_node_layer_to_gpkg,
+                                    export_raw_face_layer_to_gpkg)
 
 
 class HydraulicSimulationResults(HydraulicSimulationResultsBase):
@@ -48,6 +49,9 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                                                     position="mesh")  # after FVM to FEM conversion
         self.hvum.link_unit_with_software_attribute(name=self.hvum.h.name,
                                                     attribute_list=["Depth"],
+                                                    position="mesh")
+        self.hvum.link_unit_with_software_attribute(name=self.hvum.level.name,
+                                                    attribute_list=["Water Surface"],
                                                     position="mesh")
         self.hvum.link_unit_with_software_attribute(name=self.hvum.v.name,
                                                     attribute_list=["Face Velocity"],
@@ -93,13 +97,14 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         # result_path
         self.results_path = "/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series/2D Flow Areas/"
         # get variables from first reach
-        varnames = []
+        original_varnames = []
         for dataset_name in self.results_data_file[self.results_path][self.reach_name_list[0]].keys():
             # get list from source
-            varnames.append(dataset_name)
+            original_varnames.append(dataset_name)
 
         # add z
-        varnames = varnames + [self.hvum.z.software_attributes_list[0]]
+        #varnames = varnames + [self.hvum.z.software_attributes_list[0]]
+        varnames = original_varnames + [self.hvum.z.software_attributes_list[0]]
 
         # check witch variable is available
         self.hvum.detect_variable_from_software_attribute(varnames)
@@ -341,6 +346,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                             variables_wish.data[reach_number][timestep_index] = z_all[reach_number][:, timestep_index].astype(variables_wish.dtype)
                         elif variables_wish.name == self.hvum.h.name:
                             variables_wish.data[reach_number][timestep_index] = water_depth_t_all[reach_number][:, timestep_index].astype(variables_wish.dtype)
+                        elif variables_wish.name == self.hvum.level.name:
+                            variables_wish.data[reach_number][timestep_index] = z_all[reach_number][:, timestep_index].astype(variables_wish.dtype) + water_depth_t_all[reach_number][:, timestep_index].astype(variables_wish.dtype)
                         elif variables_wish.name == self.hvum.v.name:
                             variables_wish.data[reach_number][timestep_index] = vel_t_all[reach_number][:, timestep_index].astype(variables_wish.dtype)
                         elif variables_wish.name == self.hvum.shear_stress.name:
@@ -393,8 +400,9 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                 # get group
                 reach_name_geometry_group = geometry_flow_areas_group[reach_name]
                 reach_name_result_group = result_flow_areas_group[reach_name]
-
                 # basic geometry
+                faces_facepoint_indexes = reach_name_geometry_group["Faces FacePoint Indexes"][:]  # elevation FacePoints
+                elev_f = reach_name_geometry_group["Faces Minimum Elevation"][:]
                 coord_p = reach_name_geometry_group["FacePoints Coordinate"][:]
                 coord_c = reach_name_geometry_group["Cells Center Coordinate"][:]
                 ikle = np.array(reach_name_geometry_group["Cells FacePoint Indexes"], dtype=np.int64)
@@ -457,13 +465,23 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                     add_vec_y2 = np.sum(data2_face_t * data2_face[:, 1], axis=1)
                     shear_stress_c[c, :] = np.sqrt(add_vec_x2 ** 2 + add_vec_y2 ** 2) / nb_face
 
+                # for each face
+                coord_center_face = []
+                for face_i in faces_facepoint_indexes:
+                    # first_face_point = coord_p[faces_facepoint_indexes[face_i][0]]
+                    # second_face_point = coord_p[faces_facepoint_indexes[face_i][1]]
+                    first_face_point = coord_p[face_i[0]]
+                    second_face_point = coord_p[face_i[1]]
+                    center_point = ((first_face_point[0] + second_face_point[0]) / 2,
+                                    (first_face_point[1] + second_face_point[1]) / 2)
+                    coord_center_face.append(center_point)
+
+
                 elev_p = interpolator_test(coord_c_all[reach_index],
                                            elev_c_all[reach_index],
                                            coord_p_all[reach_index])
                 if np.isnan(elev_p).any():
-                    # elevation FacePoints
-                    faces_facepoint_indexes = reach_name_geometry_group["Faces FacePoint Indexes"][:]
-                    elev_f = reach_name_geometry_group["Faces Minimum Elevation"][:]
+
                     for point_index in np.where(np.isnan(elev_p))[
                         0]:  # for point_index in range(len(coord_p_all[reach_index]))
                         first_bool = faces_facepoint_indexes[:, 0] == point_index
@@ -476,8 +494,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                 elev_p_all.append(elev_p)
                 # xyz
                 coord_p_xyz_all.append(np.column_stack([coord_p_all[reach_index], elev_p_all[reach_index]]))
-
-                # export
+                # export_raw_mesh_layer_to_gpkg
                 export_raw_mesh_layer_to_gpkg(os.path.join(self.path_prj, "output", "GIS", os.path.splitext(os.path.basename(self.filename_path))[0].replace(".", "_").replace(":", "_")),
                                               layer_name="mesh_" + timestep_name_wish_value.replace(":", "_"),
                                               epsg_code="unknown",
@@ -492,26 +509,34 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                                               hvum=self.hvum,
                                               progress_value=progress_value,
                                               delta_file=delta_file)
-                # for merge
+                # for gpkg merge
                 gpkg_list.append(os.path.join(self.path_prj, "output", "GIS", os.path.splitext(os.path.basename(self.filename_path))[0].replace(".", "_").replace(":", "_")))
                 layername_list.append("mesh_" + timestep_name_wish_value.replace(":", "_"))
 
-                # nodes
+                # export_raw_node_layer_to_gpkg
                 export_raw_node_layer_to_gpkg(os.path.join(self.path_prj, "output", "GIS", os.path.splitext(os.path.basename(self.filename_path))[0].replace(".", "_").replace(":", "_")),
                                               layer_name="node_" + timestep_name_wish_value.replace(":", "_"),
                                               epsg_code="unknown",
-                                              unit_data=[np.column_stack([coord_c, elev_c]),
-                                                         water_depth,
-                                                         vel_c.T[timestep_name_wish_index],
-                                                         velx_c.T[timestep_name_wish_index],
-                                                         vely_c.T[timestep_name_wish_index],
-                                                         shear_stress_c.T[timestep_name_wish_index]],
+                                              unit_data=coord_p_xyz_all[reach_index],
                                               hvum=self.hvum,
                                               progress_value=progress_value,
                                               delta_file=delta_file)
-
+                # for gpkg merge
                 gpkg_list.append(os.path.join(self.path_prj, "output", "GIS", os.path.splitext(os.path.basename(self.filename_path))[0].replace(".", "_").replace(":", "_")))
                 layername_list.append("node_" + timestep_name_wish_value.replace(":", "_"))
+
+                # export_raw_face_layer_to_gpkg
+                export_raw_face_layer_to_gpkg(os.path.join(self.path_prj, "output", "GIS", os.path.splitext(os.path.basename(self.filename_path))[0].replace(".", "_").replace(":", "_")),
+                                              layer_name="facecenter_" + timestep_name_wish_value.replace(":", "_"),
+                                              epsg_code="unknown",
+                                              unit_data=[coord_center_face,
+                                                         velocity.T[timestep_name_wish_index]],
+                                              hvum=self.hvum,
+                                              progress_value=progress_value,
+                                              delta_file=delta_file)
+                # for gpkg merge
+                gpkg_list.append(os.path.join(self.path_prj, "output", "GIS", os.path.splitext(os.path.basename(self.filename_path))[0].replace(".", "_").replace(":", "_")))
+                layername_list.append("facecenter_" + timestep_name_wish_value.replace(":", "_"))
 
         # merge
         merge_gpkg_to_one(gpkg_list,
