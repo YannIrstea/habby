@@ -129,8 +129,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                     # compute from v_x v_y
                     self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).data[reach_number].append(np.sqrt(self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_x.name).data[reach_number][timestep_index] ** 2 + self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v_y.name).data[reach_number][timestep_index] ** 2))
                     self.hvum.hdf5_and_computable_list.get_from_name(self.hvum.v.name).position = "node"
-
         return self.get_data_2d()
+
 
 
 def plot_vel_h(coord_p2, h, v, path_im, timestep=[-1]):

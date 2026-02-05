@@ -4,3 +4,4 @@ Fabrice	Zaoui	EDF	main developer	France
 Quentin	Royer	INRAE	main developer	France
 Guillaume	Perréal	INRAE	contributor	France
 Cedric	Briand	EPTB Vilaine	contributor	France
+Batoul	Haydar	INRAE	trainee	Lebanon
