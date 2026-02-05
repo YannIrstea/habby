@@ -23,7 +23,7 @@ from scipy.interpolate import griddata
 import pandas as pd
 
 from src import manage_grid_mod
-from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase
+from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase, HydraulicSimulationResultsAnalyzer
 from src.export_manager_mod import (export_raw_mesh_layer_to_gpkg, merge_gpkg_to_one, export_raw_node_layer_to_gpkg,
                                     export_raw_face_layer_to_gpkg)
 
@@ -191,6 +191,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
             where_is_cells_face1 = where_is_cells_face[:, 1]
             face_unit_vec = reach_name_geometry_group["Faces NormalUnitVector and Length"][:]
             face_unit_vec = face_unit_vec[:, :2]
+            #face_unit_len = face_unit_vec[:, 3]
             # face_variables
             velocity = reach_name_result_group[self.hvum.v.software_attributes_list[0]][self.timestep_name_wish_list_index, :].T  # timestep_name_wish_list_index
             #TODO seems that this group 'Face Shear Stress' no longer exist in HEC-RAS 2D version 6.2 at least ???
@@ -379,6 +380,12 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         # load specific timestep
         self.load_specific_timestep(timestep_name_wish_list[0])
 
+        # epsg
+        hsra_value = HydraulicSimulationResultsAnalyzer([self.filename_path],
+                                                        self.path_prj,
+                                                        self.model_type)
+        epsg_code = hsra_value.hydrau_description_list[0]["epsg_code"]
+
         # get group
         geometry_flow_areas_group = self.results_data_file["Geometry/2D Flow Areas"]
         result_flow_areas_group = self.results_data_file[
@@ -497,7 +504,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                 # export_raw_mesh_layer_to_gpkg
                 export_raw_mesh_layer_to_gpkg(os.path.join(self.path_prj, "output", "GIS", os.path.splitext(os.path.basename(self.filename_path))[0].replace(".", "_").replace(":", "_")),
                                               layer_name="mesh_" + timestep_name_wish_value.replace(":", "_"),
-                                              epsg_code="unknown",
+                                              epsg_code=epsg_code,
                                               unit_data=[ikle_all[reach_index],
                                                          coord_p_xyz_all[reach_index],
                                                          elev_c,
@@ -516,7 +523,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                 # export_raw_node_layer_to_gpkg
                 export_raw_node_layer_to_gpkg(os.path.join(self.path_prj, "output", "GIS", os.path.splitext(os.path.basename(self.filename_path))[0].replace(".", "_").replace(":", "_")),
                                               layer_name="node_" + timestep_name_wish_value.replace(":", "_"),
-                                              epsg_code="unknown",
+                                              epsg_code=epsg_code,
                                               unit_data=coord_p_xyz_all[reach_index],
                                               hvum=self.hvum,
                                               progress_value=progress_value,
@@ -528,9 +535,11 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                 # export_raw_face_layer_to_gpkg
                 export_raw_face_layer_to_gpkg(os.path.join(self.path_prj, "output", "GIS", os.path.splitext(os.path.basename(self.filename_path))[0].replace(".", "_").replace(":", "_")),
                                               layer_name="facecenter_" + timestep_name_wish_value.replace(":", "_"),
-                                              epsg_code="unknown",
+                                              epsg_code=epsg_code,
                                               unit_data=[coord_center_face,
-                                                         velocity.T[timestep_name_wish_index]],
+                                                         velocity.T[timestep_name_wish_index],
+                                                         face_unit_vec.T[0],
+                                                         face_unit_vec.T[1]],
                                               hvum=self.hvum,
                                               progress_value=progress_value,
                                               delta_file=delta_file)

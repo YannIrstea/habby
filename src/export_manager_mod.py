@@ -581,12 +581,15 @@ def export_raw_face_layer_to_gpkg(filename_path, layer_name, epsg_code, unit_dat
     else:  # crs known
         layer = ds.CreateLayer(name=layer_name, srs=crs, geom_type=ogr.wkbPoint25D, options=['OVERWRITE=YES'])
 
-    xyz, vel = unit_data
+    xyz, vel, norm_vector_x, norm_vector_y = unit_data
 
     # create fields (no width no precision to be specified with GPKG)
     layer.CreateField(ogr.FieldDefn("v", OGRTypes_dict[np.float64]))
+    layer.CreateField(ogr.FieldDefn("norm_vector_x", OGRTypes_dict[np.float64]))
+    layer.CreateField(ogr.FieldDefn("norm_vector_y", OGRTypes_dict[np.float64]))
 
     defn = layer.GetLayerDefn()
+
     layer.StartTransaction()  # faster
 
     delta_point = delta_file / len(xyz)
@@ -601,6 +604,8 @@ def export_raw_face_layer_to_gpkg(filename_path, layer_name, epsg_code, unit_dat
         feat = ogr.Feature(defn)
         # variables
         feat.SetField("v", vel[point_num].item())
+        feat.SetField("norm_vector_x", norm_vector_x[point_num].item())
+        feat.SetField("norm_vector_y", norm_vector_y[point_num].item())
         # set geometry
         feat.SetGeometry(point)
         # create
