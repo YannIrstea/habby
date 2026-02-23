@@ -125,6 +125,7 @@ def calc_hab_and_output(hab_filename, animal_variable_list, progress_value, q=[]
                     if pref_vel[1][-1] == 0:
                         pref_vel[0].append(100)
                         pref_vel[1].append(0)
+                hsi_sub_classification_code = "Neglect"
                 if model_var.variable_list.subs():
                     hsi_sub_classification_code = model_var.variable_list.get_from_name(
                         model_var.variable_list.subs()[0].name).unit
