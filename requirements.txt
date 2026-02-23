@@ -12,4 +12,4 @@ mplcursors
 pillow
 psutil
 triangle
-numpy
+numpy==1.26.4
