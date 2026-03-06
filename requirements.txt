@@ -2,7 +2,7 @@ pyinstaller==6.6.0
 h5py
 PyQt5
 matplotlib
-scipy
+scipy==1.13.1
 pandas
 numpy-stl
 appdirs
