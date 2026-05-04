@@ -114,7 +114,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
 
         timestep_path = "/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series/Time Date Stamp"
         self.timestep_name_list = [t.decode('utf-8') for idx, t in enumerate(list(self.results_data_file[timestep_path]))]
-        self.timestep_nb = len(self.timestep_name_list[0])
+        self.timestep_nb = len(self.timestep_name_list)
         self.timestep_unit = "Date [d/m/Y h:m:s]"
 
     def get_reach_names(self):
@@ -419,10 +419,13 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                 ikle_all.append(ikle)
                 elev_c_all.append(elev_c)
                 # water depth by mesh
+                hdf_index = self.timestep_name_wish_list_index[timestep_name_wish_index]
                 if "Depth" in reach_name_geometry_group:  # seems that this group no longer exist in HEC-RAS 2D version 6.2 at least ???
-                    water_depth = reach_name_result_group['Depth'][timestep_name_wish_index, :]
+                    water_depth = reach_name_result_group['Depth'][hdf_index, :]
+                    #water_depth = reach_name_result_group['Depth'][timestep_name_wish_index, :]
                 else:
-                    water_surface = reach_name_result_group['Water Surface'][timestep_name_wish_index, :]
+                    #water_surface = reach_name_result_group['Water Surface'][timestep_name_wish_index, :]
+                    water_surface = reach_name_result_group['Water Surface'][hdf_index, :]
                     water_depth = water_surface - elev_c.reshape(water_surface.shape)
 
                 # velocity is given on the side of the cells.
@@ -589,10 +592,12 @@ def get_discharges(filename_path, reach_name="2D_AREA"):
     except:
         print("Error: Can't find boundary conditions datasets in ", filename_path)
 
+    timesteps = [t.decode('utf-8') for t in list(
+        file2D["/Results/Unsteady/Output/Output Blocks/Base Output/Unsteady Time Series/Time Date Stamp"])]
     if flow_dataset_names:
-        nb_timesteps, timesteps = get_time_step(filename_path)
+        #nb_timesteps, timesteps = get_time_step(filename_path)
         for flow_dataset_name in flow_dataset_names:
-            discharge_list = np.sum(file2D[discharge_path + "/" + flow_dataset_name][:], axis=1).astype(np.str).tolist()
+            discharge_list = np.sum(file2D[discharge_path + "/" + flow_dataset_name][:], axis=1).astype(str).tolist()
             if len(discharge_list) == len(timesteps):
                 for timestep_num, timestep in enumerate(timesteps):
                     timesteps[timestep_num] = timestep + " - " + discharge_list[timestep_num]
@@ -887,19 +892,4 @@ def scatter_plot(coord, data, data_name, my_cmap, s1, t):
         plt.title(data_name + ' at time step ' + str(t))
 
 
-def main():
-    """
-    Used to test this module independantly of HABBY.
-    """
-    path = r'C:\Users\diane.von-gunten\HABBY\test_data'
-    filename = 'Muncie.p04.hdf'
-    path_im = r'C:\Users\diane.von-gunten\HABBY\figures_habby'
-    a = time.time()
-    [v, h, elev, coord_p, coord_c, ikle] = load_hec_ras2d(filename, path)
-    b = time.time()
-    print('Time to load data:' + str(b - a) + 'sec')
-    figure_hec_ras2d(v, h, elev, coord_p, coord_c, ikle, path_im, [50], [0])
 
-
-if __name__ == '__main__':
-    main()
