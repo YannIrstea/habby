@@ -474,7 +474,11 @@ def merge_grid_and_save(hdf5_name_hyd, hdf5_name_sub, hdf5_name_hab, path_prj, p
                 hab_epsg_code = epsg_hyd
             if epsg_hyd != epsg_sub:
                 print(
-                    "Error : Merging failed. EPSG codes are different between hydraulic and substrate data : " + epsg_hyd + ", " + epsg_sub)
+                    "Error: Merging failed. EPSG codes are different between hydraulic and substrate data : " + epsg_hyd + ", " + epsg_sub)
+                sys.stdout = sys.__stdout__
+                if q:
+                    q.put(mystdout)
+                    sleep(0.1)  # to wait q.put() ..
                 return
         if not epsg_hyd.isdigit() and epsg_sub.isdigit():
             print(
