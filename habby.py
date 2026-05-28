@@ -24,7 +24,7 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QSplashScreen, QGraphicsOpacityEffect
 from appdirs import AppDirs
 
-HABBY_VERSION_STR = "1.6.12"
+HABBY_VERSION_STR = "1.6.13"
 
 
 class AppDataFolders:
