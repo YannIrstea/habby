@@ -208,20 +208,21 @@ def load_sub_txt(sub_description, progress_value):
         sub_array = [[] for _ in range(sub_class_number)]
 
         for line in data:
-            try:
-                line_list = line.split()
-                x.append(float(line_list[0]))
-                y.append(float(line_list[1]))
-            except TypeError:
-                print("Error: Coordinates (x,y) could not be read as float. Check format of the file " + filename + '.\n')
-                return False
-            for i in range(sub_class_number):
-                index = i + 2
+            if len(line) != 0 :
                 try:
-                    sub_array[i].append(int(line_list[index]))
+                    line_list = line.split()
+                    x.append(float(line_list[0]))
+                    y.append(float(line_list[1]))
                 except TypeError:
-                    print("Error: Substrate data could not be read as integer. Check format of the file " + filename + '.\n')
+                    print("Error: Coordinates (x,y) could not be read as float. Check format of the file " + filename + '.\n')
                     return False
+                for i in range(sub_class_number):
+                    index = i + 2
+                    try:
+                        sub_array[i].append(int(line_list[index]))
+                    except TypeError:
+                        print("Error: Substrate data could not be read as integer. Check format of the file " + filename + '.\n')
+                        return False
 
         # Coord
         point_in = np.vstack((np.array(x), np.array(y))).T
