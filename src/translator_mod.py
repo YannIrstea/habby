@@ -43,6 +43,12 @@ def get_translator(path_prj):
     elif language == 2:
         input_file_translation = 'Zen_ES'
         languageTranslator.load(input_file_translation, os.path.join(os.getcwd(), 'translation'))
+    elif language == 3:
+        input_file_translation = 'Zen_PO'
+        languageTranslator.load(input_file_translation, os.path.join(os.getcwd(), 'translation'))
+    elif language == 4:
+        input_file_translation = 'Zen_IT'
+        languageTranslator.load(input_file_translation, os.path.join(os.getcwd(), 'translation'))
     app.installTranslator(languageTranslator)
     return app
 
