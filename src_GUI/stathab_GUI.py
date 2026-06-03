@@ -472,8 +472,6 @@ class StathabW(estimhab_GUI.StatModUseful):
 
         # files for all reaches
         # for the preference file in the case of temperate river:
-        # first choice> Pref.txt in dir_name is used.
-        # default choice: Pref.txt in the biology folder.
         for i in range(0, len(file_name_all_reach_here)):
             file = os.path.join(self.dir_name, file_name_all_reach_here[i] + '.txt')
             file2 = os.path.join(self.dir_name, file_name_all_reach_here[i] + '.csv')
@@ -482,7 +480,6 @@ class StathabW(estimhab_GUI.StatModUseful):
                 file_name_all_reach_here[i] += '.txt'
                 self.list_file.addItem(itemf)
                 itemf.setBackground(Qt.lightGray)
-                # if a custom Pref.txt is present (for stathab temperate)
                 if i == len(self.name_file_allreach) and self.riverint == 0:
                     self.path_bio_stathab = self.dir_name
             elif os.path.isfile(file2):
@@ -490,14 +487,12 @@ class StathabW(estimhab_GUI.StatModUseful):
                 file_name_all_reach_here[i] += '.csv'
                 self.list_file.addItem(itemf)
                 itemf.setBackground(Qt.lightGray)
-                # if a custom Pref.txt is present (for stathab temperate)
                 if i == len(self.name_file_allreach) and self.riverint == 0:
                     self.path_bio_stathab = self.dir_name
             else:
                 # case 1: a file is missing
                 if i != len(file_name_all_reach_here) - 1:
                     self.list_needed.addItem(file_name_all_reach_here[i])
-                # Or: if Pref.txt is missing, let's use the default file (temperate river)
                 elif self.riverint == 0:
                     file = os.path.join(self.path_bio_stathab, self.name_file_allreach[i])
                     if os.path.join(file):

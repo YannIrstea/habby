@@ -1,3 +1,4 @@
+# TODO: must be updated in order to setup HABBY as python library
 from setuptools import setup, find_packages
 from platform import system as operatingsystem
 from habby import HABBY_VERSION_STR

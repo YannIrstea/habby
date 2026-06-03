@@ -46,7 +46,7 @@ class Stathab:
         self.qhmoy = []  # the mean height and q (2 first llines of rivdis.txt)
         self.dist_gran = []  # the distribution of granulo (rivgra.txt)-only used by temperate river, a list of np.array
         self.data_ii = []  # only used by tropical river. The slope, waterfall height and length of river
-        self.fish_chosen = []  # the name of the fish to be studied, the name should also be in pref.txt
+        self.fish_chosen = []  # the name of the fish to be studied
         self.lim_all = []  # the limits or bornes of h,q and granulio (born*.txt)
         self.name_reach = []  # the list with the name of the reaches
         self.j_all = dict()  # habitat values
@@ -79,7 +79,6 @@ class Stathab:
         """
         A function to read and check the input from stathab based on the text files.
         All files should be in the same folder.
-        The file Pref.txt is read in run_stathab.
         If self.fish_chosen is not present, all fish in the preference file are read.
 
         :param end_file_reach: the ending of the files whose names depends on the reach (with .txt or .csv)
