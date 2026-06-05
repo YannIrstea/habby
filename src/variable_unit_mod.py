@@ -18,7 +18,7 @@ from copy import deepcopy
 import numpy as np
 
 
-class HydraulicVariable:
+class Variable:
     """
     Represent one Hydraulic, substrate and habitat variable or value.
     """
@@ -50,7 +50,7 @@ class HydraulicVariable:
         return self.name
 
     def get_copy(self):
-        hydraulic_variable = HydraulicVariable(name=self.name,
+        hydraulic_variable = Variable(name=self.name,
                                                 name_gui=self.name_gui,
                                                 descr=self.descr,
                                                 dtype=self.dtype,
@@ -67,7 +67,7 @@ class HydraulicVariable:
         return hydraulic_variable
 
 
-class SuitabilityIndexVariable(HydraulicVariable):
+class SuitabilityIndexVariable(Variable):
     """
     Represent one SI variable (linked to hydraulic variable). Mesh scale.
     """
@@ -76,7 +76,7 @@ class SuitabilityIndexVariable(HydraulicVariable):
         super().__init__(name, name_gui, descr, dtype, unit, position, value, hdf5, sub, index_gui, depend_on_h)
 
 
-class HabitatSuitabilityIndexVariable(HydraulicVariable):
+class HabitatSuitabilityIndexVariable(Variable):
     """
     Represent HSI variable. Mesh cale.
     """
@@ -316,12 +316,12 @@ class HydraulicVariableUnitManagement:
     def __init__(self):
         index_gui = 1
         # fixed values
-        self.ro = HydraulicVariable(value=999.7,
+        self.ro = Variable(value=999.7,
                                     unit="kg/m3",
                                     name="ro",
                                     name_gui="ρ",
                                     dtype=np.float64)
-        self.g = HydraulicVariable(value=9.80665,
+        self.g = Variable(value=9.80665,
                                    unit="m/s2",
                                    name="g",
                                    name_gui="gravity",
@@ -329,7 +329,7 @@ class HydraulicVariableUnitManagement:
                                    depend_on_h=False)
         # struct
         index_gui += 1
-        self.i_whole_profile = HydraulicVariable(value=None,
+        self.i_whole_profile = Variable(value=None,
                                                  unit="",
                                                  name="i_whole_profile",
                                                  name_gui="i whole profile",
@@ -338,7 +338,7 @@ class HydraulicVariableUnitManagement:
                                                  index_gui=index_gui,
                                                  depend_on_h=False)
         index_gui += 1
-        self.i_split = HydraulicVariable(value=None,
+        self.i_split = Variable(value=None,
                                          unit="",
                                          name="i_split",
                                          name_gui="i split",
@@ -347,7 +347,7 @@ class HydraulicVariableUnitManagement:
                                          index_gui=index_gui,
                                          depend_on_h=False)
         index_gui += 1
-        self.hydraulic_class = HydraulicVariable(value=None,
+        self.hydraulic_class = Variable(value=None,
                                          unit="",
                                          name="hydraulic_class",
                                          name_gui="hydraulic class",
@@ -356,14 +356,14 @@ class HydraulicVariableUnitManagement:
                                          index_gui=index_gui,
                                          depend_on_h=False)
         # coordinate variables
-        self.tin = HydraulicVariable(value=None,
+        self.tin = Variable(value=None,
                                      unit="",
                                      name="tin",
                                      name_gui="tin",
                                      descr="Triangular Interpolation Network",
                                      dtype=np.int64,
                                      depend_on_h=False)
-        self.xy = HydraulicVariable(value=None,
+        self.xy = Variable(value=None,
                                     unit="m",
                                     name="xy",
                                     name_gui="xy",
@@ -371,7 +371,7 @@ class HydraulicVariableUnitManagement:
                                     dtype=np.float64,
                                     depend_on_h=False)
         index_gui += 1
-        self.z = HydraulicVariable(value=None,
+        self.z = Variable(value=None,
                                    unit="m",
                                    name="z",
                                    name_gui="elevation",
@@ -381,7 +381,7 @@ class HydraulicVariableUnitManagement:
                                    depend_on_h=False)
         # hyd variable minimum
         index_gui += 1
-        self.h = HydraulicVariable(value=None,
+        self.h = Variable(value=None,
                                    unit="m",
                                    name="h",
                                    name_gui="water depth",
@@ -389,7 +389,7 @@ class HydraulicVariableUnitManagement:
                                    dtype=np.float64,
                                    index_gui=index_gui)
         index_gui += 1
-        self.v = HydraulicVariable(value=None,
+        self.v = Variable(value=None,
                                    unit="m/s",
                                    name="v",
                                    name_gui="water velocity",
@@ -398,7 +398,7 @@ class HydraulicVariableUnitManagement:
                                    index_gui=index_gui)
         # hyd variable other
         index_gui += 1
-        self.v_x = HydraulicVariable(value=None,
+        self.v_x = Variable(value=None,
                                      unit="m/s",
                                      name="v_x",
                                      name_gui="water velocity x",
@@ -406,7 +406,7 @@ class HydraulicVariableUnitManagement:
                                      dtype=np.float64,
                                      index_gui=index_gui)
         index_gui += 1
-        self.v_y = HydraulicVariable(value=None,
+        self.v_y = Variable(value=None,
                                      unit="m/s",
                                      name="v_y",
                                      name_gui="water velocity y",
@@ -414,7 +414,7 @@ class HydraulicVariableUnitManagement:
                                      dtype=np.float64,
                                      index_gui=index_gui)
         index_gui += 1
-        self.v_frict = HydraulicVariable(value=None,
+        self.v_frict = Variable(value=None,
                                          unit="m/s",
                                          name="v_frict",
                                          name_gui="water velocity friction",
@@ -422,7 +422,7 @@ class HydraulicVariableUnitManagement:
                                          dtype=np.float64,
                                          index_gui=index_gui)
         index_gui += 1
-        self.area = HydraulicVariable(value=None,
+        self.area = Variable(value=None,
                                       unit="m²",
                                       name="area",
                                       name_gui="area",
@@ -432,7 +432,7 @@ class HydraulicVariableUnitManagement:
                                       index_gui=index_gui,
                                       depend_on_h=False)
         index_gui += 1
-        self.shear_stress = HydraulicVariable(value=None,
+        self.shear_stress = Variable(value=None,
                                               unit="N/m²",
                                               name="shear_stress",
                                               name_gui="shear stress",
@@ -440,7 +440,7 @@ class HydraulicVariableUnitManagement:
                                               dtype=np.float64,
                                               index_gui=index_gui)
         index_gui += 1
-        self.shear_stress_beta = HydraulicVariable(value=None,
+        self.shear_stress_beta = Variable(value=None,
                                                    unit="N/m²",
                                                    name="shear_stress_beta",
                                                    name_gui="shear stress beta",
@@ -448,7 +448,7 @@ class HydraulicVariableUnitManagement:
                                                    dtype=np.float64,
                                                    index_gui=index_gui)
         index_gui += 1
-        self.level = HydraulicVariable(value=None,
+        self.level = Variable(value=None,
                                        unit="m",
                                        name="level",
                                        name_gui="water level",
@@ -456,7 +456,7 @@ class HydraulicVariableUnitManagement:
                                        dtype=np.float64,
                                        index_gui=index_gui)
         index_gui += 1
-        self.delta_level = HydraulicVariable(value=None,
+        self.delta_level = Variable(value=None,
                                        unit="m",
                                        name="delta_level",
                                        name_gui="delta water level",
@@ -464,7 +464,7 @@ class HydraulicVariableUnitManagement:
                                        dtype=np.float64,
                                        index_gui=index_gui)
         index_gui += 1
-        self.froude = HydraulicVariable(value=None,
+        self.froude = Variable(value=None,
                                         unit="",
                                         name="froude",
                                         name_gui="froude number",
@@ -472,7 +472,7 @@ class HydraulicVariableUnitManagement:
                                         dtype=np.float64,
                                         index_gui=index_gui)
         index_gui += 1
-        self.hydraulic_head = HydraulicVariable(value=None,
+        self.hydraulic_head = Variable(value=None,
                                                 unit="m",
                                                 name="hydraulic_head",
                                                 name_gui="hydraulic head",
@@ -480,7 +480,7 @@ class HydraulicVariableUnitManagement:
                                                 dtype=np.float64,
                                                 index_gui=index_gui)
         index_gui += 1
-        self.hydraulic_head_level = HydraulicVariable(value=None,
+        self.hydraulic_head_level = Variable(value=None,
                                                       unit="m",
                                                       name="hydraulic_head_level",
                                                       name_gui="hydraulic_head_level",
@@ -488,7 +488,7 @@ class HydraulicVariableUnitManagement:
                                                       dtype=np.float64,
                                                       index_gui=index_gui)
         index_gui += 1
-        self.conveyance = HydraulicVariable(value=None,
+        self.conveyance = Variable(value=None,
                                             unit="m²/s",
                                             name="conveyance",
                                             name_gui="conveyance",
@@ -496,7 +496,7 @@ class HydraulicVariableUnitManagement:
                                             dtype=np.float64,
                                             index_gui=index_gui)
         index_gui += 1
-        self.max_slope_bottom = HydraulicVariable(value=None,
+        self.max_slope_bottom = Variable(value=None,
                                                   unit="m/m",
                                                   name="max_slope_bottom",
                                                   name_gui="max slope bottom",
@@ -505,7 +505,7 @@ class HydraulicVariableUnitManagement:
                                                   index_gui=index_gui,
                                                   depend_on_h=False)
         index_gui += 1
-        self.max_slope_surface = HydraulicVariable(value=None,
+        self.max_slope_surface = Variable(value=None,
                                                   unit="m/m",
                                                   name="max_slope_surface",
                                                   name_gui="max slope surface",
@@ -514,7 +514,7 @@ class HydraulicVariableUnitManagement:
                                                   index_gui=index_gui,
                                                   depend_on_h=True)
         index_gui += 1
-        self.max_slope_energy = HydraulicVariable(value=None,
+        self.max_slope_energy = Variable(value=None,
                                                   unit="m/m",
                                                   name="max_slope_energy",
                                                   name_gui="max slope energy",
@@ -523,7 +523,7 @@ class HydraulicVariableUnitManagement:
                                                   index_gui=index_gui,
                                                   depend_on_h=True)
         index_gui += 1
-        self.hrr = HydraulicVariable(value=None,
+        self.hrr = Variable(value=None,
                                        unit="m/h",
                                        name="hrr",
                                        name_gui="horizontal ramping rate",
@@ -531,7 +531,7 @@ class HydraulicVariableUnitManagement:
                                        dtype=np.float64,
                                        index_gui=index_gui)
         index_gui += 1
-        self.vrr = HydraulicVariable(value=None,
+        self.vrr = Variable(value=None,
                                        unit="m/h",
                                        name="vrr",
                                        name_gui="vertical ramping rate",
@@ -539,7 +539,7 @@ class HydraulicVariableUnitManagement:
                                        dtype=np.float64,
                                        index_gui=index_gui)
         index_gui += 1
-        self.temp = HydraulicVariable(value=None,
+        self.temp = Variable(value=None,
                                       unit="",
                                       name="temp",
                                       name_gui="temperature",
@@ -549,7 +549,7 @@ class HydraulicVariableUnitManagement:
                                       depend_on_h=False)
         # sub variable
         index_gui += 1
-        self.i_sub_defaut = HydraulicVariable(value=None,
+        self.i_sub_defaut = Variable(value=None,
                                               unit="",
                                               name="i_sub_defaut",
                                               name_gui="sub defaut value index",
@@ -558,7 +558,7 @@ class HydraulicVariableUnitManagement:
                                               dtype=np.int64,
                                               depend_on_h=False)
         index_gui += 1
-        self.sub_percentage = HydraulicVariable(value=None,
+        self.sub_percentage = Variable(value=None,
                                              unit="",
                                              name="sub_percentage",
                                              name_gui="Substrate Percentage",
@@ -568,7 +568,7 @@ class HydraulicVariableUnitManagement:
                                              sub=True,
                                              depend_on_h=False)
         index_gui += 1
-        self.sub_coarser = HydraulicVariable(value=None,
+        self.sub_coarser = Variable(value=None,
                                              unit="",
                                              name="sub_coarser",
                                              name_gui="substrate coarser",
@@ -578,7 +578,7 @@ class HydraulicVariableUnitManagement:
                                              sub=True,
                                              depend_on_h=False)
         index_gui += 1
-        self.sub_dom = HydraulicVariable(value=None,
+        self.sub_dom = Variable(value=None,
                                          unit="",
                                          name="sub_dom",
                                          name_gui="substrate dominant",
@@ -588,7 +588,7 @@ class HydraulicVariableUnitManagement:
                                          sub=True,
                                          depend_on_h=False)
         index_gui += 1
-        self.sub_s1 = HydraulicVariable(value=None,
+        self.sub_s1 = Variable(value=None,
                                         unit="",
                                         name="sub_s1",
                                         name_gui="substrate S1",
@@ -598,7 +598,7 @@ class HydraulicVariableUnitManagement:
                                         sub=True,
                                         depend_on_h=False)
         index_gui += 1
-        self.sub_s2 = HydraulicVariable(value=None,
+        self.sub_s2 = Variable(value=None,
                                         unit="",
                                         name="sub_s2",
                                         name_gui="substrate S2",
@@ -608,7 +608,7 @@ class HydraulicVariableUnitManagement:
                                         sub=True,
                                         depend_on_h=False)
         index_gui += 1
-        self.sub_s3 = HydraulicVariable(value=None,
+        self.sub_s3 = Variable(value=None,
                                         unit="",
                                         name="sub_s3",
                                         name_gui="substrate S3",
@@ -618,7 +618,7 @@ class HydraulicVariableUnitManagement:
                                         sub=True,
                                         depend_on_h=False)
         index_gui += 1
-        self.sub_s4 = HydraulicVariable(value=None,
+        self.sub_s4 = Variable(value=None,
                                         unit="",
                                         name="sub_s4",
                                         name_gui="substrate S4",
@@ -628,7 +628,7 @@ class HydraulicVariableUnitManagement:
                                         sub=True,
                                         depend_on_h=False)
         index_gui += 1
-        self.sub_s5 = HydraulicVariable(value=None,
+        self.sub_s5 = Variable(value=None,
                                         unit="",
                                         name="sub_s5",
                                         name_gui="substrate S5",
@@ -638,7 +638,7 @@ class HydraulicVariableUnitManagement:
                                         sub=True,
                                         depend_on_h=False)
         index_gui += 1
-        self.sub_s6 = HydraulicVariable(value=None,
+        self.sub_s6 = Variable(value=None,
                                         unit="",
                                         name="sub_s6",
                                         name_gui="substrate S6",
@@ -648,7 +648,7 @@ class HydraulicVariableUnitManagement:
                                         sub=True,
                                         depend_on_h=False)
         index_gui += 1
-        self.sub_s7 = HydraulicVariable(value=None,
+        self.sub_s7 = Variable(value=None,
                                         unit="",
                                         name="sub_s7",
                                         name_gui="substrate S7",
@@ -658,7 +658,7 @@ class HydraulicVariableUnitManagement:
                                         sub=True,
                                         depend_on_h=False)
         index_gui += 1
-        self.sub_s8 = HydraulicVariable(value=None,
+        self.sub_s8 = Variable(value=None,
                                         unit="",
                                         name="sub_s8",
                                         name_gui="substrate S8",
@@ -668,7 +668,7 @@ class HydraulicVariableUnitManagement:
                                         sub=True,
                                         depend_on_h=False)
         index_gui += 1
-        self.sub_s9 = HydraulicVariable(value=None,
+        self.sub_s9 = Variable(value=None,
                                         unit="",
                                         name="sub_s9",
                                         name_gui="substrate S9",
@@ -678,7 +678,7 @@ class HydraulicVariableUnitManagement:
                                         sub=True,
                                         depend_on_h=False)
         index_gui += 1
-        self.sub_s10 = HydraulicVariable(value=None,
+        self.sub_s10 = Variable(value=None,
                                          unit="",
                                          name="sub_s10",
                                          name_gui="substrate S10",
@@ -688,7 +688,7 @@ class HydraulicVariableUnitManagement:
                                          sub=True,
                                          depend_on_h=False)
         index_gui += 1
-        self.sub_s11 = HydraulicVariable(value=None,
+        self.sub_s11 = Variable(value=None,
                                          unit="",
                                          name="sub_s11",
                                          name_gui="substrate S11",
@@ -698,7 +698,7 @@ class HydraulicVariableUnitManagement:
                                          sub=True,
                                          depend_on_h=False)
         index_gui += 1
-        self.sub_s12 = HydraulicVariable(value=None,
+        self.sub_s12 = Variable(value=None,
                                          unit="",
                                          name="sub_s12",
                                          name_gui="substrate S12",
@@ -711,7 +711,7 @@ class HydraulicVariableUnitManagement:
         # all_available_variables_list
         self.all_sys_variable_list = HydraulicVariableUnitList()
         for name in vars(self):
-            if type(getattr(self, name)) == HydraulicVariable:
+            if type(getattr(self, name)) == Variable:
                 self.all_sys_variable_list.append(getattr(self, name))
 
         # software_target_list
