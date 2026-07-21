@@ -106,6 +106,7 @@ class ProcessProgShow(QObject):
         self.computation_pushbutton.setText(self.tr("stop"))
         self.computation_pushbutton.disconnect()
         self.computation_pushbutton.clicked.connect(self.stop_by_user)
+        change_button_color(self.computation_pushbutton, "#ff0000")#47B5E6
 
         # log
         self.send_log.emit(self.process_manager.process_type_gui + self.tr(" in progress ") + "...")
@@ -191,5 +192,6 @@ class ProcessProgShow(QObject):
     def stop_by_user(self):
         self.process_manager.stop_by_user()
         self.computation_pushbutton.setText("run")
+        change_button_color(self.computation_pushbutton, "#47B5E6")#47B5E6
         self.computation_pushbutton.disconnect()
         self.computation_pushbutton.clicked.connect(self.run_function)
