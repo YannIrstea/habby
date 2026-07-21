@@ -63,6 +63,7 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         self.hvum.link_unit_with_software_attribute(name=self.hvum.v_frict.name,
                                                     attribute_list=['FRICTION VEL', 'VITESSE DE FROT'],
                                                     position="node")
+        # TODO: add shearstress (get telemac attribute)
 
         # is extension ok ?
         if os.path.splitext(self.filename)[1] not in self.extensions_list:

@@ -1263,8 +1263,7 @@ class Unit(dict):
 
         w = (xy2[:, 0] - xy1[:, 0]) * (xy3[:, 1] - xy1[:, 1]) - (xy2[:, 1] - xy1[:, 1]) * (xy3[:, 0] - xy1[:, 0])
         zz1, zz2, zz3 = z1 + h1 + v1 ** 2 / (2 * self.hvum.g.value), z2 + h2 + v2 ** 2 / (
-                2 * self.hvum.g.value), z3 + h3 + v3 ** 2 / (
-                                2 * self.hvum.g.value)
+                2 * self.hvum.g.value), z3 + h3 + v3 ** 2 / (2 * self.hvum.g.value)
         u = (xy2[:, 1] - xy1[:, 1]) * (zz3 - zz1) - (zz2 - zz1) * (xy3[:, 1] - xy1[:, 1])
         v = (xy3[:, 0] - xy1[:, 0]) * (zz2 - zz1) - (zz3 - zz1) * (xy2[:, 0] - xy1[:, 0])
         with np.errstate(divide='ignore', invalid='ignore'):
