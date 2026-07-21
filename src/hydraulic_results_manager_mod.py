@@ -488,6 +488,11 @@ class HydraulicSimulationResultsAnalyzer:
                     water_level_unit = headers[water_level_index][start:end]
 
                 """ CHECK CASE """
+                if reach_presence and not time_presence:
+                    if len(self.filename_list) != len(set(self.filename_list)):
+                        self.hydrau_description_list = "Error: indexHYDRAU.txt file is not well formated : timestep column not detected or filenames must be differents."
+                        return
+
                 if not self.more_than_one_file_selected_by_user and discharge_presence and not time_presence:
                     self.hydrau_case = "1.a"
                 if not self.more_than_one_file_selected_by_user and discharge_presence and time_presence:
@@ -556,7 +561,7 @@ class HydraulicSimulationResultsAnalyzer:
                     unit_name_from_index_file = data_index_file[headers[discharge_index]]
                     # check if lenght of two loading units
                     if hsr.timestep_nb > len(unit_name_from_index_file):
-                        self.hydrau_description_list = "Error: units number from indexHYDRAU inferior than TELEMAC selected."
+                        self.hydrau_description_list = "Error: units number from indexHYDRAU.txt inferior than " + self.model_type + " selected file."
                         return
 
                     if reach_presence:
