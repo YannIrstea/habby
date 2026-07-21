@@ -678,12 +678,12 @@ class ModelInfoGroup(QGroupBox):
                 self.clean_gui()
                 self.send_log.emit(hsra_value.hydrau_description_list)
                 return
-
             # set to attribute
             self.hydrau_description_list = hsra_value.hydrau_description_list
 
             # display first hydrau_description_list
             self.hydrau_case = self.hydrau_description_list[0]["hydrau_case"]
+            self.send_log.emit(self.tr("Hydraulic case detected : ") + self.hydrau_case)
             # change suffix
             if not self.project_properties["cut_mesh_partialy_dry"] and self.hydrau_description_list[0]["model_dimension"] == "2":
                 for telemac_description_num in range(len(self.hydrau_description_list)):
