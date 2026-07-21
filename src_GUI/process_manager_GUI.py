@@ -41,7 +41,7 @@ class ProcessProgLayout(QHBoxLayout):
         # run_stop_button
         self.run_stop_button = QPushButton(self.tr("run"))
         self.run_stop_button.setMaximumHeight(widget_height)
-        change_button_color(self.run_stop_button, "#47B5E6")#47B5E6
+        change_button_color(self.run_stop_button, "#47B5E6")  # blue habby
         self.run_stop_button.clicked.connect(run_function)  # self.collect_data_from_gui_and_plot
         self.run_stop_button.setEnabled(False)
 
@@ -106,7 +106,7 @@ class ProcessProgShow(QObject):
         self.computation_pushbutton.setText(self.tr("stop"))
         self.computation_pushbutton.disconnect()
         self.computation_pushbutton.clicked.connect(self.stop_by_user)
-        change_button_color(self.computation_pushbutton, "#FF2121")#47B5E6
+        change_button_color(self.computation_pushbutton, "#FF2121")  # red stop
 
         # log
         self.send_log.emit(self.process_manager.process_type_gui + self.tr(" in progress ") + "...")
@@ -148,6 +148,7 @@ class ProcessProgShow(QObject):
         self.progress_label.setText("{0:.0f}/{1:.0f}".format(self.process_manager.process_list.nb_finished,
                                                              self.process_manager.process_list.nb_total))
         self.computation_pushbutton.setText(self.tr("run"))
+        change_button_color(self.computation_pushbutton, "#47B5E6")  # blue habby
         self.computation_pushbutton.setChecked(True)
         self.computation_pushbutton.disconnect()
         self.computation_pushbutton.clicked.connect(self.run_function)
@@ -192,6 +193,6 @@ class ProcessProgShow(QObject):
     def stop_by_user(self):
         self.process_manager.stop_by_user()
         self.computation_pushbutton.setText("run")
-        change_button_color(self.computation_pushbutton, "#47B5E6")#47B5E6
+        change_button_color(self.computation_pushbutton, "#47B5E6")  # blue habby
         self.computation_pushbutton.disconnect()
         self.computation_pushbutton.clicked.connect(self.run_function)
