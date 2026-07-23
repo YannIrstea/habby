@@ -201,5 +201,5 @@ def is_number(n):
     return True
 
 
-polygon_type_values = (3, 2003, 3003, 0x80000003, -2147483645)  # wkbPolygon, wkbPolygonM, wkbPolygonZM, wkbPolygon25D, wkbPolygon25D
+polygon_type_values = (3, 2003, 3003, 0x80000003, -2147483645)  # wkbPolygon, wkbPolygonM, wkbPolygonZM, wkbPolygon25D, wkbPolygon25D  # TODO: multipolygon
 point_type_values = (1, 2001, 3001, 0x80000001, -2147483647)  # wkbPoint, wkbPointM, wkbPointZM, wkbPoint25D, wkbPoint25D

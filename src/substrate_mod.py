@@ -655,7 +655,12 @@ def polygon_shp_to_triangle_shp(filename, path_file, path_prj, sub_description_s
     point_nb_list = []
     for feature_ind, feature in enumerate(layer_polygon):
         shape_geom = feature.geometry()
-        new_points = shape_geom.GetGeometryRef(0).GetPoints()
+        try:
+            new_points = shape_geom.GetGeometryRef(0).GetPoints()
+        except RuntimeError:
+            print('Error: The substrate polygon FID n°' + str(feature_ind) +
+                  " seems to be a multi polygon instead of mono polygon.")
+            return False
         if new_points is None:
             print('Error: The substrate polygon FID n°' + str(feature_ind) +
                   " seems to be self intersected or corrupted. Use a geometry validity checker in your GIS software.")
