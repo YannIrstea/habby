@@ -137,6 +137,13 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         Keyword arguments:
         timestep_name_wish_list -- list of targeted timestep to be load, type: list of str
         """
+        # load min_height
+        from src.project_properties_mod import load_project_properties
+        try:
+            project_properties = load_project_properties(self.path_prj)
+            min_height = project_properties.get('min_height_hyd', 0)
+        except Exception:
+            min_height = 0
 
         # load specific timestep
         self.load_specific_timestep(timestep_name_wish_list)
@@ -293,6 +300,12 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
             # xyz
             coord_p_xyz_all.append(np.column_stack([coord_p_all[reach_index], elev_p_all[reach_index]]))
             coord_c_xyz_all.append(np.column_stack([coord_c_all[reach_index], elev_c_all[reach_index]]))
+        for reach_number in range(len(self.reach_name_list)):
+            for timestep_name_wish_index in range(self.timestep_wish_nb):
+                mask_dry = water_depth_c_all[reach_number][timestep_name_wish_index, :] < min_height
+                water_depth_c_all[reach_number][timestep_name_wish_index, mask_dry] = 0
+                vel_c_all[reach_number][mask_dry, timestep_name_wish_index] = 0
+                shear_stress_c_all[reach_number][mask_dry, timestep_name_wish_index] = 0
 
         # get a triangular grid as hec-ras output are not triangular
         ikle_all, coord_p_xyz_all, water_depth_t_all, vel_t_all, shear_stress_t_all, z_all = get_triangular_grid_hecras(
