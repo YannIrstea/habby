@@ -225,13 +225,15 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                 data_face_t = data_face[:, 2:].T
                 add_vec_x = np.sum(data_face_t * data_face[:, 0], axis=1)
                 add_vec_y = np.sum(data_face_t * data_face[:, 1], axis=1)
-                vel_c[c, :] = np.sqrt(add_vec_x ** 2 + add_vec_y ** 2) / nb_face
+                # old vel_c[c, :] = np.sqrt(add_vec_x ** 2 + add_vec_y ** 2) / nb_face wrong because in vectorial approach the same amount of water flows in and out of the mesh
+                vel_c[c, :] = np.sqrt(add_vec_x ** 2 + add_vec_y ** 2) / 2
                 # shear_stress
                 data2_face = new_shear_stress[face, :]
                 data2_face_t = data2_face[:, 2:].T
                 add_vec_x2 = np.sum(data2_face_t * data2_face[:, 0], axis=1)
                 add_vec_y2 = np.sum(data2_face_t * data2_face[:, 1], axis=1)
-                shear_stress_c[c, :] = np.sqrt(add_vec_x2 ** 2 + add_vec_y2 ** 2) / nb_face
+                # old shear_stress_c[c, :] = np.sqrt(add_vec_x2 ** 2 + add_vec_y2 ** 2) / nb_face wrong because in vectorial approach the same amount of water flows in and out of the mesh
+                shear_stress_c[c, :] = np.sqrt(add_vec_x2 ** 2 + add_vec_y2 ** 2) / 2
             vel_c_all.append(vel_c)
             shear_stress_c_all.append(shear_stress_c)
 
