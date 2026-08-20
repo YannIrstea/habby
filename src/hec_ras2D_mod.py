@@ -26,7 +26,8 @@ from src import manage_grid_mod
 from src.hydraulic_results_manager_mod import HydraulicSimulationResultsBase, HydraulicSimulationResultsAnalyzer
 from src.export_manager_mod import (export_raw_mesh_layer_to_gpkg, merge_gpkg_to_one, export_raw_node_layer_to_gpkg,
                                     export_raw_face_layer_to_gpkg)
-
+from src.project_properties_mod import load_project_properties
+from src.manage_grid_mod import intersection_seg
 
 class HydraulicSimulationResults(HydraulicSimulationResultsBase):
     """Represent HEC-RAS 2D hydraulic simulation results.
@@ -138,12 +139,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         timestep_name_wish_list -- list of targeted timestep to be load, type: list of str
         """
         # load min_height
-        from src.project_properties_mod import load_project_properties
-        try:
-            project_properties = load_project_properties(self.path_prj)
-            min_height = project_properties.get('min_height_hyd', 0)
-        except Exception:
-            min_height = 0
+        project_properties = load_project_properties(self.path_prj)
+        min_height = project_properties['min_height_hyd']
 
         # load specific timestep
         self.load_specific_timestep(timestep_name_wish_list)
@@ -166,6 +163,12 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         vel_t_all = []
         shear_stress_t_all = []
         water_depth_t_all = []
+        vel_p_all = []
+        water_depth_p_all = []
+        vel_p_t_all = []
+        water_depth_p_t_all = []
+        shear_stress_p_all = []
+        shear_stress_p_t_all = []
 
         # for each reach
         for reach_index, reach_name in enumerate(self.reach_name_list):
@@ -182,6 +185,11 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
             coord_c_all.append(coord_c)
             ikle_all.append(ikle)
             elev_c_all.append(elev_c)
+            face_unit_l_full = reach_name_geometry_group["Faces NormalUnitVector and Length"][:]
+            face_p_idx = reach_name_geometry_group["Faces FacePoint Indexes"][:]
+            p1_idx = face_p_idx[:, 0]
+            p2_idx = face_p_idx[:, 1]
+            nb_p = coord_p.shape[0] # number of points per cell
             # water depth by mesh
             if "Depth" in reach_name_geometry_group: #seems that this group no longer exist in HEC-RAS 2D version 6.2 at least ???
                 water_depth = reach_name_result_group['Depth'][self.timestep_name_wish_list_index, :]
@@ -221,12 +229,12 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                 lim_b = lim_a + nb_face
                 face = cells_face[lim_a:lim_b]
                 # vel
-                data_face = new_vel[face, :]
-                data_face_t = data_face[:, 2:].T
-                add_vec_x = np.sum(data_face_t * data_face[:, 0], axis=1)
-                add_vec_y = np.sum(data_face_t * data_face[:, 1], axis=1)
+                # data_face = new_vel[face, :]
+                # data_face_t = data_face[:, 2:].T
+                # add_vec_x = np.sum(data_face_t * data_face[:, 0], axis=1)
+                # add_vec_y = np.sum(data_face_t * data_face[:, 1], axis=1)
                 # old vel_c[c, :] = np.sqrt(add_vec_x ** 2 + add_vec_y ** 2) / nb_face wrong because in vectorial approach the same amount of water flows in and out of the mesh
-                vel_c[c, :] = np.sqrt(add_vec_x ** 2 + add_vec_y ** 2) / 2
+                # vel_c[c, :] = np.sqrt(add_vec_x ** 2 + add_vec_y ** 2) / 2
                 # shear_stress
                 data2_face = new_shear_stress[face, :]
                 data2_face_t = data2_face[:, 2:].T
@@ -234,9 +242,16 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                 add_vec_y2 = np.sum(data2_face_t * data2_face[:, 1], axis=1)
                 # old shear_stress_c[c, :] = np.sqrt(add_vec_x2 ** 2 + add_vec_y2 ** 2) / nb_face wrong because in vectorial approach the same amount of water flows in and out of the mesh
                 shear_stress_c[c, :] = np.sqrt(add_vec_x2 ** 2 + add_vec_y2 ** 2) / 2
-            vel_c_all.append(vel_c)
+            # vel_c_all.append(vel_c)
             shear_stress_c_all.append(shear_stress_c)
-
+            # list of face indices adjacent to cell c
+            cell_to_faces = [[] for _ in range(len(coord_c_all[reach_index]))]
+            lim_b2 = 0
+            for c in range(len(coord_c_all[reach_index])):
+                nb_face_c = where_is_cells_face1[c]
+                lim_a2 = lim_b2
+                lim_b2 = lim_a2 + nb_face_c
+                cell_to_faces[c] = cells_face[lim_a2:lim_b2].astype(int).tolist()
             # important ther are 'flat cells'  all along on the edge/perimeter of the river  whith only 2 nodes/cell  and the center elevation of these cells is unknown (nan from HECRAS)
             # for habby we will destroy all those cells  afterwards
             # if np.isnan(elev_c_all[reach_index]).any():
@@ -287,21 +302,167 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                 print('Warning: there are points/nodes where the elevation is unknown not calculated by HABBY')
 
             elev_p_all.append(elev_p)
+            vel_p = np.zeros((nb_p, nbtstep))
+            water_depth_p = np.zeros((nb_p, nbtstep))
+            shear_stress_pp_all = np.zeros((nb_p, nbtstep))
+            l_max = 500 # max segment length for cross-section search (m)
+            for timestep_name_wish_index in range(nbtstep):
+                # water depth by cell center
+                h_c = water_depth[timestep_name_wish_index, :]
+                ws_t = water_surface[timestep_name_wish_index, :]
+                mask_wet = h_c > 0
+                # water surface elevation at FacePoints
+                hznodes2_p = np.zeros(nb_p)
+                if mask_wet.sum() > 2:
+                    hznodes2_p = griddata_with_nan_correction(
+                        points=coord_c[mask_wet],
+                        values=ws_t[mask_wet],
+                        xi=coord_p)
+                # water depth at FacePoints
+                h_p = np.maximum(hznodes2_p - elev_p, 0)
+                h_p[h_p < min_height] = 0.0
+                water_depth_p[:, timestep_name_wish_index] = h_p
+                # h by face
+                h_face = np.maximum((h_p[p1_idx] + h_p[p2_idx]) / 2, 0)
+                # Qx and Qy by cell center
+                S_face = face_unit_l_full[:, 2] * h_face
+                Qx_c = np.zeros(len(coord_c_all[reach_index]))
+                Qy_c = np.zeros(len(coord_c_all[reach_index]))
+                v_max_faces_all = np.zeros(len(coord_c_all[reach_index]))
+                vx_c = np.zeros(len(coord_c_all[reach_index]))
+                vy_c = np.zeros(len(coord_c_all[reach_index]))
+                lim_b = 0
+                for c in range(len(coord_c_all[reach_index])):
+                    nb_face_c = where_is_cells_face1[c]
+                    lim_a = lim_b
+                    lim_b = lim_a + nb_face_c
+                    ori = cells_face_all[lim_a:lim_b, 1].astype(float)
+                    v_f = velocity[cell_to_faces[c], timestep_name_wish_index]
+                    nx_f = face_unit_l_full[cell_to_faces[c], 0]
+                    ny_f = face_unit_l_full[cell_to_faces[c], 1]
+                    S_f = S_face[cell_to_faces[c]]
+                    # skip dry or flat cells
+                    if h_c[c] <= 0 or np.isnan(h_c[c]):
+                        continue
+                    qx_faces = v_f * nx_f * S_f # face discharge projected on x-axis
+                    qy_faces = v_f * ny_f * S_f # face discharge projected on y-axis
+                    # cell discharge = face discharge amplitude × dominant flow direction
+                    Qx_c[c] = np.sum(np.abs(qx_faces)) / 2 * np.sign(np.sum(qx_faces * ori))
+                    Qy_c[c] = np.sum(np.abs(qy_faces)) / 2 * np.sign(np.sum(qy_faces * ori))
+                    v_max_faces_all[c] = np.abs(v_f).max() if len(v_f) > 0 else 0.0 # vel_c cannot exceed max face velocity
+                # velocity at cell centers
+                # draw a cross-section perpendicular to Q through the cell centroid
+                # find where it intersects the cell faces to get the wetted area S_c
+                    norm_Q = np.sqrt(Qx_c[c] ** 2 + Qy_c[c] ** 2)
+                    if norm_Q < 1e-10 or h_c[c] <= 0 or np.isnan(h_c[c]):
+                        continue
+                    xc, yc = coord_c[c, 0], coord_c[c, 1]
+                    # perpendicular direction to Q
+                    dx_perp = -Qy_c[c] / norm_Q
+                    dy_perp = Qx_c[c] / norm_Q
+                    # cross-section segment through centroid
+                    p1_seg = np.array([xc - dx_perp * l_max,
+                                   yc - dy_perp * l_max])
+                    p2_seg = np.array([xc + dx_perp * l_max,
+                                   yc + dy_perp * l_max])
+                    # find intersections with cell faces
+                    intersections = []
+                    for f in cell_to_faces[c]:
+                        p1_f = face_p_idx[f, 0]
+                        p2_f = face_p_idx[f, 1]
+                        p1_face = coord_p[p1_f]
+                        p2_face = coord_p[p2_f]
+                        inter, pc = intersection_seg(p1_seg, p2_seg, p1_face, p2_face, False)
+                        if inter and len(pc) > 0:
+                            px, py = pc[0][0], pc[0][1]
+                            intersections.append((px, py))
+                    if len(intersections) < 2:
+                        continue
+                    # keep the two most distant intersection points
+                    if len(intersections) > 2:
+                        best_dist, i_best, j_best = 0, 0, 1
+                        for ia in range(len(intersections)):
+                            for ib in range(ia + 1, len(intersections)):
+                                d = np.sqrt((intersections[ia][0] - intersections[ib][0]) ** 2 + (intersections[ia][1] - intersections[ib][1]) ** 2)
+                                if d > best_dist:
+                                    best_dist = d
+                                    i_best, j_best = ia, ib
+                        P1 = intersections[i_best]
+                        P2 = intersections[j_best]
+                    else:
+                        P1, P2 = intersections[0], intersections[1]
+                    dist_12 = np.sqrt((P1[0] - P2[0]) ** 2 + (P1[1] - P2[1]) ** 2)
+                    S_c = dist_12 * h_c[c]
+                    if S_c > 1e-10:
+                        vx_c[c] = Qx_c[c] / S_c
+                        vy_c[c] = Qy_c[c] / S_c
+                        vel_c[c, timestep_name_wish_index] = min(np.sqrt(vx_c[c] ** 2 + vy_c[c] ** 2),v_max_faces_all[c])
+                # velocity at FacePoints
+                # interpolate unit discharge (v*h) instead of velocity directly because it varies smoothly in space
+                vxh_c = vx_c * np.nan_to_num(h_c, nan=0)
+                vyh_c = vy_c * np.nan_to_num(h_c, nan=0)
+                if mask_wet.sum() > 2:
+                    vxh_p = griddata(
+                        points = coord_c[mask_wet],
+                        values = vxh_c[mask_wet],
+                        xi=coord_p,
+                        method='nearest')
+                    vyh_p = griddata(
+                        points = coord_c[mask_wet],
+                        values = vyh_c[mask_wet],
+                        xi=coord_p,
+                        method='nearest')
+                else:
+                    vxh_p = np.zeros(nb_p)
+                    vyh_p = np.zeros(nb_p)
+                with np.errstate(divide='ignore', invalid='ignore'):
+                    vx_p = np.where(h_p > 0, vxh_p / h_p, 0.0)
+                    vy_p = np.where(h_p > 0, vyh_p / h_p, 0.0)
+                v_p = np.sqrt(vx_p ** 2 + vy_p ** 2)
+                v_p[h_p == 0.0] = 0.0
+                v_max_c = vel_c[:, timestep_name_wish_index].max()
+                v_p[v_p > v_max_c] = 0.0
+                vel_p[:, timestep_name_wish_index] = v_p
+                # shear stress at FacePoints
+                if mask_wet.sum() > 2:
+                    shear_stress_p = griddata_with_nan_correction(
+                        points=coord_c[mask_wet],
+                        values=shear_stress_c[mask_wet, timestep_name_wish_index],
+                        xi=coord_p)
+                else:
+                    shear_stress_p = np.zeros(nb_p)
+                shear_stress_p = np.nan_to_num(shear_stress_p, nan=0.0)
+                shear_stress_p[h_p == 0.0] = 0.0
+                shear_stress_pp_all[:, timestep_name_wish_index] = shear_stress_p
+            vel_c_all.append(vel_c)
+            vel_p_all.append(vel_p)
+            water_depth_p_all.append(water_depth_p)
+            shear_stress_p_all.append(shear_stress_pp_all)
 
             # get data time step by time step
             water_depth_t = []
             vel_t = []
             shear_stress_t = []
+            vel_p_t = []
+            water_depth_p_t = []
+            shear_stress_p_t = []
             for timestep_name_wish_index in range(self.timestep_wish_nb):
                 water_depth_t.append(water_depth_c_all[reach_index][timestep_name_wish_index])
                 vel_t.append(vel_c_all[reach_index][:, timestep_name_wish_index])
                 shear_stress_t.append(shear_stress_c_all[reach_index][:, timestep_name_wish_index])
+                vel_p_t.append(vel_p_all[reach_index][:, timestep_name_wish_index])
+                water_depth_p_t.append(water_depth_p_all[reach_index][:, timestep_name_wish_index])
+                shear_stress_p_t.append(shear_stress_p_all[reach_index][:, timestep_name_wish_index])
             water_depth_t_all.append(water_depth_t)
             vel_t_all.append(vel_t)
             shear_stress_t_all.append(shear_stress_t)
+            vel_p_t_all.append(vel_p_t)
+            water_depth_p_t_all.append(water_depth_p_t)
+            shear_stress_p_t_all.append(shear_stress_p_t)
             # xyz
             coord_p_xyz_all.append(np.column_stack([coord_p_all[reach_index], elev_p_all[reach_index]]))
             coord_c_xyz_all.append(np.column_stack([coord_c_all[reach_index], elev_c_all[reach_index]]))
+        # apply min_height to cell data (remove quasi-dry cells)
         for reach_number in range(len(self.reach_name_list)):
             for timestep_name_wish_index in range(self.timestep_wish_nb):
                 mask_dry = water_depth_c_all[reach_number][timestep_name_wish_index, :] < min_height
@@ -310,8 +471,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                 shear_stress_c_all[reach_number][mask_dry, timestep_name_wish_index] = 0
 
         # get a triangular grid as hec-ras output are not triangular
-        ikle_all, coord_p_xyz_all, water_depth_t_all, vel_t_all, shear_stress_t_all, z_all = get_triangular_grid_hecras(
-            ikle_all, coord_c_xyz_all, coord_p_xyz_all, water_depth_t_all, vel_t_all, shear_stress_t_all)
+        ikle_all, coord_p_xyz_all, water_depth_t_all, vel_t_all, shear_stress_t_all, z_all, h_all, v_all, shear_stress_nodes_all = get_triangular_grid_hecras(
+            ikle_all, coord_c_xyz_all, coord_p_xyz_all, water_depth_t_all, vel_t_all, shear_stress_t_all, vel_p_t_all, water_depth_p_t_all, shear_stress_p_t_all)
 
         # transform data to pandas
         data_mesh_pd_r_list = []
@@ -319,8 +480,8 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
             data_mesh_pd_t_list = []
             for timestep_name_wish_index in range(self.timestep_wish_nb):
                 data_mesh_pd = pd.DataFrame()
-                data_mesh_pd[self.hvum.v.name] = vel_t_all[reach_number][:, timestep_name_wish_index]
-                data_mesh_pd[self.hvum.shear_stress.name] = shear_stress_t_all[reach_number][:, timestep_name_wish_index]
+                data_mesh_pd[self.hvum.v.name] = v_all[reach_number][:, timestep_name_wish_index]
+                data_mesh_pd[self.hvum.shear_stress.name] = shear_stress_nodes_all[reach_number][:, timestep_name_wish_index]
                 data_mesh_pd_t_list.append(data_mesh_pd)
             data_mesh_pd_r_list.append(data_mesh_pd_t_list)
 
@@ -333,10 +494,10 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
         for reach_number in range(len(self.reach_name_list)):
             ikle_reach = np.column_stack(
                 [ikle_all[reach_number], np.ones(len(ikle_all[0]), dtype=ikle_all[0].dtype) * -1])  # add -1 column
-            ikle_reach, xyz_reach, h_reach, data_node_list = manage_grid_mod.finite_volume_to_finite_element_triangularxy(
+            ikle_reach, xyz_reach, h_reach, data_node_list = manage_grid_mod.finite_volume_to_finite_element_triangularxy_hecras(
                                                                                     ikle_reach,
                                                                                     coord_p_xyz_all[reach_number],
-                                                                                    water_depth_t_all[reach_number],
+                                                                                    h_all[reach_number],
                                                                                     data_mesh_pd_r_list[reach_number])
             tin.append(ikle_reach)
             xy.append(xyz_reach[:, (0, 1)])
@@ -480,9 +641,10 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                     data_face_t = data_face[:, 2:].T
                     add_vec_x = np.sum(data_face_t * data_face[:, 0], axis=1)
                     add_vec_y = np.sum(data_face_t * data_face[:, 1], axis=1)
-                    velx_c[c, :] = add_vec_x / nb_face
-                    vely_c[c, :] = add_vec_y / nb_face
-                    vel_c[c, :] = np.sqrt(add_vec_x ** 2 + add_vec_y ** 2) / nb_face
+                    velx_c[c, :] = add_vec_x / 2
+                    vely_c[c, :] = add_vec_y / 2
+                    # vel_c[c, :] = np.sqrt(add_vec_x ** 2 + add_vec_y ** 2) / nb_face
+                    vel_c[c, :] = np.sqrt(velx_c[c, :] ** 2 + vely_c[c, :] ** 2)
                     # shear_stress
                     data2_face = new_shear_stress[face, :]
                     data2_face_t = data2_face[:, 2:].T
@@ -619,7 +781,7 @@ def get_discharges(filename_path, reach_name="2D_AREA"):
     return timesteps
 
 
-def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v, shear_stress):
+def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h_c, v_c, shear_stress, v_p, h_p, shear_stress_p):
     """
     In Hec-ras, it is possible to have non-triangular cells, often rectangular cells This function transform the
     "mixed" grid to a triangular grid. For this,
@@ -633,34 +795,45 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v, shear_str
     :param ikle_all: cell definition ie the connectivity table by reach (list of np.array)[by reach
     :param coord_c_all: the coordinate of the centroid of the cell (list of xyz np.array) [by reach
     :param point_all: the points/nodes of the grid (list of xyz np.array) [by reach
-    :param h: data on cell water height  (list of np.array)[by time step [by reach
-    :param v: data on cell velocity (list of np.array) [by time step [by reach
+    :param h_c: data on cell center  water height  (list of np.array)[by time step [by reach
+    :param v_c: data on cell center velocity (list of np.array) [by time step [by reach
+    :param v_p        : data on FacePoint velocity (list of np.array) [by time step] [by reach]
+    :param h_p        : data on FacePoint water height (list of np.array) [by time step] [by reach]
     :return: the updated ikle_all,  point_all, h_all, v_all with only triangles
     """
 
     nb_reach = len(ikle_all)
 
-    v_all = []
+    water_depth_mesh_all = []
+    vel_mesh_all = []
     shear_stress_all = []
     z_all = []
     h_all = []
+    v_all = []
+    shear_stress_nodes_all = []
 
-    nbtime = len(v[0])  #TODO : if multi reach : nbtime can vary by reach ? We said nbtime can't vary by reach ...
+    nbtime = len(v_c[0])  #TODO : if multi reach : nbtime can vary by reach ? We said nbtime can't vary by reach ...
 
     # create the new grid for each reach
     for r in range(nb_reach):
         # store the hydraulic data of the reach
-        hr = np.zeros((len(ikle_all[r]), nbtime), dtype=np.float64)
-        vr = np.zeros((len(ikle_all[r]), nbtime), dtype=np.float64)
+        h_cr = np.zeros((len(ikle_all[r]), nbtime), dtype=np.float64)
+        v_cr = np.zeros((len(ikle_all[r]), nbtime), dtype=np.float64)
         shear_stressr = np.zeros((len(ikle_all[r]), nbtime), dtype=np.float64)
         zr = np.zeros((len(ikle_all[r]), nbtime), dtype=np.float64)
+        v_pr = np.zeros((len(point_all[r]), nbtime), dtype=np.float64)
+        h_pr = np.zeros((len(point_all[r]), nbtime), dtype=np.float64)
+        shear_stress_pr = np.zeros((len(point_all[r]), nbtime), dtype=np.float64)
 
         # add data by time step
         for t in range(nbtime):
-            hr[:, t] = h[r][t]  # list of np.array
-            vr[:, t] = v[r][t]
+            h_cr[:, t] = h_c[r][t]  # list of np.array
+            v_cr[:, t] = v_c[r][t]
             shear_stressr[:, t] = shear_stress[r][t]
             zr[:, t] = coord_c_all[r][:, 2]
+            v_pr[:, t] = v_p[r][t]
+            h_pr[:, t] = h_p[r][t]
+            shear_stress_pr[:, t] = shear_stress_p[r][t]
 
         ikle = np.copy(ikle_all[r])
         iklesum = np.copy(ikle)
@@ -675,6 +848,18 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v, shear_str
         nbmeshsup = np.sum(iklemore3 - 1)
         # calculating the number of point (cell centers) that we will add as node for triangles after splinting cells with more than 3 nodes into triangles
         npxyzsup = np.sum(iklemore3 != 1)
+        # shear_stress, z, h, v — indexed by triangle
+        shear_stressr3 = np.concatenate((shear_stressr[bmeshmore2], np.empty((nbmeshsup, nbtime), dtype=np.float64)),
+                                        axis=0)
+        zr3 = np.concatenate((zr[bmeshmore2], np.empty((nbmeshsup, nbtime), dtype=np.float64)), axis=0)
+        water_depth_meshr3 = np.concatenate((h_cr[bmeshmore2], np.empty((nbmeshsup, nbtime), dtype=np.float64)),
+                                            axis=0)
+        vel_meshr3 = np.concatenate((v_cr[bmeshmore2], np.empty((nbmeshsup, nbtime), dtype=np.float64)), axis=0)
+
+        # we have to filter h_cr and v_cr to keep only polygons with > 3 nodes
+        h_c_noder = h_cr[iklemore3 != 1]
+        v_c_noder = v_cr[iklemore3 != 1]
+        shear_stress_cr = shear_stressr[iklemore3 != 1]
         # ikle3 to store only the valid triangles
         ikle3 = np.concatenate((ikle[bmeshmore2][..., :3], np.empty((nbmeshsup, 3), dtype=ikle.dtype)),
                                    axis=0)
@@ -682,10 +867,13 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v, shear_str
         xyz3 = np.concatenate((point_all[r], np.empty((npxyzsup, point_all[r].shape[1]), dtype=point_all[r].dtype)),
                               axis=0)
 
-        hr3 = np.concatenate((hr[bmeshmore2], np.empty((nbmeshsup, nbtime), dtype=np.float64)), axis=0)
-        vr3 = np.concatenate((vr[bmeshmore2], np.empty((nbmeshsup, nbtime), dtype=np.float64)), axis=0)
-        shear_stressr3 = np.concatenate((shear_stressr[bmeshmore2], np.empty((nbmeshsup, nbtime), dtype=np.float64)), axis=0)
-        zr3 = np.concatenate((zr[bmeshmore2], np.empty((nbmeshsup, nbtime), dtype=np.float64)), axis=0)
+        # hr3 = np.concatenate((hr[bmeshmore2], np.empty((nbmeshsup, nbtime), dtype=np.float64)), axis=0)
+        # vr3 = np.concatenate((vr[bmeshmore2], np.empty((nbmeshsup, nbtime), dtype=np.float64)), axis=0)
+        # shear_stressr3 = np.concatenate((shear_stressr[bmeshmore2], np.empty((nbmeshsup, nbtime), dtype=np.float64)), axis=0)
+        # zr3 = np.concatenate((zr[bmeshmore2], np.empty((nbmeshsup, nbtime), dtype=np.float64)), axis=0)
+        hr3 = np.concatenate((h_pr, h_c_noder), axis=0)
+        vr3 = np.concatenate((v_pr, v_c_noder), axis=0)
+        shear_stress_nodesr = np.concatenate((shear_stress_pr, shear_stress_cr), axis=0)
         likle = len(ikle)
         c3, cc3, ixyz3 = 0, np.sum(bmeshmore2) - 1, len(
             point_all[r]) - 1  # c3 index for the beginning of ikle3 cc3 index for new triangle
@@ -701,14 +889,18 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v, shear_str
                 for s in range(1, iklesum[c] - 1):
                     cc3 += 1
                     ikle3[cc3, :] = ikle[c][s], ikle[c][s + 1], ixyz3  # others triangle
-                    hr3[cc3, :] = hr[c, :]
-                    vr3[cc3, :] = vr[c, :]
+                    # hr3[cc3, :] = hr[c, :]
+                    # vr3[cc3, :] = vr[c, :]
+                    water_depth_meshr3[cc3, :] = h_cr[c, :]
+                    vel_meshr3[cc3, :] = v_cr[c, :]
                     shear_stressr3[cc3, :] = shear_stressr[c, :]
                     zr3[cc3, :] = zr[c, :]
                 cc3 += 1
                 ikle3[cc3, :] = ikle[c][iklesum[c] - 1], ikle[c][0], ixyz3  # last triangle
-                hr3[cc3, :] = hr[c, :]
-                vr3[cc3, :] = vr[c, :]
+                # hr3[cc3, :] = hr[c, :]
+                # vr3[cc3, :] = vr[c, :]
+                water_depth_meshr3[cc3, :] = h_cr[c, :]
+                vel_meshr3[cc3, :] = v_cr[c, :]
                 shear_stressr3[cc3, :] = shear_stressr[c, :]
                 zr3[cc3, :] = zr[c, :]
         # add grid by reach
@@ -716,12 +908,15 @@ def get_triangular_grid_hecras(ikle_all, coord_c_all, point_all, h, v, shear_str
         point_all[r] = xyz3
 
         # add data by time step
-        h_all.append(hr3)
-        v_all.append(vr3)
+        water_depth_mesh_all.append(water_depth_meshr3)
+        vel_mesh_all.append(vel_meshr3)
         shear_stress_all.append(shear_stressr3)
         z_all.append(zr3)
+        h_all.append(hr3)
+        v_all.append(vr3)
+        shear_stress_nodes_all.append(shear_stress_nodesr)
 
-    return ikle_all, point_all, h_all, v_all, shear_stress_all, z_all
+    return ikle_all, point_all, water_depth_mesh_all, vel_mesh_all, shear_stress_all, z_all, h_all, v_all, shear_stress_nodes_all
 
 
 def figure_hec_ras2d(v_all, h_all, elev_all, coord_p_all, coord_c_all, ikle_all, path_im, time_step=[0], flow_area=[0],
@@ -906,5 +1101,20 @@ def scatter_plot(coord, data, data_name, my_cmap, s1, t):
     else:
         plt.title(data_name + ' at time step ' + str(t))
 
+def griddata_with_nan_correction(points, values, xi):
+    """
+    Linear griddata interpolation with nearest-neighbor NaN correction.
+
+    :param points: source coordinates, shape (n, 2)
+    :param values: source values to interpolate, shape (n,) or (n, k)
+    :param xi: target coordinates, shape (m, 2)
+    :return: interpolated array, shape (m,) or (m, k), no NaN
+    """
+    result = griddata(points=points, values=values, xi=xi, method='linear')
+    nan_mask = np.isnan(result) if result.ndim == 1 else np.isnan(result[:, 0])
+    if nan_mask.any():
+        result[nan_mask] = griddata(
+            points=points, values=values, xi=xi[nan_mask], method='nearest')
+    return result
 
 

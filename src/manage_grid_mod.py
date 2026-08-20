@@ -1726,6 +1726,51 @@ def finite_volume_to_finite_element_triangularxy(ikle, nodes, hmesh, data_mesh_p
     else:
         return ikle2, nodes2, hnodes2all, data_nodes2all
 
+def finite_volume_to_finite_element_triangularxy_hecras(ikle, nodes,h, data_mesh_pd_t_list,sub=''):
+    """
+        HEC-RAS specific FVM to FEM conversion.
+        Replaces finite_volume_to_finite_element_triangularxy for HEC-RAS 2D.
+        Instead of interpolating h and v from triangle barycenters to nodes via griddata,
+        this function injects h and v directly at nodes from pre-computed values :
+        - h and v at FacePoints computed in load_hydraulic via vxh/h interpolation
+        - h and v at cell centers computed in load_hydraulic via Q/S method
+        all the following parameters are numpy arrays
+
+        :param ikle   : the connectivity table 4 columns for quadrangular or triangular (las column value=-1)  meshes
+        :param nodes  : the x , y , z of the nodes
+        :param h: water depth at nodes (nb_nodes, nbtime), FacePoints + cell centers
+        :param data_mesh_pd_t_list : v and shear_stress at nodes by timestep (list of DataFrame)
+        :param sub    : the substrate description for all meshes
+        :return: ikle2, new connectivity table for a triangular mesh(x,y) with associate x, y, z : nodes2
+             and new values for the velocity and water depth injected directly at nodes from pre-computed
+             FacePoint and cell center values at each unit : hnodes2all, data_nodes2all
+        """
+    if type(sub) == np.ndarray:
+        bsub = True
+    else:
+        bsub = False
+
+    nbunit = h.shape[1]
+
+    ikle2 = np.copy(ikle[np.where(ikle[:, [3]] == -1)[0]][:, 0:3])
+    nodes2 = np.copy(nodes)
+
+    # inject h, v and shear_stress at nodes
+    hnodes2all = np.copy(h)
+    data_nodes2all = [[]] * nbunit
+
+    for i in range(nbunit):
+        # h
+        hnodes2all[np.isnan(hnodes2all[:, i]), i] = 0
+        hnodes2all[hnodes2all[:, i] <= 0, i] = 0
+
+        # v and shear_stress
+        data_pd = np.abs(data_mesh_pd_t_list[i].values)
+        data_pd[hnodes2all[:, i] == 0] = 0
+        data_nodes2all[i] = data_pd
+
+    return ikle2, nodes2, hnodes2all, data_nodes2all
+
 
 def pass_grid_cell_to_node_lin(point_all, coord_c, vel_in, height_in, warn1=True, vtx_all=[], wts_all=[]):
     """
