@@ -480,15 +480,16 @@ class HydraulicSimulationResults(HydraulicSimulationResultsBase):
                     data_face_t = data_face[:, 2:].T
                     add_vec_x = np.sum(data_face_t * data_face[:, 0], axis=1)
                     add_vec_y = np.sum(data_face_t * data_face[:, 1], axis=1)
-                    velx_c[c, :] = add_vec_x / nb_face
-                    vely_c[c, :] = add_vec_y / nb_face
-                    vel_c[c, :] = np.sqrt(add_vec_x ** 2 + add_vec_y ** 2) / nb_face
+                    velx_c[c, :] = add_vec_x / 2
+                    vely_c[c, :] = add_vec_y / 2
+                    # vel_c[c, :] = np.sqrt(add_vec_x ** 2 + add_vec_y ** 2) / nb_face
+                    vel_c[c, :] = np.sqrt(velx_c[c, :] ** 2 + vely_c[c, :] ** 2)
                     # shear_stress
                     data2_face = new_shear_stress[face, :]
                     data2_face_t = data2_face[:, 2:].T
                     add_vec_x2 = np.sum(data2_face_t * data2_face[:, 0], axis=1)
                     add_vec_y2 = np.sum(data2_face_t * data2_face[:, 1], axis=1)
-                    shear_stress_c[c, :] = np.sqrt(add_vec_x2 ** 2 + add_vec_y2 ** 2) / nb_face
+                    shear_stress_c[c, :] = np.sqrt(add_vec_x2 ** 2 + add_vec_y2 ** 2) / 2
 
                 # for each face
                 coord_center_face = []
